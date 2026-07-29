@@ -1174,7 +1174,8 @@ export default function ProductFormEditor({
               )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* TAB 3: SPECS & SEO */}
         {activeTab === "seo_specs" && (

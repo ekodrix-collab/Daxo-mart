@@ -100,92 +100,14 @@ export default function Header() {
 
           {/* Search + Icons */}
           <div className="flex items-center gap-2">
-            {/* Desktop Live Search */}
-            <div ref={searchRef} className="relative hidden lg:block">
-              <form
-                onSubmit={handleSearchSubmit}
-                className="flex items-center gap-2.5 bg-dark3 border border-border rounded-md
-                           px-3.5 py-2 w-64 focus-within:border-accent transition-colors duration-200"
-              >
-                <Search size={14} className="text-dim shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search products…"
-                  value={searchQuery}
-                  onFocus={() => setShowDropdown(true)}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  className="bg-transparent border-none outline-none text-[13px] text-cream w-full
-                             placeholder:text-dim font-pally"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="text-muted hover:text-cream p-0.5"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
-              </form>
-
-              {/* Live Search Dropdown */}
-              {showDropdown && searchQuery.trim().length > 0 && (
-                <div className="absolute left-0 top-full mt-2 w-80 bg-dark2 border border-border rounded-xl shadow-2xl overflow-hidden z-50">
-                  {searchResults.length > 0 ? (
-                    <div className="p-2 space-y-1">
-                      <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted">
-                        Matching Products ({searchResults.length})
-                      </div>
-                      {searchResults.map((prod) => (
-                        <Link
-                          key={prod.id}
-                          href={`/products/${prod.slug || prod.id}`}
-                          onClick={() => setShowDropdown(false)}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-dark3 transition-colors group no-underline"
-                        >
-                          <div className="w-10 h-10 bg-white rounded-md p-1 shrink-0 flex items-center justify-center overflow-hidden">
-                            <Image
-                              src={prod.img}
-                              alt={prod.shortName}
-                              width={40}
-                              height={40}
-                              unoptimized
-                              className="object-contain max-h-full"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[12.5px] font-bold text-cream group-hover:text-accent truncate font-pally">
-                              {prod.shortName || prod.name}
-                            </p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] text-muted uppercase tracking-wider font-semibold">
-                                {prod.category}
-                              </span>
-                              <span className="text-[11.5px] font-extrabold text-accent">
-                                {prod.priceStr}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={(e) => handleSearchSubmit(e)}
-                        className="w-full mt-1 bg-dark3 hover:bg-accent/20 text-accent font-bold text-[11px] uppercase tracking-wider py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer font-pally"
-                      >
-                        View all results for &quot;{searchQuery}&quot; <ArrowRight size={13} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="p-4 text-center text-[12px] text-muted">
-                      No products found for &quot;{searchQuery}&quot;
-                    </div>
-                  )}
-                </div>
-              )}
+            {/* Desktop Search Input Trigger */}
+            <div
+              onClick={() => openSearchModal("")}
+              className="hidden lg:flex items-center gap-2.5 bg-dark3 border border-border rounded-md
+                         px-3.5 py-2 w-64 cursor-pointer hover:border-accent transition-colors duration-200"
+            >
+              <Search size={14} className="text-dim shrink-0" />
+              <span className="text-[13px] text-dim font-pally select-none">Search products…</span>
             </div>
 
             {/* Mobile Search Icon Button */}
