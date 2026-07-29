@@ -558,7 +558,7 @@ export default function ProductFormEditor({
               <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B] flex flex-col sm:flex-row items-center gap-6">
                 <div className="w-40 h-40 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-lg">
                   {img ? (
-                    <Image src={img} alt="Main product cover" fill className="object-cover" />
+                    <Image src={img} alt="Main product cover" fill unoptimized className="object-cover" />
                   ) : (
                     <ImageIcon className="text-gray-600" size={40} />
                   )}
@@ -596,7 +596,7 @@ export default function ProductFormEditor({
                         isMain ? "border-[#C5A059] ring-2 ring-[#C5A059]/30" : "border-[#26262B]"
                       }`}
                     >
-                      <Image src={gUrl} alt={`Thumbnail ${idx}`} fill className="object-cover" />
+                      <Image src={gUrl} alt={`Thumbnail ${idx}`} fill unoptimized className="object-cover" />
 
                       {isMain && (
                         <div className="absolute top-2 left-2 bg-[#C5A059] text-black font-extrabold text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 shadow">

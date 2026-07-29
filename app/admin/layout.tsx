@@ -21,6 +21,7 @@ import {
   ChevronRight,
   ShieldCheck,
   MessageSquare,
+  Award,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import AdminQueryProvider from "./components/QueryProvider";
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Grid },
+  { label: "Brands", href: "/admin/brands", icon: Award },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];

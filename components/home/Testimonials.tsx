@@ -31,19 +31,15 @@ const REVIEWS = [
 
 export default function Testimonials() {
   return (
-    <section className="bg-dark2 py-16">
+    <section className="bg-white border-t border-gray-300 py-16">
       <div className="max-w-[1280px] mx-auto px-5">
         {/* Header */}
         <div className="text-center mb-10">
           <p className="text-[12px] font-bold tracking-[0.22em] uppercase text-accent mb-2">
             DAXOMART
           </p>
-          <div className="flex justify-center gap-1 mb-3">
-            {[1,2,3,4,5].map(i => (
-              <span key={i} className="text-star text-[20px]">★</span>
-            ))}
-          </div>
-          <h2 className="text-[26px] font-bold uppercase tracking-[0.05em] text-cream">
+         
+          <h2 className="text-[26px] font-bold uppercase tracking-[0.05em] text-dark">
             Hear From Our Happy Customers
           </h2>
         </div>
