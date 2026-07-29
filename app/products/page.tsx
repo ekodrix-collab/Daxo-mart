@@ -105,6 +105,7 @@ function SingleProductCard({ p }: { p: Product }) {
               alt={p.shortName}
               width={320}
               height={240}
+              unoptimized
               className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
             />
           </div>
@@ -198,13 +199,17 @@ function ProductsContent() {
   // Mobile Filter Drawer State
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Sync category param from URL on initial load or URL change
+  // Sync category & search params from URL on initial load or URL change
   useEffect(() => {
     const urlCat = searchParams.get("category");
+    const urlSearch = searchParams.get("search") || searchParams.get("q");
     if (urlCat) {
       setCategoryFilter(urlCat);
     } else {
       setCategoryFilter("ALL");
+    }
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
     }
   }, [searchParams]);
 
