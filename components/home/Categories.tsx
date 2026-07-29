@@ -1,0 +1,52 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { type CategoryItem } from "@/lib/categories";
+import { fetchCategories } from "@/service/storeService";
+
+export default function Categories() {
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+
+  useEffect(() => {
+    fetchCategories().then((res) => {
+      if (res.length > 0) {
+        setCategories(res);
+      }
+    });
+  }, []);
+
+  return (
+    <section className="bg-white py-12 sm:py-16 md:py-20 border-b border-[#e8e0d8]">
+      {/* Title */}
+      <h2 className="text-center text-[22px] sm:text-[26px] md:text-[28px] font-black tracking-[0.18em] uppercase text-[#0c0c0c] mb-8 sm:mb-12 font-pally">
+        Shop By Category
+      </h2>
+
+      {/* Circle Grid / Row */}
+      <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 max-w-[1200px] mx-auto px-4">
+        {categories.map((cat) => (
+          <Link
+            key={cat.id}
+            href={`/products?category=${encodeURIComponent(cat.filterValue)}`}
+            className="group flex flex-col items-center gap-3 sm:gap-4 no-underline"
+          >
+            {/* Circle container */}
+            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full bg-[#0c0c0c] border-4 border-[#1f1f1f] overflow-hidden flex items-center justify-center shrink-0 transition-all duration-200 group-hover:-translate-y-2 group-hover:shadow-[0_16px_40px_rgba(0,0,0,0.32)]">
+              <img
+                src={cat.img}
+                alt={cat.name}
+                className="w-full h-full object-cover object-center rounded-full block"
+              />
+            </div>
+
+            {/* Label */}
+            <span className="text-[13px] sm:text-[14px] font-bold tracking-wide text-[#0c0c0c] font-pally text-center">
+              {cat.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
