@@ -11,8 +11,8 @@ export interface CartItem {
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeFromCart: (productId: number | string) => void;
+  updateQuantity: (productId: number | string, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
 }
@@ -45,7 +45,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addToCart = (product: Product, quantity = 1) => {
-    const existingIndex = cart.findIndex((item) => item.product.id === product.id);
+    const existingIndex = cart.findIndex((item) => String(item.product.id) === String(product.id));
     let updatedCart: CartItem[];
     if (existingIndex > -1) {
       updatedCart = [...cart];
@@ -56,18 +56,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     saveCart(updatedCart);
   };
 
-  const removeFromCart = (productId: number) => {
-    const updatedCart = cart.filter((item) => item.product.id !== productId);
+  const removeFromCart = (productId: number | string) => {
+    const updatedCart = cart.filter((item) => String(item.product.id) !== String(productId));
     saveCart(updatedCart);
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: number | string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
     const updatedCart = cart.map((item) =>
-      item.product.id === productId ? { ...item, quantity } : item
+      String(item.product.id) === String(productId) ? { ...item, quantity } : item
     );
     saveCart(updatedCart);
   };

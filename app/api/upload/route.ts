@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // If Cloudinary credentials are missing in local dev, provide base64 data URL so uploaded image renders directly
+    // If Cloudinary credentials are missing in local dev, return base64 data URL so uploaded images display directly
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
       const mimeType = file.type || "image/png";
       const base64 = buffer.toString("base64");
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
           {
             folder: "daxo-mart/products",
             format: "webp",
-            quality: "auto:good", // Auto compression to WebP without noticeable visual degradation
+            quality: "auto:good",
           },
           (error, result) => {
             if (error) reject(error);

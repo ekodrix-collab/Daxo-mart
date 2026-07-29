@@ -35,7 +35,7 @@ export default function FramesSection() {
           {frames.map((frame) => (
             <Link
               key={frame.id}
-              href={`/products/${frame.id}`}
+              href={`/products/${frame.slug || frame.id}`}
               className="group flex flex-col no-underline cursor-pointer transition-transform duration-200 hover:-translate-y-1"
             >
               {/* Image Box */}

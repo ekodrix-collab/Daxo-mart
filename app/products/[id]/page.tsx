@@ -11,7 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const products = await fetchProducts();
-  const product = products.find((p) => String(p.id) === String(id));
+  const product = products.find((p) => p.slug === id || String(p.id) === String(id));
   if (!product) return { title: "Product Not Found – DAXOMART" };
   return {
     title: `${product.name} – DAXOMART`,
@@ -27,9 +27,9 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
   const products = await fetchProducts();
-  const product = products.find((p) => String(p.id) === String(id));
+  const product = products.find((p) => p.slug === id || String(p.id) === String(id));
 
   if (!product) notFound();
 
-  return <ProductDetailClient product={product} />;
+  return <ProductDetailClient product={product} allProducts={products} />;
 }
