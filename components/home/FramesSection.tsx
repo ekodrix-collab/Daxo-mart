@@ -31,7 +31,7 @@ export default function FramesSection() {
         </div>
 
         {/* Responsive 3-Card Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {frames.map((frame) => (
             <Link
               key={frame.id}

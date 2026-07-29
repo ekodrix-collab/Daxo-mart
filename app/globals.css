@@ -82,11 +82,17 @@ div::-webkit-scrollbar {
   white-space: nowrap;
   animation: marquee 30s linear infinite;
 }
+.marquee-track:hover {
+  animation-play-state: paused;
+}
 
 .marquee-track-fast {
   display: flex;
   white-space: nowrap;
   animation: marquee 22s linear infinite;
+}
+.marquee-track-fast:hover {
+  animation-play-state: paused;
 }
 
 /* ─── Countdown flip animation ───────────────────────────────────── */
