@@ -19,13 +19,15 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // If Cloudinary credentials are missing in local dev, provide mock/fallback response without crashing
+    // If Cloudinary credentials are missing in local dev, provide base64 data URL so uploaded image renders directly
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+      const mimeType = file.type || "image/png";
+      const base64 = buffer.toString("base64");
       return NextResponse.json({
         success: true,
-        url: "/images/car-suv.png",
-        format: "webp",
-        note: "Cloudinary credentials missing in .env.local. Upload fallback used.",
+        url: `data:${mimeType};base64,${base64}`,
+        format: mimeType.split("/")[1] || "png",
+        note: "Cloudinary credentials missing in .env.local. Base64 data URL fallback used.",
       });
     }
 

@@ -20,12 +20,14 @@ import {
   ChevronRight,
   ShieldCheck,
   MessageSquare,
+  Award,
 } from "lucide-react";
 import { supabase, OrderStatus } from "@/lib/supabase";
 import DashboardTab from "./components/DashboardTab";
 import OrdersTab, { type Order } from "./components/OrdersTab";
 import ProductsTab from "./components/ProductsTab";
 import CategoriesTab from "./components/CategoriesTab";
+import BrandsTab from "./components/BrandsTab";
 import CustomersTab from "./components/CustomersTab";
 import FeedbackTab from "./components/FeedbackTab";
 import SettingsTab from "./components/SettingsTab";
@@ -86,7 +88,7 @@ const SEED_ORDERS: Order[] = [
   },
 ];
 
-type TabType = "dashboard" | "orders" | "products" | "categories" | "customers" | "feedback" | "settings";
+type TabType = "dashboard" | "orders" | "products" | "categories" | "brands" | "customers" | "feedback" | "settings";
 
 function SideItem({
   label,
@@ -273,6 +275,7 @@ export default function AdminPage() {
     orders: "Order Management",
     products: "Product Catalog",
     categories: "Categories & Collections",
+    brands: "Brands & Manufacturer Logos",
     customers: "Customer CRM",
     feedback: "Customer Feedback & Reviews",
     settings: "System Settings",
@@ -430,6 +433,15 @@ export default function AdminPage() {
             }}
           />
           <SideItem
+            label="Brands"
+            icon={Award}
+            active={tab === "brands"}
+            onClick={() => {
+              setTab("brands");
+              setMobileNavOpen(false);
+            }}
+          />
+          <SideItem
             label="Customers"
             icon={Users}
             active={tab === "customers"}
@@ -555,6 +567,7 @@ export default function AdminPage() {
           )}
           {tab === "products" && <ProductsTab />}
           {tab === "categories" && <CategoriesTab />}
+          {tab === "brands" && <BrandsTab />}
           {tab === "customers" && (
             <CustomersTab orders={orders} onUpdateOrderStatus={updateStatus} />
           )}
