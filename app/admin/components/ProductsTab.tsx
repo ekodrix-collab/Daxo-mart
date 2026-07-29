@@ -311,7 +311,7 @@ export default function ProductsTab() {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-[#1C1C20] border border-[#28282D] rounded-xl shrink-0 p-1 flex items-center justify-center overflow-hidden">
-                          <Image src={p.img} alt={p.shortName} width={40} height={40} className="object-contain max-h-full" />
+                          <Image src={p.img} alt={p.shortName} width={40} height={40} unoptimized className="object-contain max-h-full" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-white truncate max-w-xs">{p.name}</p>
@@ -390,6 +390,7 @@ export default function ProductsTab() {
                     alt={p.shortName}
                     width={72}
                     height={72}
+                    unoptimized
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>

@@ -71,9 +71,12 @@ export default function CategoriesTab() {
       const result = await res.json();
       if (result.url) {
         setFormData((prev) => ({ ...prev, img: result.url }));
+      } else {
+        alert(result.error || "Failed to upload category image");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Category image upload error:", err);
+      alert(err.message || "Failed to upload image");
     } finally {
       setIsUploading(false);
     }
@@ -238,6 +241,7 @@ export default function CategoriesTab() {
                   alt={cat.name}
                   width={64}
                   height={64}
+                  unoptimized
                   className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
                 />
               </div>

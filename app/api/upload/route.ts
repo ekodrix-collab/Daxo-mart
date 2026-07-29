@@ -47,16 +47,43 @@ export async function POST(req: Request) {
         .end(buffer);
     });
 
-    const result = uploadResponse as any;
+    try {
+      const uploadResponse = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "daxo-mart/uploads",
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          )
+          .end(buffer);
+      });
 
-    return NextResponse.json({
-      success: true,
-      url: result.secure_url,
-      public_id: result.public_id,
-      format: result.format,
-    });
+      const result = uploadResponse as any;
+
+      return NextResponse.json({
+        success: true,
+        url: result.secure_url,
+        public_id: result.public_id,
+        format: result.format,
+      });
+    } catch (uploadErr: any) {
+      console.error("Cloudinary upload failed, falling back to base64 Data URL:", uploadErr);
+      const mimeType = file.type || "image/webp";
+      const base64Data = `data:${mimeType};base64,${buffer.toString("base64")}`;
+      return NextResponse.json({
+        success: true,
+        url: base64Data,
+        format: mimeType.split("/")[1] || "webp",
+        note: "Cloudinary upload error. Base64 fallback used.",
+      });
+    }
   } catch (error: any) {
-    console.error("Cloudinary upload API error:", error);
+    console.error("Upload API error:", error);
     return NextResponse.json({ error: error.message || "Failed to upload image" }, { status: 500 });
   }
 }
