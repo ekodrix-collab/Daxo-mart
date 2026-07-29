@@ -1,25 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getStoredBrands, INITIAL_BRANDS, type BrandItem } from "@/lib/brands";
+import { getStoredBrands, type BrandItem } from "@/lib/brands";
 
 export default function BrandsBar() {
-  const [brands, setBrands] = useState<BrandItem[]>(INITIAL_BRANDS);
+  const [brands, setBrands] = useState<BrandItem[]>([]);
 
   useEffect(() => {
-    const loadBrands = () => {
-      const allBrands = getStoredBrands();
+    const fetchBrandsData = async () => {
+      const allBrands = await getStoredBrands();
       const active = allBrands.filter((b) => b.is_active !== false);
-      if (active.length > 0) {
-        setBrands(active);
-      }
+      setBrands(active);
     };
 
-    loadBrands();
-
-    window.addEventListener("dm_brands_updated", loadBrands);
-    return () => window.removeEventListener("dm_brands_updated", loadBrands);
+    fetchBrandsData();
   }, []);
+
+  if (brands.length === 0) {
+    return null;
+  }
 
   const marqueeItems = [...brands, ...brands, ...brands];
 
@@ -37,7 +36,7 @@ export default function BrandsBar() {
               <img
                 src={item.logoUrl}
                 alt={item.name}
-                className="h-25  w-auto object-contain drop-shadow-sm"
+                className="h-25 w-auto object-contain drop-shadow-sm"
               />
             )}
           </div>

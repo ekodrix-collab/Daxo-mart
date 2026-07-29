@@ -2,15 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { getStoredBrands, saveStoredBrands, type BrandItem } from "@/lib/brands";
-import { Plus, Search, Edit2, Trash2, Award, Upload, CheckCircle, Eye, EyeOff } from "lucide-react";
+import {
+  getStoredBrands,
+  saveBrandToSupabase,
+  deleteBrandFromSupabase,
+  type BrandItem,
+} from "@/lib/brands";
+import { Plus, Search, Edit2, Trash2, Award, Upload, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function BrandsTab() {
   const [brands, setBrands] = useState<BrandItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<BrandItem | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,14 +25,16 @@ export default function BrandsTab() {
     is_active: true,
   });
 
-  useEffect(() => {
-    setBrands(getStoredBrands());
-  }, []);
-
-  const updateAndSave = (newList: BrandItem[]) => {
-    setBrands(newList);
-    saveStoredBrands(newList);
+  const fetchBrands = async () => {
+    setLoading(true);
+    const data = await getStoredBrands();
+    setBrands(data);
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
 
   const handleOpenAdd = () => {
     setEditingBrand(null);
@@ -53,17 +62,9 @@ export default function BrandsTab() {
 
     setIsUploading(true);
 
-    // Convert to Data URL immediately so the image is previewable and saved right away
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setFormData((prev) => ({ ...prev, logoUrl: event.target!.result as string }));
-      }
-    };
-    reader.readAsDataURL(file);
-
     const data = new FormData();
     data.append("file", file);
+    data.append("folder", "daxo-mart/brands");
 
     try {
       const res = await fetch("/api/upload", {
@@ -81,49 +82,38 @@ export default function BrandsTab() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim() || !formData.logoUrl.trim()) return;
 
-    const formattedName = formData.name.trim().toUpperCase();
+    setIsSaving(true);
+    await saveBrandToSupabase({
+      id: editingBrand?.id,
+      name: formData.name,
+      logoUrl: formData.logoUrl,
+      is_active: formData.is_active,
+    });
 
-    if (editingBrand) {
-      const updated = brands.map((b) =>
-        b.id === editingBrand.id
-          ? {
-              ...b,
-              name: formattedName,
-              logoUrl: formData.logoUrl || b.logoUrl,
-              is_active: formData.is_active,
-            }
-          : b
-      );
-      updateAndSave(updated);
-    } else {
-      const newBrand: BrandItem = {
-        id: `brand-${Date.now()}`,
-        name: formattedName,
-        logoUrl: formData.logoUrl || "/images/placeholder.png",
-        is_active: formData.is_active,
-      };
-      updateAndSave([...brands, newBrand]);
-    }
-
+    await fetchBrands();
+    setIsSaving(false);
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this brand?")) {
-      const filtered = brands.filter((b) => b.id !== id);
-      updateAndSave(filtered);
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this brand from database?")) {
+      await deleteBrandFromSupabase(id);
+      await fetchBrands();
     }
   };
 
-  const handleToggleActive = (id: string) => {
-    const updated = brands.map((b) =>
-      b.id === id ? { ...b, is_active: !(b.is_active ?? true) } : b
-    );
-    updateAndSave(updated);
+  const handleToggleActive = async (brand: BrandItem) => {
+    await saveBrandToSupabase({
+      id: brand.id,
+      name: brand.name,
+      logoUrl: brand.logoUrl,
+      is_active: !(brand.is_active ?? true),
+    });
+    await fetchBrands();
   };
 
   const filteredBrands = brands.filter((b) =>
@@ -139,10 +129,10 @@ export default function BrandsTab() {
             <Award size={16} /> Brand Marquee Management
           </div>
           <h2 className="text-[22px] font-bold text-white tracking-tight font-pally">
-            Brand Logos & Names
+            Brand Logos & Database
           </h2>
           <p className="text-[13px] text-gray-400 mt-1 font-normal">
-            Upload real logo images and manage the brand names displayed in the homepage status bar.
+            All brand logos are uploaded to Cloudinary, auto-compressed to WebP, and stored permanently in Supabase DB.
           </p>
         </div>
 
@@ -172,69 +162,75 @@ export default function BrandsTab() {
       </div>
 
       {/* Brands Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {filteredBrands.map((brand) => (
-          <div
-            key={brand.id}
-            className="bg-[#141416] border border-[#222226] hover:border-[#C5A059]/40 transition-all rounded-[20px] p-5 shadow-md flex flex-col justify-between group"
-          >
-            <div>
-              {/* Logo Preview Container */}
-              <div className="w-full h-28 bg-[#1B1B1E] border border-[#2A2A2E] rounded-xl p-4 flex items-center justify-center relative overflow-hidden mb-4 group-hover:bg-[#202024] transition-colors">
-                {brand.logoUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={brand.logoUrl}
-                    alt={brand.name}
-                    className="max-h-16 max-w-full object-contain filter drop-shadow-md"
-                  />
-                ) : (
-                  <div className="text-gray-500 text-xs">No Logo Uploaded</div>
-                )}
-                {/* Active Indicator */}
-                <button
-                  onClick={() => handleToggleActive(brand.id)}
-                  title={brand.is_active !== false ? "Active (Click to hide)" : "Hidden (Click to show)"}
-                  className={`absolute top-2.5 right-2.5 p-1.5 rounded-lg border text-[11px] font-medium transition-all ${
-                    brand.is_active !== false
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                      : "bg-gray-800 border-gray-700 text-gray-500"
-                  }`}
-                >
-                  {brand.is_active !== false ? <Eye size={14} /> : <EyeOff size={14} />}
-                </button>
+      {loading ? (
+        <div className="bg-[#141416] border border-[#222226] rounded-[20px] p-12 text-center flex items-center justify-center gap-3 text-gray-400">
+          <Loader2 size={22} className="animate-spin text-[#C5A059]" /> Loading database brands...
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filteredBrands.map((brand) => (
+            <div
+              key={brand.id}
+              className="bg-[#141416] border border-[#222226] hover:border-[#C5A059]/40 transition-all rounded-[20px] p-5 shadow-md flex flex-col justify-between group"
+            >
+              <div>
+                {/* Logo Preview Container */}
+                <div className="w-full h-28 bg-[#1B1B1E] border border-[#2A2A2E] rounded-xl p-4 flex items-center justify-center relative overflow-hidden mb-4 group-hover:bg-[#202024] transition-colors">
+                  {brand.logoUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={brand.logoUrl}
+                      alt={brand.name}
+                      className="max-h-16 max-w-full object-contain filter drop-shadow-md brightness-200 contrast-200 invert"
+                    />
+                  ) : (
+                    <div className="text-gray-500 text-xs">No Logo Uploaded</div>
+                  )}
+                  {/* Active Indicator */}
+                  <button
+                    onClick={() => handleToggleActive(brand)}
+                    title={brand.is_active !== false ? "Active (Click to hide)" : "Hidden (Click to show)"}
+                    className={`absolute top-2.5 right-2.5 p-1.5 rounded-lg border text-[11px] font-medium transition-all ${
+                      brand.is_active !== false
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                        : "bg-gray-800 border-gray-700 text-gray-500"
+                    }`}
+                  >
+                    {brand.is_active !== false ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </button>
+                </div>
+
+                {/* Brand Name */}
+                <h3 className="text-[15px] font-bold text-white tracking-widest font-pally uppercase truncate">
+                  {brand.name}
+                </h3>
+                <p className="text-[12px] text-gray-400 mt-1 font-mono">
+                  {brand.is_active !== false ? "Visible on Marquee" : "Hidden from Marquee"}
+                </p>
               </div>
 
-              {/* Brand Name */}
-              <h3 className="text-[15px] font-bold text-white tracking-widest font-pally uppercase truncate">
-                {brand.name}
-              </h3>
-              <p className="text-[12px] text-gray-400 mt-1 font-mono">
-                {brand.is_active !== false ? "Visible on Marquee" : "Hidden from Marquee"}
-              </p>
+              {/* Actions Bar */}
+              <div className="flex items-center gap-2 pt-4 mt-4 border-t border-[#222226]">
+                <button
+                  onClick={() => handleOpenEdit(brand)}
+                  className="flex-1 bg-[#1F1F23] hover:bg-[#2A2A30] text-gray-200 text-[12.5px] font-semibold py-2 px-3 rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-[#2E2E34] cursor-pointer"
+                >
+                  <Edit2 size={14} className="text-[#C5A059]" /> Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(brand.id)}
+                  className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors border border-red-500/20 cursor-pointer"
+                  title="Delete Brand"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
+          ))}
+        </div>
+      )}
 
-            {/* Actions Bar */}
-            <div className="flex items-center gap-2 pt-4 mt-4 border-t border-[#222226]">
-              <button
-                onClick={() => handleOpenEdit(brand)}
-                className="flex-1 bg-[#1F1F23] hover:bg-[#2A2A30] text-gray-200 text-[12.5px] font-semibold py-2 px-3 rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-[#2E2E34] cursor-pointer"
-              >
-                <Edit2 size={14} className="text-[#C5A059]" /> Edit
-              </button>
-              <button
-                onClick={() => handleDelete(brand.id)}
-                className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors border border-red-500/20 cursor-pointer"
-                title="Delete Brand"
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredBrands.length === 0 && (
+      {!loading && filteredBrands.length === 0 && (
         <div className="bg-[#141416] border border-[#222226] rounded-[20px] p-12 text-center">
           <p className="text-gray-400 text-sm">No brands found matching "{searchTerm}".</p>
         </div>
@@ -275,7 +271,7 @@ export default function BrandsTab() {
               {/* Brand Logo Upload & Preview */}
               <div>
                 <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
-                  Brand Logo Real Image <span className="text-[#C5A059]">*</span>
+                  Brand Logo Image (Cloudinary Compressed) <span className="text-[#C5A059]">*</span>
                 </label>
 
                 {formData.logoUrl && (
@@ -292,7 +288,7 @@ export default function BrandsTab() {
                 <div className="flex items-center gap-3">
                   <label className="flex-1 bg-[#18181A] hover:bg-[#202024] border border-[#2A2A2E] hover:border-[#C5A059] text-gray-300 text-[13px] px-4 py-3 rounded-2xl cursor-pointer transition-all flex items-center justify-center gap-2">
                     <Upload size={16} className="text-[#C5A059]" />
-                    <span>{isUploading ? "Uploading Image..." : "Upload Logo Image File"}</span>
+                    <span>{isUploading ? "Compressing & Uploading to Cloudinary..." : "Upload Logo Image File"}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -307,7 +303,7 @@ export default function BrandsTab() {
                   <span className="text-[11px] text-gray-400 block mb-1">Or paste Image URL directly:</span>
                   <input
                     type="text"
-                    placeholder="https://example.com/logo.png or data:image/..."
+                    placeholder="https://example.com/logo.png"
                     value={formData.logoUrl}
                     onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
                     className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[12.5px] px-3.5 py-2.5 rounded-xl outline-none focus:border-[#C5A059] font-mono placeholder:text-gray-600"
@@ -340,9 +336,10 @@ export default function BrandsTab() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading}
-                  className="px-6 py-3 rounded-2xl bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[13px] tracking-wider uppercase transition-all shadow-md cursor-pointer disabled:opacity-50"
+                  disabled={isUploading || isSaving}
+                  className="px-6 py-3 rounded-2xl bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[13px] tracking-wider uppercase transition-all shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-2"
                 >
+                  {isSaving && <Loader2 size={16} className="animate-spin" />}
                   {editingBrand ? "Save Changes" : "Create Brand"}
                 </button>
               </div>

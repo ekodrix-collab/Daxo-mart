@@ -75,14 +75,39 @@ export default function ProductFormEditor({
       : [initialData?.img || "/images/placeholder.png"]
   );
   const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || "");
+  const [videoSizeBytes, setVideoSizeBytes] = useState<number | null>(null);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [videoUploadStatus, setVideoUploadStatus] = useState("");
+  const [showVideoDeleteModal, setShowVideoDeleteModal] = useState(false);
+  const [isDeletingVideo, setIsDeletingVideo] = useState(false);
+
+  // Fetch actual file size for existing videoUrl via HEAD request
+  React.useEffect(() => {
+    if (videoUrl && !videoSizeBytes) {
+      fetch(videoUrl, { method: "HEAD" })
+        .then((res) => {
+          const contentLength = res.headers.get("content-length");
+          if (contentLength) {
+            setVideoSizeBytes(parseInt(contentLength, 10));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [videoUrl, videoSizeBytes]);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingVideo(true);
+    setVideoSizeBytes(file.size);
     setVideoUploadStatus(`Uploading ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
 
     try {
@@ -97,9 +122,8 @@ export default function ProductFormEditor({
       const result = await res.json();
       if (result.url) {
         setVideoUrl(result.url);
+        if (result.fileSize) setVideoSizeBytes(result.fileSize);
         setVideoUploadStatus("Video uploaded successfully!");
-      } else if (result.note) {
-        setVideoUploadStatus("Upload notice: " + result.note);
       } else {
         alert(result.error || "Failed to upload video");
         setVideoUploadStatus("");
@@ -110,6 +134,26 @@ export default function ProductFormEditor({
       setVideoUploadStatus("");
     } finally {
       setIsUploadingVideo(false);
+    }
+  };
+
+  const handleConfirmDeleteVideo = async () => {
+    if (!videoUrl) return;
+    setIsDeletingVideo(true);
+
+    try {
+      await fetch(`/api/upload-video?url=${encodeURIComponent(videoUrl)}`, {
+        method: "DELETE",
+      });
+
+      setVideoUrl("");
+      setVideoSizeBytes(null);
+      setVideoUploadStatus("");
+    } catch (err) {
+      console.error("Video deletion error:", err);
+    } finally {
+      setIsDeletingVideo(false);
+      setShowVideoDeleteModal(false);
     }
   };
 
@@ -354,8 +398,146 @@ export default function ProductFormEditor({
     { id: "seo", label: "SEO", icon: Search },
   ];
 
+  // Snapshot of initial values to compare against current state
+  const initialSnapshotRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (!initialSnapshotRef.current) {
+      initialSnapshotRef.current = JSON.stringify({
+        name: initialData?.name || "",
+        shortName: initialData?.shortName || "",
+        category: initialData?.category || "1:24",
+        sku: initialData?.sku || "",
+        isActive: initialData?.isActive ?? true,
+        inStock: initialData?.inStock ?? true,
+        badge: initialData?.badge || null,
+        img: initialData?.img || "/images/placeholder.png",
+        galleryImages: initialData?.images || [],
+        price: Number(initialData?.price || 1299),
+        oldPrice: Number(initialData?.oldPrice || 1799),
+        taxRate: Number(initialData?.taxRate || 18),
+        stock: Number(initialData?.stock ?? 15),
+        lowStockThreshold: Number(initialData?.lowStockThreshold ?? 5),
+        description: initialData?.description || "",
+        shortDescription: initialData?.shortDescription || "",
+        features: initialData?.features || [],
+        scale: initialData?.scale || "1:24",
+        material: initialData?.material || "Diecast Metal & ABS",
+        brand: initialData?.brand || "Premium Replica",
+        specs: initialData?.specs || [],
+        colors: initialData?.colors || [],
+        videoUrl: initialData?.videoUrl || "",
+        slug: initialData?.slug || "",
+        metaTitle: initialData?.metaTitle || "",
+        metaDescription: initialData?.metaDescription || "",
+        metaKeywords: initialData?.metaKeywords || "",
+        ogImage: initialData?.ogImage || "",
+      });
+    }
+  }, [initialData]);
+
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Compute exact diff against snapshot
+  React.useEffect(() => {
+    if (!initialSnapshotRef.current) return;
+
+    const currentSnapshot = JSON.stringify({
+      name, shortName, category, sku, isActive, inStock, badge,
+      img, galleryImages, price, oldPrice, taxRate, stock, lowStockThreshold,
+      description, shortDescription, features, scale, material, brand, specs,
+      colors, videoUrl, slug, metaTitle, metaDescription, metaKeywords, ogImage
+    });
+
+    setIsDirty(currentSnapshot !== initialSnapshotRef.current);
+  }, [
+    name, shortName, category, sku, isActive, inStock, badge,
+    img, galleryImages, price, oldPrice, taxRate, stock, lowStockThreshold,
+    description, shortDescription, features, scale, material, brand, specs,
+    colors, videoUrl, slug, metaTitle, metaDescription, metaKeywords, ogImage
+  ]);
+
+  // Handle discard back to initial snapshot
+  const handleDiscardChanges = () => {
+    if (!initialSnapshotRef.current) return;
+    try {
+      const snap = JSON.parse(initialSnapshotRef.current);
+      setName(snap.name);
+      setShortName(snap.shortName);
+      setCategory(snap.category);
+      setSku(snap.sku);
+      setIsActive(snap.isActive);
+      setInStock(snap.inStock);
+      setBadge(snap.badge);
+      setImg(snap.img);
+      setGalleryImages(snap.galleryImages);
+      setPrice(snap.price);
+      setOldPrice(snap.oldPrice);
+      setTaxRate(snap.taxRate);
+      setStock(snap.stock);
+      setLowStockThreshold(snap.lowStockThreshold);
+      setDescription(snap.description);
+      setShortDescription(snap.shortDescription);
+      setFeatures(snap.features);
+      setScale(snap.scale);
+      setMaterial(snap.material);
+      setBrand(snap.brand);
+      setSpecs(snap.specs);
+      setColors(snap.colors);
+      setVideoUrl(snap.videoUrl);
+      setSlug(snap.slug);
+      setMetaTitle(snap.metaTitle);
+      setMetaDescription(snap.metaDescription);
+      setMetaKeywords(snap.metaKeywords);
+      setOgImage(snap.ogImage);
+      setIsDirty(false);
+    } catch {}
+  };
+
+  // Reset dirty right after successful save
+  const handleSubmitWithDirtyReset = async (e: React.FormEvent) => {
+    await handleSubmit(e);
+    // Update initial snapshot to saved state
+    initialSnapshotRef.current = JSON.stringify({
+      name, shortName, category, sku, isActive, inStock, badge,
+      img, galleryImages, price, oldPrice, taxRate, stock, lowStockThreshold,
+      description, shortDescription, features, scale, material, brand, specs,
+      colors, videoUrl, slug, metaTitle, metaDescription, metaKeywords, ogImage
+    });
+    setIsDirty(false);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmitWithDirtyReset} className="space-y-6 relative pb-20">
+      {/* SHOPIFY-STYLE TOP CENTER FLOATING SAVE BAR */}
+      {isDirty && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C20]/95 backdrop-blur-md border border-[#C5A059]/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] px-6 py-3 rounded-2xl flex items-center gap-6 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C5A059] animate-pulse" />
+            <span className="text-[13.5px] font-semibold text-white font-pally">
+              Unsaved changes
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleDiscardChanges}
+              className="px-3 py-1.5 rounded-xl text-gray-400 hover:text-white text-[12.5px] font-medium transition-colors cursor-pointer"
+            >
+              Discard
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[12.5px] tracking-wider uppercase px-4 py-1.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <Save size={14} />
+              {saving ? "Saving..." : isEditing ? "Save Changes" : "Publish"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#141416] border border-[#222226] p-6 rounded-[20px] shadow-md">
         <div className="flex items-center gap-4">
@@ -666,16 +848,23 @@ export default function ProductFormEditor({
               )}
 
               <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B] flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-32 h-44 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-xl">
+                <div className="w-32 h-44 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-xl group">
                   {videoUrl ? (
-                    <video
-                      src={videoUrl}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <video
+                        src={videoUrl}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      {videoSizeBytes && (
+                        <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-md text-[#C5A059] font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border border-[#C5A059]/30 shadow-md">
+                          {formatFileSize(videoSizeBytes)}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="flex flex-col items-center gap-2 p-3 text-center">
                       <Film className="text-gray-600" size={32} />
@@ -685,9 +874,16 @@ export default function ProductFormEditor({
                 </div>
 
                 <div className="space-y-3 flex-1 w-full">
-                  <div>
-                    <h5 className="text-[13px] font-bold text-white">Video Source URL</h5>
-                    <p className="text-[11px] text-gray-400 font-mono truncate">{videoUrl || "None"}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="text-[13px] font-bold text-white">Video Source URL</h5>
+                      <p className="text-[11px] text-gray-400 font-mono truncate max-w-md">{videoUrl || "None"}</p>
+                    </div>
+                    {videoSizeBytes && (
+                      <span className="text-[12px] font-bold text-[#C5A059] bg-[#C5A059]/10 px-3 py-1 rounded-xl border border-[#C5A059]/20 shrink-0">
+                        Size: {formatFileSize(videoSizeBytes)}
+                      </span>
+                    )}
                   </div>
                   <input
                     type="text"
@@ -699,13 +895,10 @@ export default function ProductFormEditor({
                   {videoUrl && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setVideoUrl("");
-                        setVideoUploadStatus("");
-                      }}
-                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg border border-red-500/30 transition-colors flex items-center gap-1.5"
+                      onClick={() => setShowVideoDeleteModal(true)}
+                      className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold rounded-xl border border-red-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={14} />
                       Remove Video
                     </button>
                   )}
@@ -1169,6 +1362,59 @@ export default function ProductFormEditor({
           </div>
         )}
       </div>
+
+      {/* VIDEO DELETE CONFIRMATION MODAL */}
+      {showVideoDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#141416] border border-[#2B2B30] w-full max-w-md rounded-[24px] shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-red-400">
+              <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20">
+                <Trash2 size={24} />
+              </div>
+              <div>
+                <h3 className="text-[17px] font-bold text-white font-pally">Delete Product Video?</h3>
+                <p className="text-[12px] text-gray-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-[13px] text-gray-300 leading-relaxed">
+              Are you sure you want to permanently delete this video reel file from Supabase Cloud Storage bucket (<span className="font-mono text-[#C5A059]">product-videos</span>)?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#222226]">
+              <button
+                type="button"
+                onClick={() => setShowVideoDeleteModal(false)}
+                className="px-5 py-2.5 rounded-xl bg-[#1A1A1E] text-gray-300 hover:text-white text-[13px] font-semibold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteVideo}
+                disabled={isDeletingVideo}
+                className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-[13px] tracking-wider uppercase transition-all shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeletingVideo ? "Deleting File..." : "Yes, Delete Video"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FIXED BOTTOM-RIGHT FLOATING SAVE BUTTON (SHOWS ONLY WHEN UNSAVED CHANGES EXIST) */}
+      {isDirty && (
+        <div className="fixed bottom-6 right-6 z-40 animate-in fade-in zoom-in-95 duration-200">
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-[#C5A059] hover:bg-[#b08b46] active:scale-[0.96] text-black font-bold text-[13.5px] tracking-wider uppercase px-6 py-3.5 rounded-2xl shadow-[0_8px_25px_rgba(197,160,89,0.35)] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 border border-[#FFF]/20"
+          >
+            <Save size={18} />
+            {saving ? "Saving Product..." : isEditing ? "Save Changes" : "Publish Product"}
+          </button>
+        </div>
+      )}
     </form>
   );
 }
