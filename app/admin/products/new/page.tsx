@@ -41,18 +41,23 @@ export default function NewProductPage() {
 
     queryClient.setQueryData<Product[]>(["products"], (old = []) => [newProd, ...old]);
 
-    // 2. Call backend product creation API asynchronously
+    // 2. Await backend product creation API
     try {
-      fetch("/api/products/create", {
+      const res = await fetch("/api/products/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      }).catch((err) => console.error("Product create API error:", err));
+      });
+      const result = await res.json();
+      console.log("Product create API result:", result);
     } catch (e) {
-      console.warn("Product create API dispatch error:", e);
+      console.error("Product create API error:", e);
     }
 
-    // 3. Instant SPA navigation back to products list
+    // 3. Invalidate React Query cache so storefront & admin re-fetch fresh data from DB
+    await queryClient.invalidateQueries({ queryKey: ["products"] });
+
+    // 4. SPA navigation back to products list
     router.push("/admin/products");
   };
 

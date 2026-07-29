@@ -42,18 +42,23 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       old.map((p) => (String(p.id) === productIdStr || p.slug === productIdStr ? updatedProd : p))
     );
 
-    // 2. Async backend sync if endpoint configured
+    // 2. Await backend sync to ensure Supabase updates DB before navigating
     try {
-      fetch(`/api/products/${productIdStr}`, {
+      const res = await fetch(`/api/products/${productIdStr}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      }).catch((e) => console.error("Product edit API error:", e));
+      });
+      const result = await res.json();
+      console.log("Product edit API result:", result);
     } catch (e) {
-      console.warn("Product edit API dispatch error:", e);
+      console.error("Product edit API error:", e);
     }
 
-    // 3. Instant navigation back
+    // 3. Invalidate React Query cache so storefront & admin re-fetch fresh data from DB
+    await queryClient.invalidateQueries({ queryKey: ["products"] });
+
+    // 4. Navigation back
     router.push("/admin/products");
   };
 

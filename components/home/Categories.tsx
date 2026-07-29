@@ -32,11 +32,11 @@ export default function Categories() {
             className="group flex flex-col items-center gap-3 sm:gap-4 no-underline"
           >
             {/* Circle container */}
-            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full bg-[#0c0c0c] border-4 border-[#1f1f1f] overflow-hidden flex items-center justify-center shrink-0 transition-all duration-200 group-hover:-translate-y-2 group-hover:shadow-[0_16px_40px_rgba(0,0,0,0.32)]">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full bg-[#0c0c0c] border-4 border-[#1f1f1f] overflow-hidden flex items-center justify-center shrink-0 transition-all duration-300 group-hover:-translate-y-2 group-hover:border-[#C5A059] group-hover:shadow-[0_16px_40px_rgba(0,0,0,0.35)] shadow-md">
               <img
                 src={cat.img}
                 alt={cat.name}
-                className="w-full h-full object-cover object-center rounded-full block"
+                className="w-full h-full object-cover object-center rounded-full block transition-transform duration-300 group-hover:scale-105"
               />
             </div>
 

@@ -100,14 +100,31 @@ function SingleProductCard({ p }: { p: Product }) {
               </span>
             )}
 
+            {/* Primary Cover Image */}
             <Image
               src={p.img}
               alt={p.shortName}
               width={320}
               height={240}
               unoptimized
-              className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain p-2.5 sm:p-3 transition-all duration-500 ease-in-out ${
+                p.images && p.images.length > 1 && p.images[1] !== p.img
+                  ? "group-hover:opacity-0 group-hover:scale-105"
+                  : "group-hover:scale-105"
+              }`}
             />
+
+            {/* Secondary Image (Smooth Fade-in Hover Transition) */}
+            {p.images && p.images.length > 1 && p.images[1] !== p.img && (
+              <Image
+                src={p.images[1]}
+                alt={`${p.shortName} - View 2`}
+                width={320}
+                height={240}
+                unoptimized
+                className="absolute inset-0 w-full h-full object-contain p-2.5 sm:p-3 opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-in-out"
+              />
+            )}
           </div>
 
           {/* Details */}
@@ -138,10 +155,12 @@ function SingleProductCard({ p }: { p: Product }) {
 
             {/* Price section */}
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-[17px] font-black text-cream font-pally">{p.priceStr}</span>
-              {p.oldPriceStr && (
+              <span className="text-[17px] font-black text-cream font-pally">
+                {p.priceStr || `₹${Number(p.price).toLocaleString("en-IN")}`}
+              </span>
+              {(p.oldPriceStr || (p.oldPrice && p.oldPrice > p.price)) && (
                 <span className="text-[12px] text-muted line-through font-medium">
-                  {p.oldPriceStr}
+                  {p.oldPriceStr || `₹${Number(p.oldPrice).toLocaleString("en-IN")}`}
                 </span>
               )}
             </div>

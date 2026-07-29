@@ -76,6 +76,7 @@ export default function ProductFormEditor({
 
   // Pricing
   const [price, setPrice] = useState<number>(initialData?.price || 1299);
+  const [costPrice, setCostPrice] = useState<number>(initialData?.costPrice || 0);
   const [oldPrice, setOldPrice] = useState<number>(initialData?.oldPrice || 1799);
   const [taxRate, setTaxRate] = useState<number>(initialData?.taxRate || 18);
 
@@ -277,6 +278,7 @@ export default function ProductFormEditor({
       img: img || galleryImages[0] || "/images/placeholder.png",
       images: galleryImages.length > 0 ? galleryImages : [img],
       price: Number(price),
+      costPrice: Number(costPrice) || 0,
       oldPrice: Number(oldPrice),
       taxRate: Number(taxRate),
       stock: Number(stock),
@@ -742,8 +744,8 @@ export default function ProductFormEditor({
 
         {/* PRICING TAB */}
         {activeTab === "pricing" && (
-          <div className="space-y-6 max-w-2xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-6 max-w-3xl">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
                 <label className="text-[13px] font-semibold text-gray-300 block mb-2">
                   Selling Price (INR ₹) <span className="text-[#C5A059]">*</span>
@@ -754,6 +756,20 @@ export default function ProductFormEditor({
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
                   className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[13px] font-semibold text-gray-300 block mb-2">
+                  Dealer Cost Price (INR ₹)
+                  <span className="text-[10px] text-amber-400 font-normal ml-1.5">(Admin Only)</span>
+                </label>
+                <input
+                  type="number"
+                  value={costPrice || ""}
+                  onChange={(e) => setCostPrice(Number(e.target.value))}
+                  placeholder="e.g. 850 (dealer purchase)"
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-amber-400 text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -770,15 +786,27 @@ export default function ProductFormEditor({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B]">
                 <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-1">
                   Calculated Discount
                 </p>
-                <p className="text-[20px] font-extrabold text-emerald-400 font-pally">
+                <p className="text-[18px] font-extrabold text-emerald-400 font-pally">
                   {oldPrice > price
                     ? `${Math.round(((oldPrice - price) / oldPrice) * 100)}% OFF`
                     : "No Discount"}
+                </p>
+              </div>
+
+              <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B]">
+                <p className="text-[12px] font-bold text-amber-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                  <span>Admin Profit Margin</span>
+                  <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">Private</span>
+                </p>
+                <p className={`text-[18px] font-extrabold font-pally ${costPrice > 0 ? (price - costPrice >= 0 ? "text-emerald-400" : "text-red-400") : "text-gray-500"}`}>
+                  {costPrice > 0
+                    ? `₹${(price - costPrice).toLocaleString("en-IN")} (${Math.round(((price - costPrice) / price) * 100)}%)`
+                    : "Enter cost price"}
                 </p>
               </div>
 

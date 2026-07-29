@@ -1,105 +1,93 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
-export async function POST(req: Request) {
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const body = await req.json();
+
     const {
       name,
       shortName,
       price,
       costPrice,
       oldPrice,
-      sku,
       category,
       img,
       images,
       description,
-      features,
       inStock,
       badge,
     } = body;
-
-    if (!name || price === undefined) {
-      return NextResponse.json(
-        { error: "Missing required fields: name and price are required." },
-        { status: 400 }
-      );
-    }
-
-    const title = name;
-    const baseSlug = (shortName || name)
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
 
     const galleryImages = Array.isArray(images) && images.length > 0
       ? images
       : img ? [img] : ["/images/placeholder.png"];
 
+    // Base payload with standard columns present in Supabase table
     const corePayload: Record<string, any> = {
-      title,
-      slug: `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`,
-      description: description || "",
+      title: name || shortName,
       price: Number(price) || 0,
       sale_price: Number(oldPrice) || Number(price) || 0,
       category_name: category || "1:24",
       images: galleryImages,
-      stock: inStock !== false ? 10 : 0,
+      description: description || "",
       is_active: inStock !== false,
       is_featured: Boolean(badge),
-      created_at: new Date().toISOString(),
     };
 
     if (costPrice !== undefined) {
       corePayload.cost_price = Number(costPrice) || 0;
     }
 
-    let { data: createdProduct, error } = await supabase
+    let { data: updatedProduct, error } = await supabase
       .from("products")
-      .insert(corePayload)
+      .update(corePayload)
+      .eq("id", id)
       .select("*")
       .single();
 
     if (error) {
-      console.warn("First insert failed, retrying without optional columns:", error.message);
+      console.warn("First update failed, removing non-standard columns & stringifying images:", error.message);
+      
+      // Fallback: exclude cost_price if column doesn't exist and stringify images array if needed
       delete corePayload.cost_price;
-
+      
       const retry1 = await supabase
         .from("products")
-        .insert(corePayload)
+        .update(corePayload)
+        .eq("id", id)
         .select("*")
         .single();
 
       if (!retry1.error) {
-        createdProduct = retry1.data;
+        updatedProduct = retry1.data;
         error = null;
       } else {
+        // Retry with stringified images
         corePayload.images = JSON.stringify(galleryImages);
         const retry2 = await supabase
           .from("products")
-          .insert(corePayload)
+          .update(corePayload)
+          .eq("id", id)
           .select("*")
           .single();
 
         if (!retry2.error) {
-          createdProduct = retry2.data;
+          updatedProduct = retry2.data;
           error = null;
+        } else {
+          console.error("All Supabase update retries failed:", retry2.error);
         }
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      product: createdProduct || corePayload,
-    });
+    return NextResponse.json({ success: true, product: updatedProduct || corePayload });
   } catch (err: any) {
-    console.error("Product creation API error:", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to create product" },
-      { status: 500 }
-    );
+    console.error("Product update API error:", err);
+    return NextResponse.json({ error: err.message || "Failed to update product" }, { status: 500 });
   }
 }
