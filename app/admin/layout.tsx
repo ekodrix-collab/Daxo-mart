@@ -397,10 +397,14 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { ToastProvider } from "@/components/ToastProvider";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AdminQueryProvider>
-      <AdminShellContent>{children}</AdminShellContent>
-    </AdminQueryProvider>
+    <ToastProvider>
+      <AdminQueryProvider>
+        <AdminShellContent>{children}</AdminShellContent>
+      </AdminQueryProvider>
+    </ToastProvider>
   );
 }

@@ -176,7 +176,7 @@ export default function Header() {
                       {searchResults.map((prod) => (
                         <Link
                           key={prod.id}
-                          href={`/products/${prod.id}`}
+                          href={`/products/${prod.slug || prod.id}`}
                           onClick={() => setShowDropdown(false)}
                           className="flex items-center gap-3 p-2 rounded-lg hover:bg-dark3 transition-colors group no-underline"
                         >
@@ -206,7 +206,8 @@ export default function Header() {
                         </Link>
                       ))}
                       <button
-                        onClick={handleSearchSubmit}
+                        type="button"
+                        onClick={(e) => handleSearchSubmit(e)}
                         className="w-full mt-1 bg-dark3 hover:bg-accent/20 text-accent font-bold text-[11px] uppercase tracking-wider py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer font-pally"
                       >
                         View all results for &quot;{searchQuery}&quot; <ArrowRight size={13} />

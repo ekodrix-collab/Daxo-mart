@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import PRODUCTS, { type Product } from "@/lib/products";
+import PRODUCTS, { type Product, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
 import ProductVideoFloating from "@/components/product/ProductVideoFloating";
 
@@ -31,9 +31,21 @@ export function BuyNowModal({
     address: "",
     city: "",
     state: "",
+    landmark: "",
     pincode: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -52,6 +64,7 @@ export function BuyNowModal({
     if (form.email.trim() && !/\S+@\S+\.\S+/.test(form.email.trim()))
       e.email = "Enter valid email address";
     if (!form.address.trim()) e.address = "Full address is required";
+    if (!form.landmark.trim()) e.landmark = "Landmark is required";
     if (!form.city.trim()) e.city = "City is required";
     if (!form.state.trim()) e.state = "State is required";
     if (!/^\d{6}$/.test(form.pincode.trim()))
@@ -71,7 +84,13 @@ export function BuyNowModal({
       `📦 *Order:* ${orderNumber}`,
       `🛒 *Product:* ${product.shortName || product.name} (Qty: ${quantity})`,
       `💰 *Total Amount:* ₹${total.toLocaleString("en-IN")}`,
-      `👤 *Name:* ${form.name.trim()}`,
+      `Name: ${form.name.trim()}`,
+      `Full Address: ${form.address.trim()}`,
+      `City: ${form.city.trim()}`,
+      `State: ${form.state.trim()}`,
+      `Landmark: ${form.landmark.trim()}`,
+      `Pincode: ${form.pincode.trim()}`,
+      `Mobile Number: ${form.phone.trim()}`,
       ``,
       `Please confirm my order. Thank you! 🙏`,
     ].join("\n");
@@ -87,7 +106,7 @@ export function BuyNowModal({
         customer_name: form.name.trim(),
         customer_phone: form.phone.trim(),
         customer_email: form.email.trim() || undefined,
-        full_address: form.address.trim(),
+        full_address: [form.address.trim(), form.landmark.trim() ? `Landmark: ${form.landmark.trim()}` : ""].filter(Boolean).join(", "),
         city: form.city.trim(),
         state: form.state.trim(),
         pincode: form.pincode.trim(),
@@ -132,7 +151,7 @@ export function BuyNowModal({
             <Image src={product.img} alt="" width={56} height={56} className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-bold text-cream truncate">{product.name}</p>
+            <p className="text-[13px] font-bold text-cream truncate">{formatTitleCase(product.name)}</p>
             <p className="text-[11px] text-muted">
               Qty: {quantity} × {product.priceStr}
             </p>
@@ -204,32 +223,20 @@ export function BuyNowModal({
             {errors.address && <p className="text-red-400 text-[11px] mt-0.5">{errors.address}</p>}
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                City *
+                Landmark *
               </label>
               <input
                 type="text"
-                value={form.city}
-                onChange={(e) => setField("city", e.target.value)}
-                placeholder="City"
-                className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally ${errors.city ? "border-red-500" : "border-border focus:border-accent"
+                value={form.landmark}
+                onChange={(e) => setField("landmark", e.target.value)}
+                placeholder="e.g. Near Bus Stand"
+                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.landmark ? "border-red-500" : "border-border focus:border-accent"
                   }`}
               />
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                State *
-              </label>
-              <input
-                type="text"
-                value={form.state}
-                onChange={(e) => setField("state", e.target.value)}
-                placeholder="State"
-                className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally ${errors.state ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
+              {errors.landmark && <p className="text-red-400 text-[11px] mt-0.5">{errors.landmark}</p>}
             </div>
             <div>
               <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
@@ -240,9 +247,41 @@ export function BuyNowModal({
                 value={form.pincode}
                 onChange={(e) => setField("pincode", e.target.value)}
                 placeholder="6-digit"
-                className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally ${errors.pincode ? "border-red-500" : "border-border focus:border-accent"
+                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.pincode ? "border-red-500" : "border-border focus:border-accent"
                   }`}
               />
+              {errors.pincode && <p className="text-red-400 text-[11px] mt-0.5">{errors.pincode}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
+                City *
+              </label>
+              <input
+                type="text"
+                value={form.city}
+                onChange={(e) => setField("city", e.target.value)}
+                placeholder="City"
+                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.city ? "border-red-500" : "border-border focus:border-accent"
+                  }`}
+              />
+              {errors.city && <p className="text-red-400 text-[11px] mt-0.5">{errors.city}</p>}
+            </div>
+            <div>
+              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
+                State *
+              </label>
+              <input
+                type="text"
+                value={form.state}
+                onChange={(e) => setField("state", e.target.value)}
+                placeholder="State"
+                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.state ? "border-red-500" : "border-border focus:border-accent"
+                  }`}
+              />
+              {errors.state && <p className="text-red-400 text-[11px] mt-0.5">{errors.state}</p>}
             </div>
           </div>
         </div>
@@ -459,7 +498,7 @@ export default function ProductDetailClient({
               </div>
 
               <h1 className="font-pally font-bold text-[24px] sm:text-[32px] text-cream leading-tight mb-3">
-                {product.name}
+                {formatTitleCase(product.name)}
               </h1>
 
               {/* Price & Off tag */}

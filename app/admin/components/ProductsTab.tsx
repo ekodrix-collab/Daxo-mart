@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { type Product } from "@/lib/products";
-import { fetchProducts, fetchCategories } from "@/service/storeService";
+import { fetchProducts, fetchCategories, saveProductToSupabase } from "@/service/storeService";
 import { type CategoryItem } from "@/lib/categories";
 import { compressImage } from "@/lib/imageCompressor";
 import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, Tag, Package, Upload, LayoutGrid, List } from "lucide-react";
@@ -86,18 +86,25 @@ export default function ProductsTab() {
     if (!formData.shortName || !formData.name) return;
 
     if (editingProduct) {
+      const updatedItem = {
+        ...editingProduct,
+        ...formData,
+        priceStr: `₹${Number(formData.price).toLocaleString("en-IN")}`,
+        oldPriceStr: `₹${Number(formData.oldPrice).toLocaleString("en-IN")}`,
+      } as Product;
+
       setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? ({
-                ...p,
-                ...formData,
-                priceStr: `₹${Number(formData.price).toLocaleString("en-IN")}`,
-                oldPriceStr: `₹${Number(formData.oldPrice).toLocaleString("en-IN")}`,
-              } as Product)
-            : p
-        )
+        prev.map((p) => (p.id === editingProduct.id ? updatedItem : p))
       );
+
+      try {
+        await saveProductToSupabase({
+          ...formData,
+          id: editingProduct.id,
+        });
+      } catch (err) {
+        console.error("Error updating product in Supabase from modal:", err);
+      }
     } else {
       const newId = Math.max(...products.map((p) => typeof p.id === "number" ? p.id : 0), 0) + 1;
       const newProd: Product = {
