@@ -2,13 +2,36 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Store, ShieldCheck, LogOut, Save, KeyRound } from "lucide-react";
+import {
+  Store,
+  ShieldCheck,
+  LogOut,
+  Save,
+  KeyRound,
+  CreditCard,
+  Truck,
+  MessageSquare,
+  Search,
+  Users,
+  Sliders,
+  CheckCircle,
+} from "lucide-react";
+
+export type SettingsTabType =
+  | "general"
+  | "store"
+  | "payments"
+  | "shipping"
+  | "whatsapp"
+  | "seo"
+  | "users";
 
 interface SettingsTabProps {
   onSignOut: () => void;
 }
 
 export default function SettingsTab({ onSignOut }: SettingsTabProps) {
+  const [activeTab, setActiveTab] = useState<SettingsTabType>("general");
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSignOut = async () => {
@@ -16,118 +39,207 @@ export default function SettingsTab({ onSignOut }: SettingsTabProps) {
     onSignOut();
   };
 
-  const handleSaveStore = (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
+  const settingTabs: Array<{ id: SettingsTabType; label: string; icon: React.ElementType }> = [
+    { id: "general", label: "General", icon: Sliders },
+    { id: "store", label: "Store", icon: Store },
+    { id: "payments", label: "Payments", icon: CreditCard },
+    { id: "shipping", label: "Shipping", icon: Truck },
+    { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+    { id: "seo", label: "SEO", icon: Search },
+    { id: "users", label: "Users & Roles", icon: Users },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#141416] border border-[#222226] p-6 rounded-[20px] shadow-md">
-        <h2 className="text-[22px] font-bold text-white tracking-tight font-pally">
-          Admin & System Settings
-        </h2>
-        <p className="text-[13px] text-gray-400 mt-1 font-normal">
-          Configure store branding, WhatsApp support contact numbers, and security credentials.
-        </p>
+      <div className="bg-[#141416] border border-[#222226] p-6 rounded-[20px] shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-[22px] font-bold text-white tracking-tight font-pally">
+            System & Store Settings
+          </h2>
+          <p className="text-[13px] text-gray-400 mt-1 font-normal">
+            Manage store identity, payment integrations, shipping rules & admin access control.
+          </p>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-[12px] uppercase tracking-wider px-4 py-2.5 rounded-xl border border-red-500/20 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+        >
+          <LogOut size={15} /> Sign Out Admin
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Store Info Form Card */}
-        <div className="bg-[#141416] border border-[#222226] rounded-[20px] p-6 shadow-md space-y-4">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-[#222226]">
-            <div className="w-9 h-9 rounded-xl bg-[#C5A059]/15 text-[#C5A059] flex items-center justify-center border border-[#C5A059]/20">
-              <Store size={18} />
-            </div>
-            <div>
-              <h3 className="text-[16px] font-bold text-white font-pally">Store Configuration</h3>
-              <p className="text-[12px] text-gray-400">Manage store identity & support info</p>
-            </div>
-          </div>
+      {/* Sub Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#222226] pb-2 overflow-x-auto scrollbar-none">
+        {settingTabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 rounded-xl text-[13px] font-semibold tracking-wide transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                active
+                  ? "bg-[#C5A059] text-black font-bold shadow-md"
+                  : "bg-[#141416] text-gray-400 hover:bg-[#1A1A1D] hover:text-white border border-[#222226]"
+              }`}
+            >
+              <Icon size={16} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-          <form onSubmit={handleSaveStore} className="space-y-4 pt-2">
-            {[
-              { label: "Brand Name", value: "DAXOMART DIECAST", placeholder: "DAXOMART" },
-              { label: "WhatsApp Support Helpdesk", value: "9048571147", placeholder: "9048571147" },
-              { label: "Official Contact Email", value: "admin@daxomart.com", placeholder: "admin@daxomart.com" },
-            ].map(({ label, value, placeholder }) => (
-              <div key={label}>
-                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
-                  {label}
-                </label>
+      {/* Tab Panels */}
+      <div className="bg-[#141416] border border-[#222226] rounded-[20px] p-6 lg:p-8 shadow-xl">
+        <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
+          {savedSuccess && (
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[13px] font-medium flex items-center gap-2">
+              <CheckCircle size={16} /> Settings saved successfully!
+            </div>
+          )}
+
+          {/* GENERAL TAB */}
+          {activeTab === "general" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">General Application Settings</h3>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Site Name</label>
                 <input
                   type="text"
-                  defaultValue={value}
-                  placeholder={placeholder}
-                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13.5px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all font-pally placeholder:text-gray-500"
+                  defaultValue="DAXOMART DIECAST"
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
                 />
               </div>
-            ))}
-
-            {savedSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[13px] font-medium">
-                Store settings saved successfully!
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Default Currency</label>
+                <input
+                  type="text"
+                  defaultValue="INR (₹)"
+                  disabled
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-gray-400 text-[14px] px-4 py-3 rounded-xl outline-none"
+                />
               </div>
-            )}
+            </div>
+          )}
 
-            <button
-              type="submit"
-              className="bg-[#C5A059] hover:bg-[#b08b46] active:scale-[0.98] text-black font-bold text-[13px] tracking-wider uppercase px-5 py-3.5 rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              <Save size={16} /> Save Settings
-            </button>
-          </form>
-        </div>
+          {/* STORE TAB */}
+          {activeTab === "store" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">Store Branding & Support</h3>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Brand Tagline</label>
+                <input
+                  type="text"
+                  defaultValue="Premium Scale Diecast Replicas"
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+              </div>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Support Email</label>
+                <input
+                  type="email"
+                  defaultValue="support@daxomart.com"
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+              </div>
+            </div>
+          )}
 
-        {/* Security Settings Card */}
-        <div className="bg-[#141416] border border-[#222226] rounded-[20px] p-6 shadow-md space-y-4">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-[#222226]">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center border border-blue-500/20">
-              <ShieldCheck size={18} />
+          {/* PAYMENTS TAB */}
+          {activeTab === "payments" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">Payment Gateways</h3>
+              <div className="p-4 bg-[#1C1C20] rounded-xl border border-[#28282D]">
+                <p className="text-[14px] font-bold text-white mb-1">WhatsApp Direct Checkout</p>
+                <p className="text-[12px] text-gray-400">Active mode for instant customer order placement without payment gateway friction.</p>
+              </div>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Razorpay Key ID (Future Ready)</label>
+                <input
+                  type="text"
+                  placeholder="rzp_live_..."
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none font-mono"
+                />
+              </div>
             </div>
-            <div>
-              <h3 className="text-[16px] font-bold text-white font-pally">Admin Security & Credentials</h3>
-              <p className="text-[12px] text-gray-400">Update access passwords & session controls</p>
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-4 pt-2">
-            <div>
-              <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
-                Current Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13.5px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all font-pally placeholder:text-gray-500"
-              />
+          {/* SHIPPING TAB */}
+          {activeTab === "shipping" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">Shipping & Courier Settings</h3>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Free Shipping Minimum Amount (₹)</label>
+                <input
+                  type="number"
+                  defaultValue={0}
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
-                New Security Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13.5px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all font-pally placeholder:text-gray-500"
-              />
-            </div>
-            <button className="bg-[#202024] hover:bg-[#2A2A30] text-white font-bold text-[12px] tracking-wider uppercase px-5 py-3 rounded-2xl transition-colors flex items-center gap-2 border border-gray-700 cursor-pointer">
-              <KeyRound size={15} /> Update Password
-            </button>
+          )}
 
-            <div className="mt-8 pt-6 border-t border-[#222226]">
-              <button
-                onClick={handleSignOut}
-                className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-[12px] tracking-wider uppercase px-5 py-3 rounded-2xl transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <LogOut size={15} /> Sign Out from Admin Portal
-              </button>
+          {/* WHATSAPP TAB */}
+          {activeTab === "whatsapp" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">WhatsApp Integration Config</h3>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">WhatsApp Admin Number</label>
+                <input
+                  type="text"
+                  defaultValue="9048571147"
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059] font-mono"
+                />
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+
+          {/* SEO TAB */}
+          {activeTab === "seo" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">Global Store SEO & Indexing</h3>
+              <div>
+                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Store Meta Title</label>
+                <input
+                  type="text"
+                  defaultValue="DAXO-MART | Premium Scale Model Cars & Diecast Replicas"
+                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* USERS TAB */}
+          {activeTab === "users" && (
+            <div className="space-y-4">
+              <h3 className="text-[16px] font-bold text-white font-pally">Admin Users & Access Control</h3>
+              <div className="p-4 bg-[#1C1C20] rounded-xl border border-[#28282D] flex items-center justify-between">
+                <div>
+                  <p className="text-[14px] font-bold text-white">Super Administrator</p>
+                  <p className="text-[12px] text-gray-400">admin@daxomart.com</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-[#C5A059]/20 text-[#C5A059] font-bold text-[11px] uppercase border border-[#C5A059]/30">
+                  Full Access
+                </span>
+              </div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="bg-[#C5A059] hover:bg-[#b08b46] active:scale-[0.98] text-black font-bold text-[13px] tracking-wider uppercase px-6 py-3 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+          >
+            <Save size={16} /> Save Settings
+          </button>
+        </form>
       </div>
     </div>
   );

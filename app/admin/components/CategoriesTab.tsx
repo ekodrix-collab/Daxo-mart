@@ -4,37 +4,99 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import PRODUCTS from "@/lib/products";
 import { getStoredCategories, saveStoredCategories, type CategoryItem } from "@/lib/categories";
-import { Plus, Search, Edit2, Trash2, Tag, Layers } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Tag, Layers, Loader2, Upload, ArrowUp, ArrowDown } from "lucide-react";
+import { fetchCategories, createCategory, updateCategory, updateCategoryOrder, deleteCategory } from "@/service/storeService";
+import { compressImage } from "@/lib/imageCompressor";
 
 export default function CategoriesTab() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleMoveOrder = async (index: number, direction: "up" | "down") => {
+    const newCategories = [...categories];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newCategories.length) return;
+
+    // Swap elements
+    const temp = newCategories[index];
+    newCategories[index] = newCategories[targetIndex];
+    newCategories[targetIndex] = temp;
+
+    // Update sortOrder property
+    const updatedWithSort = newCategories.map((c, i) => ({
+      ...c,
+      sortOrder: i + 1,
+    }));
+
+    setCategories(updatedWithSort);
+    saveStoredCategories(updatedWithSort);
+
+    await updateCategoryOrder(
+      updatedWithSort.map((c) => ({ id: c.id, sortOrder: c.sortOrder || 0 }))
+    );
+  };
 
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
-    img: "/images/car-suv.png",
-    filterValue: "1:24",
+    img: "/images/placeholder.png",
   });
 
-  useEffect(() => {
-    setCategories(getStoredCategories());
-  }, []);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const updateAndSave = (newList: CategoryItem[]) => {
-    setCategories(newList);
-    saveStoredCategories(newList);
+    setIsUploading(true);
+
+    try {
+      // 1. Client-side lossless compression to WebP (max 1200px, 85% visual quality)
+      const compressedBlob = await compressImage(file, 1200, 1200, 0.85);
+      const compressedFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+        type: "image/webp",
+      });
+
+      // 2. Upload compressed file
+      const data = new FormData();
+      data.append("file", compressedFile);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data,
+      });
+      const result = await res.json();
+      if (result.url) {
+        setFormData((prev) => ({ ...prev, img: result.url }));
+      }
+    } catch (err) {
+      console.error("Category image upload error:", err);
+    } finally {
+      setIsUploading(false);
+    }
   };
+
+  const loadCategories = async () => {
+    setLoading(true);
+    const data = await fetchCategories();
+    setCategories(data);
+    saveStoredCategories(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const handleOpenAdd = () => {
     setEditingCategory(null);
     setFormData({
       name: "",
       slug: "",
-      img: "/images/car-suv.png",
-      filterValue: "1:24",
+      img: "/images/placeholder.png",
     });
     setIsModalOpen(true);
   };
@@ -45,18 +107,33 @@ export default function CategoriesTab() {
       name: cat.name,
       slug: cat.slug,
       img: cat.img,
-      filterValue: cat.filterValue,
     });
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleNameChange = (nameVal: string) => {
+    const autoSlug = nameVal.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
+    setFormData((prev) => ({
+      ...prev,
+      name: nameVal,
+      slug: autoSlug,
+    }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
 
-    const slug = formData.slug.trim() || formData.name.toLowerCase().replace(/\s+/g, "-");
+    setSaving(true);
+    const slug = formData.slug.trim() || formData.name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
 
     if (editingCategory) {
+      await updateCategory(editingCategory.id, {
+        name: formData.name.trim(),
+        slug,
+        image_url: formData.img,
+      });
+
       const updated = categories.map((c) =>
         c.id === editingCategory.id
           ? {
@@ -64,29 +141,44 @@ export default function CategoriesTab() {
               name: formData.name.trim(),
               slug,
               img: formData.img,
-              filterValue: formData.filterValue || formData.name,
+              filterValue: c.filterValue || formData.name,
             }
           : c
       );
-      updateAndSave(updated);
+      setCategories(updated);
+      saveStoredCategories(updated);
     } else {
-      const newCat: CategoryItem = {
-        id: `cat-${Date.now()}`,
+      const created = await createCategory({
         name: formData.name.trim(),
         slug,
-        img: formData.img || "/images/car-suv.png",
-        filterValue: formData.filterValue || formData.name.trim(),
+        image_url: formData.img || "/images/placeholder.png",
+      });
+
+      const newCat: CategoryItem = {
+        id: created ? created.id : `cat-${Date.now()}`,
+        name: formData.name.trim(),
+        slug,
+        img: formData.img || "/images/placeholder.png",
+        filterValue: formData.name.trim(),
       };
-      updateAndSave([...categories, newCat]);
+
+      const updated = [...categories, newCat];
+      setCategories(updated);
+      saveStoredCategories(updated);
     }
 
+    setSaving(false);
     setIsModalOpen(false);
+    loadCategories();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this category?")) {
+      await deleteCategory(id);
       const filtered = categories.filter((c) => c.id !== id);
-      updateAndSave(filtered);
+      setCategories(filtered);
+      saveStoredCategories(filtered);
+      loadCategories();
     }
   };
 
@@ -129,7 +221,7 @@ export default function CategoriesTab() {
 
       {/* Grid of Categories */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredCategories.map((cat) => {
+        {filteredCategories.map((cat, idx) => {
           const productCount = PRODUCTS.filter(
             (p) => p.category === cat.filterValue || p.category === cat.name
           ).length;
@@ -162,28 +254,46 @@ export default function CategoriesTab() {
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#C5A059]/15 text-[#C5A059] border border-[#C5A059]/30">
                     {productCount} Items
                   </span>
-                  <span className="text-[11px] text-gray-400 font-mono">
-                    Filter: {cat.filterValue}
-                  </span>
                 </div>
               </div>
 
-              {/* Edit / Delete Buttons */}
+              {/* Move Order & Edit / Delete Buttons */}
               <div className="flex flex-col gap-1.5 shrink-0">
-                <button
-                  onClick={() => handleOpenEdit(cat)}
-                  className="p-2 bg-[#202024] hover:bg-[#2A2A30] text-white rounded-xl transition-colors border border-gray-800 cursor-pointer"
-                  title="Edit category"
-                >
-                  <Edit2 size={14} />
-                </button>
-                <button
-                  onClick={() => handleDelete(cat.id)}
-                  className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors border border-red-500/20 cursor-pointer"
-                  title="Delete category"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div className="flex gap-1">
+                  <button
+                    disabled={idx === 0}
+                    onClick={() => handleMoveOrder(idx, "up")}
+                    className="p-1.5 bg-[#202024] hover:bg-[#2A2A30] disabled:opacity-30 disabled:hover:bg-[#202024] text-gray-300 rounded-lg transition-colors border border-gray-800 cursor-pointer"
+                    title="Move Left / Up in Storefront"
+                  >
+                    <ArrowUp size={13} />
+                  </button>
+                  <button
+                    disabled={idx === filteredCategories.length - 1}
+                    onClick={() => handleMoveOrder(idx, "down")}
+                    className="p-1.5 bg-[#202024] hover:bg-[#2A2A30] disabled:opacity-30 disabled:hover:bg-[#202024] text-gray-300 rounded-lg transition-colors border border-gray-800 cursor-pointer"
+                    title="Move Right / Down in Storefront"
+                  >
+                    <ArrowDown size={13} />
+                  </button>
+                </div>
+
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleOpenEdit(cat)}
+                    className="p-1.5 bg-[#202024] hover:bg-[#2A2A30] text-white rounded-lg transition-colors border border-gray-800 cursor-pointer flex-1 flex items-center justify-center"
+                    title="Edit category"
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cat.id)}
+                    className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors border border-red-500/20 cursor-pointer flex-1 flex items-center justify-center"
+                    title="Delete category"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -224,7 +334,7 @@ export default function CategoriesTab() {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="e.g. Diecast 1:18, Vintage, Supercars"
                   className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all placeholder:text-gray-500"
                 />
@@ -245,21 +355,38 @@ export default function CategoriesTab() {
 
               <div>
                 <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
-                  Category Image Path / Asset URL
+                  Category Image
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.img}
-                  onChange={(e) => setFormData({ ...formData, img: e.target.value })}
-                  placeholder="/images/car-suv.png"
-                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all placeholder:text-gray-500"
-                />
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    required
+                    value={formData.img}
+                    onChange={(e) => setFormData({ ...formData, img: e.target.value })}
+                    placeholder="/images/placeholder.png or Cloudinary URL"
+                    className="flex-1 bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all placeholder:text-gray-500 min-w-0"
+                  />
+                  <label className="bg-[#202024] hover:bg-[#2C2C32] border border-[#2A2A2E] text-gray-200 text-[12px] font-bold px-4 py-3 rounded-2xl cursor-pointer transition-all shrink-0 flex items-center gap-2">
+                    {isUploading ? (
+                      <Loader2 size={16} className="animate-spin text-[#C5A059]" />
+                    ) : (
+                      <Upload size={16} className="text-[#C5A059]" />
+                    )}
+                    <span>{isUploading ? "Uploading..." : "Upload"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUploading}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
                 <div className="flex items-center gap-3 mt-2.5 p-2 bg-[#18181A] rounded-xl border border-[#2A2A2E]">
                   <span className="text-[11px] text-gray-400 font-medium">Image Preview:</span>
                   <div className="w-9 h-9 rounded-full bg-[#141416] border border-[#C5A059] overflow-hidden shrink-0">
                     <img
-                      src={formData.img || "/images/car-suv.png"}
+                      src={formData.img || "/images/placeholder.png"}
                       alt="Preview"
                       className="w-full h-full object-cover rounded-full"
                     />
@@ -267,30 +394,19 @@ export default function CategoriesTab() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
-                  Product Filter Mapping
-                </label>
-                <select
-                  value={formData.filterValue}
-                  onChange={(e) => setFormData({ ...formData, filterValue: e.target.value })}
-                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-3 rounded-2xl outline-none focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/20 transition-all cursor-pointer"
-                >
-                  <option value="1:32" className="bg-[#141416]">1:32 Scale</option>
-                  <option value="1:24" className="bg-[#141416]">1:24 Scale</option>
-                  <option value="1:18" className="bg-[#141416]">1:18 Scale</option>
-                  <option value="RC" className="bg-[#141416]">RC Toys</option>
-                  <option value="Frame" className="bg-[#141416]">3D Frame</option>
-                  <option value="Licensed" className="bg-[#141416]">Licensed</option>
-                </select>
-              </div>
-
               <div className="flex gap-3 mt-6 pt-4 border-t border-[#222226]">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[13px] uppercase py-3.5 rounded-2xl transition-all shadow-md"
+                  disabled={saving}
+                  className="flex-1 bg-[#C5A059] hover:bg-[#b08b46] disabled:opacity-50 text-black font-bold text-[13px] uppercase py-3.5 rounded-2xl transition-all shadow-md flex items-center justify-center gap-2"
                 >
-                  Save Category
+                  {saving ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    "Save Category"
+                  )}
                 </button>
                 <button
                   type="button"

@@ -8,6 +8,7 @@ import { useCart } from "@/components/cart/CartContext";
 
 const NAV_ITEMS = [
   { title: "Home", path: "/" },
+  { title: "1:32 Diecast", path: "/products?category=1%3A32" },
   { title: "1:24 Diecast", path: "/products?category=1%3A24" },
   { title: "1:18 Diecast", path: "/products?category=1%3A18" },
   { title: "RC Toys", path: "/products?category=RC" },

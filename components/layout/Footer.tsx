@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const COL1 = [
+  { label: "1:32 Diecast",  path: "/products?category=1%3A32" },
   { label: "1:24 Diecast",  path: "/products?category=1%3A24" },
   { label: "1:18 Diecast",  path: "/products?category=1%3A18" },
   { label: "RC Toys",       path: "/products?category=RC" },

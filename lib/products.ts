@@ -1,5 +1,11 @@
+export interface ColorOption {
+  name: string;      // e.g. "Yellow Car", "White Car"
+  colorHex?: string;  // optional hex value like "#FFD700" or "#FFFFFF"
+  image?: string;     // URL of variant image uploaded via Admin
+}
+
 export interface Product {
-  id: number;
+  id: number | string;
   slug: string;
   name: string;
   shortName: string;
@@ -8,14 +14,17 @@ export interface Product {
   priceStr: string;
   oldPriceStr: string;
   scale: string;
-  category: "1:32" | "1:24" | "1:18" | "RC" | "Frame";
+  category: "1:32" | "1:24" | "1:18" | "RC" | "Frame" | string;
   img: string;
   images: string[];
   badge: string | null;
   description: string;
   features: string[];
   inStock: boolean;
+  stock?: number;
+  isActive?: boolean;
   sku: string;
+  colors?: ColorOption[];
 }
 
 const PRODUCTS: Product[] = [];

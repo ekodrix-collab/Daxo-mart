@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { type Product } from "@/lib/products";
-import { fetchProducts } from "@/service/storeService";
-import { getStoredCategories, type CategoryItem } from "@/lib/categories";
+import { fetchProducts, fetchCategories } from "@/service/storeService";
+import { type CategoryItem } from "@/lib/categories";
+import { compressImage } from "@/lib/imageCompressor";
 import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, Tag, Package, Upload, LayoutGrid, List } from "lucide-react";
 
 export default function ProductsTab() {
@@ -18,7 +19,7 @@ export default function ProductsTab() {
 
   useEffect(() => {
     fetchProducts().then((res) => setProducts(res));
-    setCategoriesList(getStoredCategories());
+    fetchCategories().then((res) => setCategoriesList(res));
   }, []);
 
   // Form State for Add / Edit
@@ -53,10 +54,18 @@ export default function ProductsTab() {
     if (!file) return;
 
     setIsUploading(true);
-    const data = new FormData();
-    data.append("file", file);
 
     try {
+      // 1. Client-side lossless compression to WebP
+      const compressedBlob = await compressImage(file, 1200, 1200, 0.85);
+      const compressedFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+        type: "image/webp",
+      });
+
+      // 2. Upload compressed file
+      const data = new FormData();
+      data.append("file", compressedFile);
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: data,
@@ -66,7 +75,7 @@ export default function ProductsTab() {
         setFormData((prev) => ({ ...prev, img: result.url }));
       }
     } catch (err) {
-      console.error("Upload error:", err);
+      console.error("Product image upload error:", err);
     } finally {
       setIsUploading(false);
     }
@@ -151,15 +160,15 @@ export default function ProductsTab() {
     setIsAdding(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number | string) => {
     if (confirm("Are you sure you want to delete this product?")) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setProducts((prev) => prev.filter((p) => String(p.id) !== String(id)));
     }
   };
 
-  const toggleStock = (id: number) => {
+  const toggleStock = (id: number | string) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, inStock: !p.inStock } : p))
+      prev.map((p) => (String(p.id) === String(id) ? { ...p, inStock: !p.inStock } : p))
     );
   };
 
