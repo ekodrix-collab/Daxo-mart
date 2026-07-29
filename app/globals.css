@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/* ─── Fonts ──────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Pally';
+  src: url('https://cdn.fontshare.com/wf/H7RRPPQUKUZD2RCEKOG2EUWW2PMPGIYT/CUKSXG3REB7ZF4OU6YXUM2U3W5NYEU3I/CEHOWZ3P4TA7OGFSEAUC7EPX7SYRE24V.woff2') format('woff2');
+  font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: 'Pally';
+  src: url('https://cdn.fontshare.com/wf/PNZYLAZIWZGWSDKVWN7N3EFNNI7IKEIS/76V4OFN3WI2NMZTXX5EY2GKDEZ6G4ACO/M6G3U44JEMF4HNADZG3WKRAKS2U5VMIO.woff2') format('woff2');
+  font-weight: 500; font-display: swap;
+}
+@font-face {
+  font-family: 'Pally';
+  src: url('https://cdn.fontshare.com/wf/V5WYWD27XO3LMOQ4EG2MQK4FRPTA5QJ2/ISQNWVNKUKTQCSPRHYNOUSUBYEKTLRCT/T66H3U7F4BLCEXDVQJD4H2MBK7CL3FOD.woff2') format('woff2');
+  font-weight: 700; font-display: swap;
+}
+
+/* ─── Tailwind v4 Theme Tokens ────────────────────────────────────── */
+@theme {
+  --font-pally: 'Pally', system-ui, sans-serif;
+
+  --color-dark:        #0c0c0c;
+  --color-dark2:       #141414;
+  --color-dark3:       #1f1f1f;
+  --color-dark4:       #080808;
+  --color-mid:         #2a2a2a;
+  --color-border:      #282828;
+  --color-accent:      #c8a96e;
+  --color-accent-lt:   #e2c898;
+  --color-accent-dk:   #a08240;
+  --color-cream:       #f5f5f5;
+  --color-muted:       #a1a1aa;
+  --color-dim:         #71717a;
+  --color-promo:       #c0392b;
+  --color-star:        #f0b429;
+  --color-green:       #1a7a4a;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Pally', system-ui, sans-serif;
+  background: #0c0c0c;
+  color: #f5f5f5;
+  overflow-x: hidden;
+}
+
+/* ─── Hide horizontal scrollbars across all elements ─────────────── */
+::-webkit-scrollbar {
+  height: 0px !important;
+  width: 6px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3a3530; border-radius: 3px; }
+
+.scrollbar-hide::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+div::-webkit-scrollbar {
+  height: 0px !important;
+  display: none !important;
+}
+
+.scrollbar-hide,
+.overflow-x-auto {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* ─── Marquee animation ──────────────────────────────────────────── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-track-fast {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 22s linear infinite;
+}
+
+/* ─── Countdown flip animation ───────────────────────────────────── */
+@keyframes flip {
+  0%   { transform: rotateX(0deg); }
+  50%  { transform: rotateX(-90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+/* ─── Product card image zoom on hover ───────────────────────────── */
+.product-img { transition: transform 0.35s ease; }
+.product-card-wrap:hover .product-img { transform: scale(1.07); }
+
+/* ─── Product action overlay ─────────────────────────────────────── */
+.product-overlay {
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+}
+.product-card-wrap:hover .product-overlay { transform: translateY(0); }
+
+/* ─── Nav underline hover ────────────────────────────────────────── */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 0; height: 2px;
+  background: #c8a96e;
+  transition: width 0.25s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* ─── Hero gradient overlay ──────────────────────────────────────── */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(13,12,10,0.88) 0%,
+    rgba(13,12,10,0.55) 45%,
+    rgba(13,12,10,0.10) 100%
+  );
+}
+
+/* ─── Section divider line ───────────────────────────────────────── */
+.section-rule {
+  height: 1px;
+  background: linear-gradient(to right, #c8a96e 0%, transparent 65%);
+  margin-bottom: 32px;
+}
+
+/* ─── Frame card image zoom ──────────────────────────────────────── */
+.frame-img { transition: transform 0.4s ease; }
+.frame-card:hover .frame-img { transform: scale(1.05); }
+
+/* ─── Blog card image zoom ───────────────────────────────────────── */
+.blog-img { transition: transform 0.35s ease; }
+.blog-card:hover .blog-img { transform: scale(1.06); }
+
+/* ─── Category circle hover ──────────────────────────────────────── */
+.cat-circle { transition: box-shadow 0.2s, border-color 0.2s; }
+.cat-item:hover .cat-circle {
+  box-shadow: 0 0 22px rgba(200,169,110,0.35);
+  border-color: #c8a96e;
+}
+
+/* ─── Footer input focus ─────────────────────────────────────────── */
+.footer-input:focus { outline: none; border-color: #c8a96e; }
+
+/* ─── Testimonial card ───────────────────────────────────────────── */
+.testimonial-card { transition: transform 0.2s, box-shadow 0.2s; }
+.testimonial-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
