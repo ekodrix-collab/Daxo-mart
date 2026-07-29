@@ -26,6 +26,7 @@ export interface Product {
   isActive?: boolean;
   sku: string;
   colors?: ColorOption[];
+  videoUrl?: string | null;
 }
 
 const PRODUCTS: Product[] = [];

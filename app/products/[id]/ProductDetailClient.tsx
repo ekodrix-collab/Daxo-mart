@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PRODUCTS, { type Product } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
+import ProductVideoFloating from "@/components/product/ProductVideoFloating";
 
 const WA_NUMBER = "919048571147";
 
@@ -857,6 +858,12 @@ export default function ProductDetailClient({
           onClose={() => setSelectedModalProduct(null)}
         />
       )}
+
+      {/* Floating Showcase Video Reel */}
+      <ProductVideoFloating
+        videoUrl={product.videoUrl}
+        productName={product.name}
+      />
     </div>
   );
 }

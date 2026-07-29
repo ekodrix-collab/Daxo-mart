@@ -1,90 +1,100 @@
+import { supabase } from "./supabase";
+
 export interface BrandItem {
   id: string;
   name: string;
   logoUrl: string;
   is_active?: boolean;
+  sort_order?: number;
 }
 
-export const INITIAL_BRANDS: BrandItem[] = [
-  {
-    id: "brand-1",
-    name: "MERCEDES-BENZ",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Logo.svg/2048px-Mercedes-Logo.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-2",
-    name: "LAMBORGHINI",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/d/df/Lamborghini_Logo.svg/1024px-Lamborghini_Logo.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-3",
-    name: "BUGATTI",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Bugatti_logo.svg/1024px-Bugatti_logo.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-4",
-    name: "TOYOTA",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Toyota.svg/1024px-Toyota.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-5",
-    name: "ROLLS-ROYCE",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Rolls-Royce_Motor_Cars_logo.svg/1024px-Rolls-Royce_Motor_Cars_logo.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-6",
-    name: "PORSCHE",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/0/01/Porsche-Logo.png",
-    is_active: true,
-  },
-  {
-    id: "brand-7",
-    name: "BMW",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/2048px-BMW.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-8",
-    name: "AUDI",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/2048px-Audi-Logo_2016.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-9",
-    name: "FERRARI",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d1/Ferrari-Logo.svg/1024px-Ferrari-Logo.svg.png",
-    is_active: true,
-  },
-  {
-    id: "brand-10",
-    name: "MCLAREN",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/6/66/McLaren_logo.svg/1200px-McLaren_logo.svg.png",
-    is_active: true,
-  },
-];
-
-const STORAGE_KEY_BRANDS = "dm_brands_v3";
-
-export function getStoredBrands(): BrandItem[] {
-  if (typeof window === "undefined") return INITIAL_BRANDS;
-  const data = localStorage.getItem(STORAGE_KEY_BRANDS);
-  if (!data) return INITIAL_BRANDS;
+/**
+ * Fetch all brands directly from Supabase DB
+ */
+export async function getStoredBrands(): Promise<BrandItem[]> {
   try {
-    const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_BRANDS;
+    const { data, error } = await supabase
+      .from("brands")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      logoUrl: item.logo_url,
+      is_active: item.is_active ?? true,
+      sort_order: item.sort_order ?? 0,
+    }));
   } catch {
-    return INITIAL_BRANDS;
+    return [];
   }
 }
 
-export function saveStoredBrands(brands: BrandItem[]) {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY_BRANDS, JSON.stringify(brands));
-    window.dispatchEvent(new Event("dm_brands_updated"));
+/**
+ * Save or Edit/Update a brand in Supabase DB
+ */
+export async function saveBrandToSupabase(brand: {
+  id?: string;
+  name: string;
+  logoUrl: string;
+  is_active?: boolean;
+}): Promise<BrandItem | null> {
+  try {
+    const payload = {
+      name: brand.name.trim().toUpperCase(),
+      logo_url: brand.logoUrl,
+      is_active: brand.is_active ?? true,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (brand.id) {
+      const { data, error } = await supabase
+        .from("brands")
+        .update(payload)
+        .eq("id", brand.id)
+        .select()
+        .single();
+
+      if (error) return null;
+      return {
+        id: data.id,
+        name: data.name,
+        logoUrl: data.logo_url,
+        is_active: data.is_active,
+      };
+    } else {
+      const { data, error } = await supabase
+        .from("brands")
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error) return null;
+      return {
+        id: data.id,
+        name: data.name,
+        logoUrl: data.logo_url,
+        is_active: data.is_active,
+      };
+    }
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Delete a brand from Supabase DB
+ */
+export async function deleteBrandFromSupabase(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("brands").delete().eq("id", id);
+    return !error;
+  } catch {
+    return false;
   }
 }
