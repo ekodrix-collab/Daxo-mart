@@ -43,3 +43,23 @@ export function getProductBySlug(slug: string) {
 export function getProductsByCategory(cat: Product["category"]) {
   return PRODUCTS.filter((p) => p.category === cat);
 }
+
+export function formatTitleCase(str: string): string {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => {
+      if (!word) return "";
+      if (/^\d+:\d+$/.test(word)) return word;
+      if (["rc", "suv", "4x4", "3d", "gt3", "rs", "svj", "cod", "bmw"].includes(word.toLowerCase())) {
+        return word.toUpperCase();
+      }
+      return word.replace(/(?:^|[-/])(\w)/g, (match, c) => {
+        const prefix = match.length > 1 ? match[0] : "";
+        return prefix + c.toUpperCase();
+      });
+    })
+    .join(" ");
+}
+

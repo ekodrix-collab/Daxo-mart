@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { type Product } from "@/lib/products";
 import { fetchProducts } from "@/service/storeService";
+import ProductCard from "@/components/product/ProductCard";
 
 export default function FramesSection() {
   const [frames, setFrames] = useState<Product[]>([]);
 
   useEffect(() => {
     fetchProducts().then((res) => {
-      setFrames(res.filter((p) => p.category === "Frame"));
+      setFrames(res.filter((p) => p.category === "Frame" || p.category === "3D Frames"));
     });
   }, []);
 
@@ -33,36 +33,7 @@ export default function FramesSection() {
         {/* Responsive 3-Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {frames.map((frame) => (
-            <Link
-              key={frame.id}
-              href={`/products/${frame.slug || frame.id}`}
-              className="group flex flex-col no-underline cursor-pointer transition-transform duration-200 hover:-translate-y-1"
-            >
-              {/* Image Box */}
-              <div className="relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden mb-3.5">
-                <img
-                  src={frame.img}
-                  alt={frame.name}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                />
-                {/* Badge */}
-                {frame.badge && (
-                  <span className="absolute bottom-3 left-3 bg-[#1a1714] text-white text-[11px] font-bold tracking-wider px-3 py-1 rounded font-pally">
-                    {frame.badge}
-                  </span>
-                )}
-              </div>
-
-              {/* Title */}
-              <h3 className="text-[13px] sm:text-[14px] font-bold text-[#1a1714] uppercase tracking-wide leading-snug line-clamp-2 mb-1.5 font-pally">
-                {frame.name}
-              </h3>
-
-              {/* Price */}
-              <p className="text-[15px] sm:text-[16px] font-bold text-[#1a1714] font-pally">
-                Rs. {frame.price.toLocaleString("en-IN")}.00
-              </p>
-            </Link>
+            <ProductCard key={frame.id} product={frame} variant="light" />
           ))}
         </div>
       </div>
