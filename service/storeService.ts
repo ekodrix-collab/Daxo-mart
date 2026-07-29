@@ -13,44 +13,77 @@ export async function fetchProducts(): Promise<Product[]> {
     if (error || !data || data.length === 0) {
       return [];
     }
+    return data.map((item: any) => {
+      let parsedImages: string[] = [];
+      if (Array.isArray(item.images)) {
+        parsedImages = item.images;
+      } else if (typeof item.images === "string") {
+        try {
+          const json = JSON.parse(item.images);
+          if (Array.isArray(json)) parsedImages = json;
+          else if (typeof json === "string") parsedImages = [json];
+        } catch {
+          if (item.images.startsWith("http") || item.images.startsWith("/")) {
+            parsedImages = [item.images];
+          }
+        }
+      }
 
-    return data.map((item: any) => ({
-      id: item.id,
-      slug: item.slug || `prod-${item.id}`,
-      name: formatTitleCase(item.title || item.name || "Untitled Product"),
-      shortName: formatTitleCase(item.short_name || item.title || item.name || ""),
-      price: Number(item.price || 0),
-      oldPrice: item.sale_price ? Number(item.sale_price) : Number(item.old_price || item.price || 0),
-      priceStr: `₹${Number(item.price || 0).toLocaleString("en-IN")}`,
-      oldPriceStr: item.sale_price
-        ? `₹${Number(item.sale_price).toLocaleString("en-IN")}`
-        : item.old_price
-        ? `₹${Number(item.old_price).toLocaleString("en-IN")}`
-        : "",
-      scale: item.scale || item.category_name || "1:24",
-      category: item.category_name || item.category || "1:24",
-      img: item.images && item.images.length > 0 ? item.images[0] : item.img || "/images/placeholder.png",
-      images: item.images && item.images.length > 0 ? item.images : [item.img || "/images/placeholder.png"],
-      badge: item.badge || (item.is_featured ? "Featured" : null),
-      description: item.description || "",
-      features: Array.isArray(item.features)
-        ? item.features
-        : item.features
-        ? JSON.parse(item.features)
-        : ["Quality Diecast Metal", "Detailed Interior", "Rubber Tyres"],
-      inStock: (item.stock ?? 10) > 0,
-      stock: typeof item.stock === "number" ? item.stock : 10,
-      isActive: item.is_active ?? item.isActive ?? true,
-      sku: item.sku || `DXM-${String(item.id).slice(0, 5)}`,
-      colors: Array.isArray(item.colors)
+      if (parsedImages.length === 0 && item.image_url) {
+        parsedImages = [item.image_url];
+      }
+      if (parsedImages.length === 0 && item.img) {
+        parsedImages = [item.img];
+      }
+
+      const parsedColors = Array.isArray(item.colors)
         ? item.colors
-        : item.colors
-        ? JSON.parse(item.colors)
-        : [],
-      videoUrl: item.video_url || item.videoUrl || null,
-    }));
+        : (typeof item.colors === "string" ? (() => { try { return JSON.parse(item.colors); } catch { return []; } })() : []);
+
+      // Gather variant images from color options
+      const colorImages = parsedColors
+        .map((c: any) => c?.image)
+        .filter((url: any): url is string => typeof url === "string" && url.length > 0);
+
+      const allImages = Array.from(new Set([...parsedImages, ...colorImages])).filter(Boolean);
+      if (allImages.length === 0) allImages.push("/images/placeholder.png");
+
+      const primaryImg = allImages[0];
+
+      return {
+        id: item.id,
+        slug: item.slug || `prod-${item.id}`,
+        name: formatTitleCase(item.title || item.name || "Untitled Product"),
+        shortName: formatTitleCase(item.short_name || item.title || item.name || ""),
+        price: Number(item.price || 0),
+        costPrice: item.cost_price ? Number(item.cost_price) : (item.costPrice ? Number(item.costPrice) : undefined),
+        oldPrice: item.sale_price ? Number(item.sale_price) : Number(item.old_price || item.price || 0),
+        priceStr: `₹${Number(item.price || 0).toLocaleString("en-IN")}`,
+        oldPriceStr: item.sale_price
+          ? `₹${Number(item.sale_price).toLocaleString("en-IN")}`
+          : item.old_price
+          ? `₹${Number(item.old_price).toLocaleString("en-IN")}`
+          : "",
+        scale: item.scale || item.category_name || "1:24",
+        category: item.category_name || item.category || "1:24",
+        img: primaryImg,
+        images: allImages,
+        badge: item.badge || (item.is_featured ? "Featured" : null),
+        description: item.description || "",
+        features: Array.isArray(item.features)
+          ? item.features
+          : (typeof item.features === "string"
+          ? (() => { try { return JSON.parse(item.features); } catch { return ["Quality Diecast Metal", "Detailed Interior", "Rubber Tyres"]; } })()
+          : ["Quality Diecast Metal", "Detailed Interior", "Rubber Tyres"]),
+        inStock: (item.stock ?? 10) > 0,
+        stock: typeof item.stock === "number" ? item.stock : 10,
+        isActive: item.is_active ?? item.isActive ?? true,
+        sku: item.sku || `DXM-${String(item.id).slice(0, 5)}`,
+        colors: parsedColors,
+        videoUrl: item.video_url || item.videoUrl || null,
+      };
+    });
   } catch (err) {
-    console.error("Error fetching products from Supabase:", err);
     return [];
   }
 }

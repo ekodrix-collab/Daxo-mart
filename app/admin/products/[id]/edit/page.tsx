@@ -44,17 +44,15 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       old.map((p) => (String(p.id) === productIdStr || p.slug === productIdStr ? updatedProd : p))
     );
 
-    // 2. Await direct Supabase persistence
     try {
       await saveProductToSupabase({ ...formData, id: product?.id || productIdStr });
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success("Product Updated Successfully", `"${formData.name}" has been updated in database.`);
     } catch (e: any) {
       console.error("Product edit Supabase error:", e);
       toast.error("Database Update Failed", e?.message || "Could not persist product changes to Supabase.");
     }
 
-    // 3. Navigate back to products list
     router.push("/admin/products");
   };
 

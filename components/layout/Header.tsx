@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { Search, ShoppingBag, Menu, X, ArrowRight } from "lucide-react";
+import { Search, ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/components/cart/CartContext";
-import PRODUCTS, { type Product } from "@/lib/products";
-import { fetchProducts } from "@/service/storeService";
+import SearchModal from "@/components/layout/SearchModal";
 
 const NAV_ITEMS = [
   { title: "Home", path: "/" },
@@ -35,56 +33,24 @@ const ANNOUNCE = [
 ];
 
 export default function Header() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [productsList, setProductsList] = useState<Product[]>(PRODUCTS);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [initialSearchQuery, setInitialSearchQuery] = useState("");
   const { cartCount } = useCart();
-
-  useEffect(() => {
-    fetchProducts().then((res) => {
-      if (res && res.length > 0) setProductsList(res);
-    });
-  }, []);
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768) setMobileOpen(false);
     };
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
     window.addEventListener("resize", handleResize);
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    setShowDropdown(false);
+  const openSearchModal = (query = "") => {
+    setInitialSearchQuery(query);
+    setIsSearchModalOpen(true);
     setMobileOpen(false);
-    router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
   };
-
-  const searchResults = searchQuery.trim()
-    ? productsList.filter((p) => {
-        const q = searchQuery.toLowerCase().trim();
-        return (
-          p.name.toLowerCase().includes(q) ||
-          p.shortName.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          (p.sku && p.sku.toLowerCase().includes(q))
-        );
-      }).slice(0, 5)
-    : [];
 
   return (
     <div className="sticky top-0 z-50">
@@ -222,6 +188,15 @@ export default function Header() {
               )}
             </div>
 
+            {/* Mobile Search Icon Button */}
+            <button
+              onClick={() => openSearchModal("")}
+              className="lg:hidden p-2 rounded-md text-muted hover:text-cream hover:bg-dark3 transition-all duration-200 flex items-center justify-center cursor-pointer"
+              title="Search"
+            >
+              <Search size={18} />
+            </button>
+
             {/* Cart */}
             <Link
               href="/cart"
@@ -250,26 +225,14 @@ export default function Header() {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden bg-dark3 border-t border-border px-5 py-4 flex flex-col gap-4">
-            {/* Mobile Search Form */}
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-dark2 border border-border rounded-lg pl-9 pr-8 py-2 text-xs text-cream outline-none focus:border-accent font-pally"
-              />
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </form>
+            {/* Mobile Search Input Trigger */}
+            <div
+              onClick={() => openSearchModal("")}
+              className="flex items-center gap-2 bg-dark2 border border-border rounded-lg px-3.5 py-2 cursor-pointer"
+            >
+              <Search size={14} className="text-muted" />
+              <span className="text-xs text-muted font-pally">Search products...</span>
+            </div>
 
             {NAV_ITEMS.map((item) => (
               <Link
@@ -285,6 +248,13 @@ export default function Header() {
           </div>
         )}
       </header>
+
+      {/* Split-Layout Search Modal Popover */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        initialQuery={initialSearchQuery}
+      />
     </div>
   );
 }

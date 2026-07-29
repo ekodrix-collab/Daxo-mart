@@ -10,6 +10,45 @@ import ProductVideoFloating from "@/components/product/ProductVideoFloating";
 
 const WA_NUMBER = "919048571147";
 
+const INDIAN_STATES = [
+  "Kerala",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman & Nicobar Islands",
+  "Chandigarh",
+  "Dadra & Nagar Haveli and Daman & Diu",
+  "Delhi (NCT)",
+  "Jammu & Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry"
+];
+
 /* ═══════════════════════════════════════════════════════════════════
    CHECKOUT MODAL FOR INSTANT "BUY NOW"
 ═══════════════════════════════════════════════════════════════════ */
@@ -30,7 +69,7 @@ export function BuyNowModal({
     email: "",
     address: "",
     city: "",
-    state: "",
+    state: "Kerala",
     landmark: "",
     pincode: "",
   });
@@ -226,7 +265,7 @@ export function BuyNowModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                Landmark *
+                Landmark
               </label>
               <input
                 type="text"
@@ -237,6 +276,45 @@ export function BuyNowModal({
                   }`}
               />
               {errors.landmark && <p className="text-red-400 text-[11px] mt-0.5">{errors.landmark}</p>}
+            </div>
+            <div>
+              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
+                City *
+              </label>
+              <input
+                type="text"
+                value={form.city}
+                onChange={(e) => setField("city", e.target.value)}
+                placeholder="City"
+                className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally ${errors.city ? "border-red-500" : "border-border focus:border-accent"
+                  }`}
+              />
+              {errors.city && <p className="text-red-400 text-[11px] mt-0.5">{errors.city}</p>}
+            </div>
+            <div>
+              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
+                State *
+              </label>
+              <div className="relative">
+                <select
+                  value={form.state || "Kerala"}
+                  onChange={(e) => setField("state", e.target.value)}
+                  className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally appearance-none cursor-pointer pr-8 ${
+                    errors.state ? "border-red-500" : "border-border focus:border-accent"
+                  }`}
+                >
+                  {INDIAN_STATES.map((st) => (
+                    <option key={st} value={st} className="bg-dark text-cream py-1.5">
+                      {st}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-accent">
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                  </svg>
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
@@ -394,17 +472,35 @@ export default function ProductDetailClient({
   const { addToCart } = useCart();
   const router = useRouter();
 
-  const discount = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
-  const related = getRecommendedProducts(product, allProducts, PRODUCTS, 4);
-
   // Available color options or defaults if none configured
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
+
+  // Combine main images array with any color variant images for complete sub-images gallery
+  const allGalleryImages = Array.from(
+    new Set([
+      ...(product.images || []),
+      product.img,
+      ...(colorOptions.map((c) => c.image).filter(Boolean) as string[]),
+    ])
+  ).filter(Boolean);
+
+  const discountPercent =
+    product.oldPrice && product.oldPrice > product.price
+      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+      : 0;
+
+  const strikePriceStr =
+    product.oldPrice && product.oldPrice > product.price
+      ? product.oldPriceStr || `₹${Number(product.oldPrice).toLocaleString("en-IN")}`
+      : product.oldPriceStr || null;
+
+  const related = getRecommendedProducts(product, allProducts, PRODUCTS, 4);
 
   const handleSelectColor = (index: number) => {
     setSelectedColor(index);
     const chosenColor = colorOptions[index];
     if (chosenColor?.image) {
-      const imgIdx = product.images.findIndex((img) => img === chosenColor.image);
+      const imgIdx = allGalleryImages.findIndex((img) => img === chosenColor.image);
       if (imgIdx !== -1) {
         setActiveImg(imgIdx);
       }
@@ -458,27 +554,37 @@ export default function ProductDetailClient({
                 </span>
               )}
               <Image
-                src={(colorOptions[selectedColor]?.image) || product.images[activeImg] || product.img}
+                src={allGalleryImages[activeImg] || colorOptions[selectedColor]?.image || product.img}
                 alt={product.name}
                 width={600}
                 height={600}
+                unoptimized
                 className="w-full h-full object-contain p-8 transition-all duration-300"
                 priority
               />
             </div>
 
-            {/* Thumbnail Strip */}
-            {product.images.length > 1 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
-                {product.images.map((img, i) => (
+            {/* Thumbnail Strip (Sub-Images) */}
+            {allGalleryImages.length > 1 && (
+              <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-none">
+                {allGalleryImages.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImg(i)}
-                    className={`w-16 h-16 rounded-xl bg-white border-2 shrink-0 overflow-hidden transition-all
-                                ${activeImg === i ? "border-accent shadow-[0_0_12px_rgba(200,169,110,0.4)]" : "border-transparent"}`}
+                    className={`w-16 h-16 rounded-xl bg-white border-2 shrink-0 overflow-hidden transition-all cursor-pointer ${
+                      activeImg === i
+                        ? "border-accent shadow-[0_0_12px_rgba(200,169,110,0.4)] scale-105"
+                        : "border-gray-200 opacity-70 hover:opacity-100"
+                    }`}
                   >
-                    <Image src={img} alt="" width={64} height={64}
-                      className="w-full h-full object-contain p-1" />
+                    <Image
+                      src={img}
+                      alt={`Sub image ${i + 1}`}
+                      width={64}
+                      height={64}
+                      unoptimized
+                      className="w-full h-full object-contain p-1"
+                    />
                   </button>
                 ))}
               </div>
@@ -501,15 +607,19 @@ export default function ProductDetailClient({
                 {formatTitleCase(product.name)}
               </h1>
 
-              {/* Price & Off tag */}
+              {/* Price & Strike MRP & Off tag */}
               <div className="flex items-center gap-3 mb-4 flex-wrap">
-                <span className="text-[32px] font-bold text-cream font-pally">{product.priceStr}</span>
-                {product.oldPriceStr && (
-                  <span className="text-[18px] text-dim line-through">{product.oldPriceStr}</span>
+                <span className="text-[32px] font-bold text-cream font-pally">
+                  {product.priceStr || `₹${Number(product.price).toLocaleString("en-IN")}`}
+                </span>
+                {strikePriceStr && (
+                  <span className="text-[18px] text-dim line-through font-medium">
+                    {strikePriceStr}
+                  </span>
                 )}
-                {discount > 0 && (
-                  <span className="bg-promo text-white text-[11px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider">
-                    Sale {discount}% OFF
+                {discountPercent > 0 && (
+                  <span className="bg-promo text-white text-[11px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
+                    SALE {discountPercent}% OFF
                   </span>
                 )}
               </div>
@@ -538,6 +648,23 @@ export default function ProductDetailClient({
                   </div>
                 </div>
               </div>
+
+              {/* Key Features & Bullet Points */}
+              {product.features && product.features.length > 0 && (
+                <div className="mb-6 p-4 bg-dark2/90 border border-border/80 rounded-xl">
+                  <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-accent mb-2.5 font-mono flex items-center gap-1.5">
+                    <span>✨</span> Key Model Highlights
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px] text-cream">
+                    {product.features.map((feat, idx) => (
+                      <li key={idx} className="flex items-start gap-2 font-pally leading-snug">
+                        <span className="text-emerald-400 font-extrabold shrink-0 mt-0.5">✓</span>
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Color Options Section */}
               {colorOptions.length > 0 && (

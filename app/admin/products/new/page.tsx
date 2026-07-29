@@ -19,7 +19,6 @@ export default function NewProductPage() {
   });
 
   const handleSave = async (formData: any) => {
-    // 1. Save directly to Supabase DB
     try {
       await saveProductToSupabase(formData);
       await queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -28,8 +27,6 @@ export default function NewProductPage() {
       console.error("Product creation Supabase error:", err);
       toast.error("Product Creation Failed", err?.message || "Failed to create product in database.");
     }
-
-    // 2. SPA navigation back to products list
     router.push("/admin/products");
   };
 
