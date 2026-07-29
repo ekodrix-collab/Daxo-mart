@@ -34,20 +34,20 @@ export default function Hero() {
         </h1>
 
         {/* Sub */}
-        <p className="text-[14px] sm:text-[16px] text-white/70 leading-relaxed mb-6 sm:mb-8 max-w-[380px] font-pally">
+        <p className="text-[14px] sm:text-[13px] text-white/80 leading-relaxed mb-6 sm:mb-8 max-w-[380px] font-pally">
           India's finest 1:18, 1:24 &amp; 1:32 scale diecast models, RC toys,
           and wall-mounted 3D display frames.
         </p>
 
         {/* Offer pills */}
-        <div className="flex gap-2.5 mb-6 sm:mb-8 flex-wrap">
+        {/* <div className="flex gap-2.5 mb-6 sm:mb-8 flex-wrap">
           <span className="bg-accent/20 border border-accent/50 text-accent text-[11px] sm:text-[12px] font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full font-pally">
             4% off first order
           </span>
           <span className="bg-white/10 border border-white/20 text-white/70 text-[11px] sm:text-[12px] font-bold tracking-wider uppercase px-3.5 py-1.5 rounded-full font-pally">
             Free delivery Available
           </span>
-        </div>
+        </div> */}
 
         {/* CTAs */}
         <div className="flex gap-3 flex-wrap">
@@ -57,12 +57,12 @@ export default function Hero() {
           >
             Shop Now
           </Link>
-          <Link
+          {/* <Link
             href="/products"
             className="inline-flex items-center justify-center border-2 border-white/35 text-white font-extrabold text-[12px] sm:text-[13px] tracking-wider uppercase px-6 sm:px-8 py-3.5 rounded-lg no-underline font-pally hover:border-accent hover:text-accent transition-colors"
           >
             1:24 Collection
-          </Link>
+          </Link> */}
         </div>
       </div>
 

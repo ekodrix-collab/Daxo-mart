@@ -7,7 +7,6 @@ const COL1 = [
   { label: "3D Frames",     path: "/products?category=Frame" },
 ];
 const COL2 = [
-  { label: "My Account",      path: "/account" },
   { label: "Wishlist",        path: "/wishlist" },
   { label: "Return Policy",   path: "/returns" },
   { label: "Cart",            path: "/cart" },
