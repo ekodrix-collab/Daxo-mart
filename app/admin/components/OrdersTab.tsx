@@ -69,17 +69,28 @@ interface OrdersTabProps {
   orders: Order[];
   onUpdateStatus: (id: string, status: OrderStatus) => void;
   onDeleteOrder: (id: string) => void;
+  onOrderClick?: (id: string) => void;
 }
 
 export default function OrdersTab({
   orders,
   onUpdateStatus,
   onDeleteOrder,
+  onOrderClick,
 }: OrdersTabProps) {
   const [orderFilter, setOrderFilter] = useState<string>("All");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const handleSelectOrder = (o: Order) => {
+    if (onOrderClick) {
+      onOrderClick(o.id);
+    } else {
+      setSelectedOrder(o);
+    }
+  };
+
 
   const filteredOrders = orders
     .filter((o) => orderFilter === "All" || o.status === orderFilter)
@@ -278,7 +289,7 @@ export default function OrdersTab({
                   return (
                     <tr
                       key={o.id}
-                      onClick={() => setSelectedOrder(o)}
+                      onClick={() => handleSelectOrder(o)}
                       className="hover:bg-[#1C1C20] transition-colors cursor-pointer group"
                     >
                       <td className="py-4 px-4 whitespace-nowrap">
@@ -337,7 +348,7 @@ export default function OrdersTab({
                             <MessageSquare size={14} />
                           </a>
                           <button
-                            onClick={() => setSelectedOrder(o)}
+                            onClick={() => handleSelectOrder(o)}
                             className="p-2 bg-[#202024] hover:bg-[#2A2A30] text-white rounded-lg border border-gray-800 transition-colors"
                             title="View Details"
                           >
@@ -368,7 +379,7 @@ export default function OrdersTab({
           return (
             <div
               key={o.id}
-              onClick={() => setSelectedOrder(o)}
+              onClick={() => handleSelectOrder(o)}
               className="bg-[#141416] border border-[#222226] rounded-[20px] p-5 flex flex-col justify-between hover:border-[#C5A059]/60 hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer group"
             >
               <div>

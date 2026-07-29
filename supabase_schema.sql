@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.categories (
     name VARCHAR(255) NOT NULL UNIQUE,
     slug VARCHAR(255) NOT NULL UNIQUE,
     image_url TEXT,
+    sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -144,6 +145,9 @@ CREATE POLICY "Allow All Customers" ON public.customers FOR ALL USING (true) WIT
 CREATE POLICY "Allow All Addresses" ON public.addresses FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow All Orders" ON public.orders FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow All Order Items" ON public.order_items FOR ALL USING (true) WITH CHECK (true);
+
+-- Enable Supabase Realtime for orders table
+ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
 
 -- 12. INITIAL SEED DATA
 INSERT INTO public.categories (name, slug, image_url) VALUES

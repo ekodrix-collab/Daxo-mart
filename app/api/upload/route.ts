@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
       return NextResponse.json({
         success: true,
-        url: "/images/car-suv.png",
+        url: "/images/placeholder.png",
         format: "webp",
         note: "Cloudinary credentials missing in .env.local. Upload fallback used.",
       });
