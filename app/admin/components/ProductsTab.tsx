@@ -86,15 +86,16 @@ export default function ProductsTab() {
     if (!formData.shortName || !formData.name) return;
 
     if (editingProduct) {
-      const updatedItem = {
+      const updatedData = {
         ...editingProduct,
         ...formData,
         priceStr: `₹${Number(formData.price).toLocaleString("en-IN")}`,
-        oldPriceStr: `₹${Number(formData.oldPrice).toLocaleString("en-IN")}`,
+        oldPriceStr: formData.oldPrice ? `₹${Number(formData.oldPrice).toLocaleString("en-IN")}` : "",
+        images: (formData.images && formData.images.length > 0) ? formData.images : [formData.img || "/images/placeholder.png"],
       } as Product;
 
       setProducts((prev) =>
-        prev.map((p) => (p.id === editingProduct.id ? updatedItem : p))
+        prev.map((p) => (p.id === editingProduct.id ? updatedData : p))
       );
 
       try {
@@ -106,20 +107,25 @@ export default function ProductsTab() {
         console.error("Error updating product in Supabase from modal:", err);
       }
     } else {
-      const newId = Math.max(...products.map((p) => typeof p.id === "number" ? p.id : 0), 0) + 1;
+      const newId = Math.max(...products.map((p) => (typeof p.id === "number" ? p.id : 0)), 0) + 1;
+      const gallery = (formData.images && formData.images.length > 0)
+        ? formData.images
+        : [formData.img || "/images/placeholder.png"];
+
       const newProd: Product = {
         id: newId,
         slug: (formData.shortName || "product").toLowerCase().replace(/\s+/g, "-"),
         name: formData.name || "",
         shortName: formData.shortName || "",
         price: Number(formData.price) || 0,
+        costPrice: Number(formData.costPrice) || 0,
         oldPrice: Number(formData.oldPrice) || 0,
         priceStr: `₹${Number(formData.price || 0).toLocaleString("en-IN")}`,
         oldPriceStr: `₹${Number(formData.oldPrice || 0).toLocaleString("en-IN")}`,
         scale: formData.category || "1:24",
         category: (formData.category as Product["category"]) || "1:24",
-        img: formData.img || "/images/placeholder.png",
-        images: [formData.img || "/images/placeholder.png"],
+        img: gallery[0],
+        images: gallery,
         badge: formData.badge || null,
         description: formData.description || "",
         features: ["Die-cast premium quality", "Detailed replica"],
@@ -133,7 +139,7 @@ export default function ProductsTab() {
         fetch("/api/products/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ ...formData, images: gallery }),
         }).catch((err) => console.error("Async product create API error:", err));
       } catch (err) {
         console.error("API call error:", err);
@@ -342,6 +348,11 @@ export default function ProductsTab() {
                       {p.oldPriceStr && (
                         <span className="text-[11px] text-gray-500 line-through ml-2">{p.oldPriceStr}</span>
                       )}
+                      {p.costPrice ? (
+                        <p className="text-[10.5px] font-bold text-amber-400 font-mono mt-0.5">
+                          Cost: ₹{p.costPrice.toLocaleString("en-IN")}
+                        </p>
+                      ) : null}
                     </td>
 
                     <td className="py-3.5 px-4 whitespace-nowrap">
@@ -441,6 +452,11 @@ export default function ProductsTab() {
                   <span className="text-[13px] text-gray-500 line-through ml-2 font-pally">
                     {p.oldPriceStr}
                   </span>
+                  {p.costPrice ? (
+                    <p className="text-[11px] font-bold text-amber-400 font-mono mt-0.5">
+                      Dealer Cost: ₹{p.costPrice.toLocaleString("en-IN")}
+                    </p>
+                  ) : null}
                 </div>
                 {p.badge && (
                   <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#C5A059]/15 text-[#C5A059] border border-[#C5A059]/30">

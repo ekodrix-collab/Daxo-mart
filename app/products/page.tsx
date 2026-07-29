@@ -52,6 +52,7 @@ const SORT_OPTIONS = [
 
 
 
+
 function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -10,6 +10,7 @@ export interface Product {
   name: string;
   shortName: string;
   price: number;
+  costPrice?: number; // Dealer Cost Price (Admin only)
   oldPrice: number;
   priceStr: string;
   oldPriceStr: string;

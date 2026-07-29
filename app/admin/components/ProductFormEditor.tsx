@@ -104,6 +104,7 @@ export default function ProductFormEditor({
 
   // Pricing & Stock
   const [price, setPrice] = useState<number>(initialData?.price || 1299);
+  const [costPrice, setCostPrice] = useState<number>(initialData?.costPrice || 0);
   const [oldPrice, setOldPrice] = useState<number>(initialData?.oldPrice || 1799);
   const [taxRate, setTaxRate] = useState<number>(initialData?.taxRate || 18);
   const [stock, setStock] = useState<number>(initialData?.stock ?? 15);
@@ -240,6 +241,7 @@ export default function ProductFormEditor({
       setShowVideoDeleteModal(false);
     }
   };
+
 
   const handleColorImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -381,6 +383,7 @@ export default function ProductFormEditor({
       img: img || galleryImages[0] || "/images/placeholder.png",
       images: galleryImages.length > 0 ? galleryImages : [img],
       price: Number(price),
+      costPrice: Number(costPrice) || 0,
       oldPrice: Number(oldPrice),
       taxRate: Number(taxRate),
       stock: Number(stock),
@@ -1122,119 +1125,57 @@ export default function ProductFormEditor({
                 </div>
               </div>
 
-              {/* Active Color List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {colors.map((col, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-3 bg-[#1C1C20] rounded-xl border border-[#26262B]"
-                  >
-                    <div className="flex items-center gap-3">
-                      {col.image ? (
-                        <div className="w-9 h-9 bg-white rounded-lg p-0.5 overflow-hidden relative border border-gray-300 shrink-0">
-                          <Image src={col.image} alt={col.name} fill className="object-contain p-0.5" />
-                        </div>
-                      ) : (
-                        <div
-                          className="w-7 h-7 rounded-full border border-gray-400 shadow-sm shrink-0"
-                          style={{ backgroundColor: col.colorHex || "#ccc" }}
-                        />
-                      )}
-                      <div>
-                        <p className="text-[13px] font-bold text-white">{col.name}</p>
-                        <p className="text-[10.5px] text-gray-400">
-                          {col.image ? "With Image" : col.colorHex}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeColorOption(idx)}
-                      className="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10 cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Description & Bullet Features */}
-            <div className="space-y-6 max-w-4xl pt-4 border-t border-[#222226]">
-              <h3 className="text-[16px] font-bold text-[#C5A059] tracking-wide uppercase border-b border-[#222226] pb-2 flex items-center gap-2">
-                <FileText size={18} /> Product Description & Bullet Features
-              </h3>
-
-              <div>
-                <label className="text-[13px] font-semibold text-gray-300 block mb-2">
-                  Short Teaser Description
-                </label>
-                <input
-                  type="text"
-                  value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="Brief 1-sentence product summary..."
-                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-gray-300 block mb-2">
-                  Detailed Product Overview & Story
-                </label>
-                <textarea
-                  rows={5}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter complete product description, craftsmanship highlights..."
-                  className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] p-4 rounded-xl outline-none focus:border-[#C5A059] leading-relaxed resize-y"
-                />
-              </div>
-
-              <div>
-                <label className="text-[13px] font-semibold text-gray-300 block mb-2">
-                  Key Feature Bullet Highlights
-                </label>
-                <div className="space-y-2 mb-3">
-                  {features.map((feat, idx) => (
+            {/* List of active color options */}
+            <div>
+              <h4 className="text-[14px] font-bold text-white mb-3">
+                Configured Color Options ({colors.length})
+              </h4>
+              {colors.length === 0 ? (
+                <p className="text-[13px] text-gray-500 italic bg-[#141416] p-4 rounded-xl border border-[#222226]">
+                  No color variants added yet. Add variants like Yellow Car or White Car above.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {colors.map((col, idx) => (
                     <div
                       key={idx}
                       className="flex items-center justify-between p-3 bg-[#1C1C20] rounded-xl border border-[#26262B]"
                     >
-                      <span className="text-[13px] text-gray-200">{feat}</span>
+                      <div className="flex items-center gap-3">
+                        {col.image ? (
+                          <div className="w-10 h-10 bg-white rounded-lg p-0.5 overflow-hidden relative border border-gray-300 shrink-0">
+                            <Image src={col.image} alt={col.name} fill className="object-contain p-0.5" />
+                          </div>
+                        ) : (
+                          <div
+                            className="w-8 h-8 rounded-full border border-gray-400 shadow-sm shrink-0"
+                            style={{ backgroundColor: col.colorHex || "#ccc" }}
+                          />
+                        )}
+                        <div>
+                          <p className="text-[13px] font-bold text-white">{col.name}</p>
+                          <p className="text-[11px] text-gray-400">
+                            {col.image ? "With Variant Image" : `Hex: ${col.colorHex || "N/A"}`}
+                          </p>
+                        </div>
+                      </div>
+
                       <button
                         type="button"
-                        onClick={() => removeFeature(idx)}
-                        className="text-red-400 hover:text-red-300 p-1"
+                        onClick={() => removeColorOption(idx)}
+                        className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 cursor-pointer"
+                        title="Remove color option"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={15} />
                       </button>
                     </div>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    value={newFeature}
-                    onChange={(e) => setNewFeature(e.target.value)}
-                    placeholder="e.g. Working steering wheel & suspension"
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addFeature())}
-                    className="flex-1 bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-2.5 rounded-xl outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={addFeature}
-                    className="bg-[#202024] hover:bg-[#2A2A30] text-white font-semibold text-[13px] px-4 py-2.5 rounded-xl border border-[#303036] flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus size={15} /> Add Bullet
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* TAB 3: SPECS & SEO */}
         {activeTab === "seo_specs" && (
