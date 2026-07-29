@@ -16,8 +16,8 @@ export default function RootLayout({
   const isAdmin = pathname?.startsWith("/admin");
 
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <CartProvider>
           {!isAdmin && <Header />}
           <main style={{ flex: 1 }}>{children}</main>

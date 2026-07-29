@@ -4,6 +4,7 @@ export interface CategoryItem {
   slug: string;
   img: string;
   filterValue: string;
+  sortOrder?: number;
   productCount?: number;
 }
 

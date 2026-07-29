@@ -19,7 +19,8 @@ import {
   Truck,
 } from "lucide-react";
 import { type Product } from "@/lib/products";
-import { fetchProducts } from "@/service/storeService";
+import { fetchProducts, fetchCategories } from "@/service/storeService";
+import { CategoryItem } from "@/lib/categories";
 import { BuyNowModal } from "@/app/products/[id]/ProductDetailClient";
 import { useCart } from "@/components/cart/CartContext";
 
@@ -148,12 +149,21 @@ function SingleProductCard({ p }: { p: Product }) {
 
         {/* Buy Now Full Width CTA */}
         <div className="p-4 pt-0 mt-auto">
-          <button
-            onClick={handleBuy}
-            className="w-full bg-accent hover:bg-accent/90 text-dark font-black text-[12px] uppercase tracking-wider py-2.5 rounded-lg transition-all font-pally shadow-md hover:shadow-accent/20 cursor-pointer block text-center"
-          >
-            Buy Now
-          </button>
+          {(!p.inStock || p.stock === 0) ? (
+            <button
+              disabled
+              className="w-full bg-gray-800 text-gray-400 font-bold text-[12px] uppercase tracking-wider py-2.5 rounded-lg font-pally cursor-not-allowed border border-gray-700 opacity-75"
+            >
+              Out of Stock
+            </button>
+          ) : (
+            <button
+              onClick={handleBuy}
+              className="w-full bg-accent hover:bg-accent/90 text-dark font-black text-[12px] uppercase tracking-wider py-2.5 rounded-lg transition-all font-pally shadow-md hover:shadow-accent/20 cursor-pointer block text-center"
+            >
+              Buy Now
+            </button>
+          )}
         </div>
       </div>
 
@@ -172,6 +182,7 @@ function ProductsContent() {
   const searchParams = useSearchParams();
 
   const [productsList, setProductsList] = useState<Product[]>([]);
+  const [dbCategories, setDbCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters State
@@ -198,11 +209,20 @@ function ProductsContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    fetchProducts().then((res) => {
-      setProductsList(res);
+    Promise.all([fetchProducts(), fetchCategories()]).then(([prods, cats]) => {
+      setProductsList(prods);
+      setDbCategories(cats);
       setLoading(false);
     });
   }, []);
+
+  const categoryOptions = useMemo(() => {
+    const options = [{ label: "All Categories", value: "ALL" }];
+    dbCategories.forEach((c) => {
+      options.push({ label: c.name, value: c.filterValue || c.name });
+    });
+    return options;
+  }, [dbCategories]);
 
   // Check if active filters are present
   const hasActiveFilters = useMemo(() => {
@@ -252,11 +272,22 @@ function ProductsContent() {
 
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
-    let result = [...productsList];
+    let result = productsList.filter((p) => p.isActive !== false);
 
     // 1. Category Filter
     if (categoryFilter !== "ALL") {
-      result = result.filter((p) => p.category === categoryFilter);
+      const selectedCatObj = dbCategories.find(
+        (c) => c.filterValue === categoryFilter || c.slug === categoryFilter || c.name === categoryFilter
+      );
+      result = result.filter((p) => {
+        if (!p.category) return false;
+        if (p.category === categoryFilter) return true;
+        if (p.scale && p.scale === categoryFilter) return true;
+        if (selectedCatObj) {
+          if (p.category === selectedCatObj.name || p.category === selectedCatObj.filterValue) return true;
+        }
+        return false;
+      });
     }
 
     // 2. Search Query Filter
@@ -510,7 +541,7 @@ function ProductsContent() {
                   Category
                 </h3>
                 <div className="space-y-1">
-                  {CATEGORY_OPTIONS.map((cat) => {
+                  {categoryOptions.map((cat) => {
                     const isSelected = categoryFilter === cat.value;
                     const count =
                       cat.value === "ALL"
@@ -726,7 +757,7 @@ function ProductsContent() {
                   Category
                 </h3>
                 <div className="space-y-1.5">
-                  {CATEGORY_OPTIONS.map((cat) => {
+                  {categoryOptions.map((cat) => {
                     const isSelected = categoryFilter === cat.value;
                     return (
                       <button

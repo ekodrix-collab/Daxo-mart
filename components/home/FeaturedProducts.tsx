@@ -19,7 +19,7 @@ function ProductCard({ p }: { p: Product }) {
   return (
     <>
       <div className="group flex flex-col shrink-0 w-[210px] sm:w-[245px] md:w-[275px] bg-[#fdfdfd] border border-[#e8e0d8] rounded-2xl p-3 sm:p-4 hover:shadow-xl hover:border-black/20 transition-all duration-200">
-        <Link href={`/products/${p.id}`} className="no-underline block flex-1">
+        <Link href={`/products/${p.slug || p.id}`} className="no-underline block flex-1">
           {/* Image Box */}
           <div className="relative bg-[#f4f4f4] rounded-xl overflow-hidden h-[150px] sm:h-[180px] md:h-[200px] flex items-center justify-center mb-3">
             <img
