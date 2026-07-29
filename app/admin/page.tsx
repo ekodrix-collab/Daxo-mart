@@ -19,6 +19,7 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 import { supabase, OrderStatus } from "@/lib/supabase";
 import DashboardTab from "./components/DashboardTab";
@@ -26,6 +27,7 @@ import OrdersTab, { type Order } from "./components/OrdersTab";
 import ProductsTab from "./components/ProductsTab";
 import CategoriesTab from "./components/CategoriesTab";
 import CustomersTab from "./components/CustomersTab";
+import FeedbackTab from "./components/FeedbackTab";
 import SettingsTab from "./components/SettingsTab";
 
 const SEED_ORDERS: Order[] = [
@@ -84,7 +86,7 @@ const SEED_ORDERS: Order[] = [
   },
 ];
 
-type TabType = "dashboard" | "orders" | "products" | "categories" | "customers" | "settings";
+type TabType = "dashboard" | "orders" | "products" | "categories" | "customers" | "feedback" | "settings";
 
 function SideItem({
   label,
@@ -272,6 +274,7 @@ export default function AdminPage() {
     products: "Product Catalog",
     categories: "Categories & Collections",
     customers: "Customer CRM",
+    feedback: "Customer Feedback & Reviews",
     settings: "System Settings",
   };
 
@@ -436,6 +439,15 @@ export default function AdminPage() {
             }}
           />
           <SideItem
+            label="Feedback"
+            icon={MessageSquare}
+            active={tab === "feedback"}
+            onClick={() => {
+              setTab("feedback");
+              setMobileNavOpen(false);
+            }}
+          />
+          <SideItem
             label="Settings"
             icon={Settings}
             active={tab === "settings"}
@@ -546,6 +558,7 @@ export default function AdminPage() {
           {tab === "customers" && (
             <CustomersTab orders={orders} onUpdateOrderStatus={updateStatus} />
           )}
+          {tab === "feedback" && <FeedbackTab />}
           {tab === "settings" && (
             <SettingsTab onSignOut={() => setAuthed(false)} />
           )}

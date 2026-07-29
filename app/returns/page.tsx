@@ -56,7 +56,6 @@ export default function ReturnPolicyPage() {
         <div className="bg-dark2 border border-border rounded-xl p-6 sm:p-8 mb-8 relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
           <div className="flex items-center gap-3 mb-3">
-            <span className="w-8 h-[2px] bg-accent inline-block" />
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
               Policy & Guidelines
             </span>
@@ -64,8 +63,8 @@ export default function ReturnPolicyPage() {
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-cream mb-4">
             Return Policy
           </h1>
-          <p className="text-muted text-base sm:text-lg leading-relaxed">
-            We accept returns only under the following conditions:
+          <p className=" text-base sm:text-md leading-relaxed">
+            We accept returns only under the following conditions
           </p>
         </div>
 
