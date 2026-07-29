@@ -1,90 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { type Product } from "@/lib/products";
 import { fetchProducts } from "@/service/storeService";
-import { BuyNowModal } from "@/app/products/[id]/ProductDetailClient";
-
-/* ── Product Card Component ───────────────────────────────────── */
-function ProductCard({ p }: { p: Product }) {
-  const [showBuyModal, setShowBuyModal] = useState(false);
-
-  const handleBuyNow = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowBuyModal(true);
-  };
-
-  return (
-    <>
-      <div className="group flex flex-col shrink-0 w-[210px] sm:w-[245px] md:w-[275px] bg-[#fdfdfd] border border-[#e8e0d8] rounded-2xl p-3 sm:p-4 hover:shadow-xl hover:border-black/20 transition-all duration-200">
-        <Link href={`/products/${p.slug || p.id}`} className="no-underline block flex-1">
-          {/* Image Box */}
-          <div className="relative bg-white border border-gray-100 rounded-xl overflow-hidden h-[160px] sm:h-[190px] md:h-[210px] flex items-center justify-center mb-3">
-            <img
-              src={p.img}
-              alt={p.name}
-              className={`w-full h-full object-contain p-2 sm:p-3 block transition-all duration-500 ease-in-out ${
-                p.images && p.images.length > 1 && p.images[1] !== p.img
-                  ? "group-hover:opacity-0 group-hover:scale-105"
-                  : "group-hover:scale-105"
-              }`}
-            />
-            {p.images && p.images.length > 1 && p.images[1] !== p.img && (
-              <img
-                src={p.images[1]}
-                alt={`${p.name} view 2`}
-                className="absolute inset-0 w-full h-full object-contain p-2 sm:p-3 block opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-in-out"
-              />
-            )}
-            {/* Sale Badge */}
-            {p.badge && (
-              <span className="absolute bottom-2.5 left-2.5 bg-[#0c0c0c] text-white text-[10px] sm:text-[11px] font-bold tracking-wider px-2.5 py-1 rounded font-pally z-10 shadow-sm">
-                {p.badge}
-              </span>
-            )}
-          </div>
-
-          {/* Name */}
-          <h3 className="text-[12px] sm:text-[13px] font-bold text-[#0c0c0c] uppercase tracking-wide leading-snug line-clamp-2 mb-1 font-pally min-h-[36px]">
-            {p.name}
-          </h3>
-
-          {/* Price */}
-          <div className="flex items-baseline gap-2 mb-2">
-            <p className="text-[14px] sm:text-[15px] font-bold text-[#0c0c0c] font-pally">
-              Rs. {p.price.toLocaleString("en-IN")}.00
-            </p>
-            {(p.oldPriceStr || (p.oldPrice && p.oldPrice > p.price)) && (
-              <span className="text-[12px] text-gray-400 line-through font-medium font-pally">
-                {p.oldPriceStr || `Rs. ${p.oldPrice.toLocaleString("en-IN")}.00`}
-              </span>
-            )}
-          </div>
-        </Link>
-
-        {/* ── ACTION BUTTON: BUY NOW ── */}
-        <div className="pt-2 border-t border-gray-100">
-          <button
-            onClick={handleBuyNow}
-            className="w-full bg-[#0c0c0c] hover:bg-black text-white text-[12px] font-extrabold uppercase tracking-wider py-3 rounded-xl transition-all font-pally shadow-sm cursor-pointer"
-          >
-            Buy Now
-          </button>
-        </div>
-      </div>
-
-      {/* Buy Now Modal */}
-      <BuyNowModal
-        product={p}
-        quantity={1}
-        isOpen={showBuyModal}
-        onClose={() => setShowBuyModal(false)}
-      />
-    </>
-  );
-}
+import ProductCard from "@/components/product/ProductCard";
 
 /* ── Section Component ────────────────────────────────────────── */
 function ProductSection({
@@ -116,7 +35,9 @@ function ProductSection({
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {products.map((p) => (
-            <ProductCard key={p.id} p={p} />
+            <div key={p.id} className="w-[210px] sm:w-[245px] md:w-[275px] shrink-0 flex flex-col items-stretch">
+              <ProductCard product={p} variant="light" />
+            </div>
           ))}
         </div>
 

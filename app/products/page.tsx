@@ -18,11 +18,12 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
-import { type Product } from "@/lib/products";
+import { type Product, formatTitleCase } from "@/lib/products";
 import { fetchProducts, fetchCategories } from "@/service/storeService";
 import { CategoryItem } from "@/lib/categories";
 import { BuyNowModal } from "@/app/products/[id]/ProductDetailClient";
 import { useCart } from "@/components/cart/CartContext";
+import ProductCard from "@/components/product/ProductCard";
 
 const CATEGORY_OPTIONS = [
   { label: "All Categories", value: "ALL" },
@@ -49,153 +50,8 @@ const SORT_OPTIONS = [
   { label: "Name: A to Z", value: "name-az" },
 ];
 
-function SingleProductCard({ p }: { p: Product }) {
-  const [showBuyModal, setShowBuyModal] = useState(false);
-  const [addedToCart, setAddedToCart] = useState(false);
-  const { addToCart } = useCart();
 
-  const handleBuy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowBuyModal(true);
-  };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart(p, 1);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
-  };
-
-  const discountPercent =
-    p.oldPrice && p.oldPrice > p.price
-      ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
-      : 0;
-
-  return (
-    <>
-      <div className="group bg-dark2 border border-border/80 hover:border-accent/60 rounded-xl overflow-hidden transition-all duration-300 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)] transform hover:-translate-y-1 relative">
-        <Link href={`/products/${p.id}`} className="no-underline block flex-1">
-          {/* Image Box */}
-          <div className="bg-white overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-            {/* Discount Badge */}
-            {discountPercent > 0 && (
-              <span className="absolute top-2.5 left-2.5 z-10 bg-red-600 text-white font-extrabold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded shadow">
-                {discountPercent}% OFF
-              </span>
-            )}
-
-            {/* Custom Tag / Badge */}
-            {p.badge && (
-              <span
-                className={`absolute top-2.5 right-2.5 z-10 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${p.badge === "New"
-                    ? "bg-emerald-600 text-white"
-                    : p.badge === "Sale"
-                      ? "bg-amber-500 text-black"
-                      : "bg-accent text-dark"
-                  }`}
-              >
-                {p.badge}
-              </span>
-            )}
-
-            {/* Primary Cover Image */}
-            <Image
-              src={p.img}
-              alt={p.shortName}
-              width={320}
-              height={240}
-              unoptimized
-              className={`w-full h-full object-contain p-2.5 sm:p-3 transition-all duration-500 ease-in-out ${
-                p.images && p.images.length > 1 && p.images[1] !== p.img
-                  ? "group-hover:opacity-0 group-hover:scale-105"
-                  : "group-hover:scale-105"
-              }`}
-            />
-
-            {/* Secondary Image (Smooth Fade-in Hover Transition) */}
-            {p.images && p.images.length > 1 && p.images[1] !== p.img && (
-              <Image
-                src={p.images[1]}
-                alt={`${p.shortName} - View 2`}
-                width={320}
-                height={240}
-                unoptimized
-                className="absolute inset-0 w-full h-full object-contain p-2.5 sm:p-3 opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-in-out"
-              />
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="p-4 flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80 bg-dark3 px-2 py-0.5 rounded">
-                {p.category}
-              </span>
-              {p.inStock ? (
-                <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
-                  In Stock
-                </span>
-              ) : (
-                <span className="text-[10px] text-rose-400 font-semibold">Out of Stock</span>
-              )}
-            </div>
-
-            <h3 className="text-[14px] font-bold text-cream leading-tight line-clamp-2 mt-0.5 group-hover:text-accent transition-colors font-pally">
-              {p.shortName}
-            </h3>
-
-            {/* Rating Stars */}
-            <div className="flex items-center gap-1 my-0.5">
-              <div className="flex text-amber-400 text-xs">★★★★★</div>
-              <span className="text-[10px] text-muted font-medium">(4.9)</span>
-            </div>
-
-            {/* Price section */}
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-[17px] font-black text-cream font-pally">
-                {p.priceStr || `₹${Number(p.price).toLocaleString("en-IN")}`}
-              </span>
-              {(p.oldPriceStr || (p.oldPrice && p.oldPrice > p.price)) && (
-                <span className="text-[12px] text-muted line-through font-medium">
-                  {p.oldPriceStr || `₹${Number(p.oldPrice).toLocaleString("en-IN")}`}
-                </span>
-              )}
-            </div>
-          </div>
-        </Link>
-
-        {/* Buy Now Full Width CTA */}
-        <div className="p-4 pt-0 mt-auto">
-          {(!p.inStock || p.stock === 0) ? (
-            <button
-              disabled
-              className="w-full bg-gray-800 text-gray-400 font-bold text-[12px] uppercase tracking-wider py-2.5 rounded-lg font-pally cursor-not-allowed border border-gray-700 opacity-75"
-            >
-              Out of Stock
-            </button>
-          ) : (
-            <button
-              onClick={handleBuy}
-              className="w-full bg-accent hover:bg-accent/90 text-dark font-black text-[12px] uppercase tracking-wider py-2.5 rounded-lg transition-all font-pally shadow-md hover:shadow-accent/20 cursor-pointer block text-center"
-            >
-              Buy Now
-            </button>
-          )}
-        </div>
-      </div>
-
-      <BuyNowModal
-        product={p}
-        quantity={1}
-        isOpen={showBuyModal}
-        onClose={() => setShowBuyModal(false)}
-      />
-    </>
-  );
-}
 
 function ProductsContent() {
   const router = useRouter();
@@ -229,6 +85,8 @@ function ProductsContent() {
     }
     if (urlSearch) {
       setSearchQuery(urlSearch);
+    } else {
+      setSearchQuery("");
     }
   }, [searchParams]);
 
@@ -316,13 +174,15 @@ function ProductsContent() {
 
     // 2. Search Query Filter
     if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.shortName.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          (p.scale && p.scale.toLowerCase().includes(q))
+          (p.scale && p.scale.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (p.sku && p.sku.toLowerCase().includes(q))
       );
     }
 
@@ -404,12 +264,31 @@ function ProductsContent() {
               type="text"
               placeholder="Search by model, scale, brand..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
+                if (val.trim()) {
+                  params.set("search", val.trim());
+                } else {
+                  params.delete("search");
+                  params.delete("q");
+                }
+                const str = params.toString();
+                router.replace(str ? `/products?${str}` : "/products", { scroll: false });
+              }}
               className="w-full bg-dark3 border border-border/80 focus:border-accent rounded-lg pl-9 pr-8 py-2 text-xs text-cream outline-none font-pally transition-colors"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setSearchQuery("");
+                  const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
+                  params.delete("search");
+                  params.delete("q");
+                  const str = params.toString();
+                  router.replace(str ? `/products?${str}` : "/products", { scroll: false });
+                }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-cream cursor-pointer"
               >
                 <X size={14} />
@@ -750,7 +629,7 @@ function ProductsContent() {
               /* Product Grid */
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
                 {filteredProducts.map((product) => (
-                  <SingleProductCard key={product.id} p={product} />
+                  <ProductCard key={product.id} product={product} variant="dark" />
                 ))}
               </div>
             )}

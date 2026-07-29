@@ -2,14 +2,16 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { fetchCategories } from "@/service/storeService";
+import { fetchCategories, saveProductToSupabase } from "@/service/storeService";
 import ProductFormEditor from "../../components/ProductFormEditor";
 import { type Product } from "@/lib/products";
 import { type CategoryItem } from "@/lib/categories";
+import { useToast } from "@/components/ToastProvider";
 
 export default function NewProductPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const { data: categories = [] } = useQuery<CategoryItem[]>({
     queryKey: ["categories"],
@@ -17,47 +19,14 @@ export default function NewProductPage() {
   });
 
   const handleSave = async (formData: any) => {
-    // 1. Direct optimistic cache update to 'products' query
-    const newId = Math.floor(100 + Math.random() * 900);
-    const newProd: Product = {
-      id: newId,
-      slug: formData.slug || `prod-${newId}`,
-      name: formData.name,
-      shortName: formData.shortName || formData.name,
-      price: formData.price,
-      oldPrice: formData.oldPrice,
-      priceStr: `₹${Number(formData.price).toLocaleString("en-IN")}`,
-      oldPriceStr: formData.oldPrice ? `₹${Number(formData.oldPrice).toLocaleString("en-IN")}` : "",
-      scale: formData.scale || formData.category || "1:24",
-      category: formData.category || "1:24",
-      img: formData.img || "/images/placeholder.png",
-      images: formData.images || [formData.img || "/images/placeholder.png"],
-      badge: formData.badge,
-      description: formData.description,
-      features: formData.features || [],
-      inStock: formData.inStock ?? true,
-      sku: formData.sku || `DXM-${newId}`,
-    };
-
-    queryClient.setQueryData<Product[]>(["products"], (old = []) => [newProd, ...old]);
-
-    // 2. Await backend product creation API
     try {
-      const res = await fetch("/api/products/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const result = await res.json();
-      console.log("Product create API result:", result);
-    } catch (e) {
-      console.error("Product create API error:", e);
+      await saveProductToSupabase(formData);
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Product Created Successfully", `"${formData.name}" has been published.`);
+    } catch (err: any) {
+      console.error("Product creation Supabase error:", err);
+      toast.error("Product Creation Failed", err?.message || "Failed to create product in database.");
     }
-
-    // 3. Invalidate React Query cache so storefront & admin re-fetch fresh data from DB
-    await queryClient.invalidateQueries({ queryKey: ["products"] });
-
-    // 4. SPA navigation back to products list
     router.push("/admin/products");
   };
 

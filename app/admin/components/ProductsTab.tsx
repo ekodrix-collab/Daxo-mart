@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { type Product } from "@/lib/products";
-import { fetchProducts, fetchCategories } from "@/service/storeService";
+import { fetchProducts, fetchCategories, saveProductToSupabase } from "@/service/storeService";
 import { type CategoryItem } from "@/lib/categories";
 import { compressImage } from "@/lib/imageCompressor";
 import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, Tag, Package, Upload, LayoutGrid, List } from "lucide-react";
@@ -87,24 +87,24 @@ export default function ProductsTab() {
 
     if (editingProduct) {
       const updatedData = {
+        ...editingProduct,
         ...formData,
         priceStr: `₹${Number(formData.price).toLocaleString("en-IN")}`,
         oldPriceStr: formData.oldPrice ? `₹${Number(formData.oldPrice).toLocaleString("en-IN")}` : "",
         images: (formData.images && formData.images.length > 0) ? formData.images : [formData.img || "/images/placeholder.png"],
-      };
+      } as Product;
 
       setProducts((prev) =>
-        prev.map((p) => (p.id === editingProduct.id ? ({ ...p, ...updatedData } as Product) : p))
+        prev.map((p) => (p.id === editingProduct.id ? updatedData : p))
       );
 
       try {
-        fetch(`/api/products/${editingProduct.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedData),
-        }).catch((err) => console.error("Async product update API error:", err));
+        await saveProductToSupabase({
+          ...formData,
+          id: editingProduct.id,
+        });
       } catch (err) {
-        console.error("API call error:", err);
+        console.error("Error updating product in Supabase from modal:", err);
       }
     } else {
       const newId = Math.max(...products.map((p) => (typeof p.id === "number" ? p.id : 0)), 0) + 1;

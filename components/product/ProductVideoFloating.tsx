@@ -33,6 +33,17 @@ export default function ProductVideoFloating({
     }
   }, [isFullscreen]);
 
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isFullscreen]);
+
   if (!videoUrl || isDismissed) return null;
 
   const toggleSound = (e: React.MouseEvent) => {
@@ -74,12 +85,12 @@ export default function ProductVideoFloating({
             />
 
             {/* Top Bar inside Mini Bubble */}
-            <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
+            <div className="absolute top-2 left-2 flex items-center z-10">
               {/* Sound Toggle Button */}
               <button
                 type="button"
                 onClick={toggleSound}
-                className="w-7 h-7 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all"
+                className="w-7 h-7 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all cursor-pointer"
                 title={isMuted ? "Unmute Sound" : "Mute Sound"}
               >
                 {isMuted ? (
@@ -92,21 +103,6 @@ export default function ProductVideoFloating({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                   </svg>
                 )}
-              </button>
-
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDismissed(true);
-                }}
-                className="w-7 h-7 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all"
-                title="Close Video"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
               </button>
             </div>
 
@@ -125,8 +121,14 @@ export default function ProductVideoFloating({
 
       {/* ── FULLSCREEN PORTRAIT REEL MODAL ── */}
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm sm:max-w-md h-[88vh] sm:h-[820px] rounded-3xl overflow-hidden bg-black border border-white/15 shadow-2xl flex flex-col justify-between">
+        <div
+          onClick={() => setIsFullscreen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-8 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[340px] sm:max-w-[380px] h-[70vh] max-h-[600px] sm:h-[600px] rounded-3xl overflow-hidden bg-black border border-white/15 shadow-2xl flex flex-col justify-between my-auto"
+          >
             {/* Fullscreen Video Player */}
             <div
               onClick={togglePlayPause}
@@ -160,7 +162,7 @@ export default function ProductVideoFloating({
                   <button
                     type="button"
                     onClick={toggleSound}
-                    className="h-10 px-3 rounded-full bg-black/60 hover:bg-black text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-all"
+                    className="h-10 px-3 rounded-full bg-black/60 hover:bg-black text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-all cursor-pointer"
                   >
                     {isMuted ? (
                       <>
@@ -188,19 +190,13 @@ export default function ProductVideoFloating({
                     e.stopPropagation();
                     setIsFullscreen(false);
                   }}
-                  className="w-10 h-10 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-lg"
+                  className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-lg cursor-pointer hover:scale-105 active:scale-95"
                   title="Close Fullscreen"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-              </div>
-
-              {/* Bottom Details Overlay */}
-              <div className="absolute bottom-4 left-4 right-4 z-20 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
-                <p className="text-xs text-red-400 font-semibold tracking-wider uppercase mb-1">Showcase Reel</p>
-                <h3 className="text-white font-bold text-base truncate">{productName}</h3>
               </div>
             </div>
           </div>
