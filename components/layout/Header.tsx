@@ -13,24 +13,23 @@ const NAV_ITEMS = [
   { title: "1:18 Diecast", path: "/products?category=1%3A18" },
   { title: "RC Toys", path: "/products?category=RC" },
   { title: "3D Frames", path: "/products?category=Frame" },
-  { title: "Contact", path: "/contact" },
 ];
 
 /* Announcement Bar — Free Delivery Available */
 const ANNOUNCE = [
-  "⚡ Free Delivery Available On All Orders",
-  "🚀 Pan-India Free Shipping Available",
-  "✨ Free Delivery Available Across India",
-  "⚡ Free Delivery Available On All Orders",
-  "🚀 Pan-India Free Shipping Available",
-  "✨ Free Delivery Available Across India",
+  " Free Delivery Available On All Orders",
+  " Pan-India Free Shipping Available",
+  " Free Delivery Available Across India",
+  " Free Delivery Available On All Orders",
+  " Pan-India Free Shipping Available",
+  " Free Delivery Available Across India",
   // duplicate set for seamless loop
-  "⚡ Free Delivery Available On All Orders",
-  "🚀 Pan-India Free Shipping Available",
-  "✨ Free Delivery Available Across India",
-  "⚡ Free Delivery Available On All Orders",
-  "🚀 Pan-India Free Shipping Available",
-  "✨ Free Delivery Available Across India",
+  " Free Delivery Available On All Orders",
+  " Pan-India Free Shipping Available",
+  " Free Delivery Available Across India",
+  " Free Delivery Available On All Orders",
+  " Pan-India Free Shipping Available",
+  " Free Delivery Available Across India",
 ];
 
 export default function Header() {
@@ -48,12 +47,12 @@ export default function Header() {
     <div className="sticky top-0 z-50">
 
       {/* ── Single announcement marquee ── */}
-      <div className="bg-dark2 border-b border-border overflow-hidden h-9 flex items-center">
-        <div className="marquee-track gap-14 px-10">
+      <div className="bg-dark2  overflow-hidden h-8 flex items-center">
+        <div className="marquee-track gap-15 px-10">
           {ANNOUNCE.map((item, i) => (
             <span
               key={i}
-              className="text-[11px] font-semibold tracking-widest uppercase text-muted flex items-center gap-2 shrink-0"
+              className="text-[11px] font-semibold tracking-widest uppercase text-muted flex items-center gap-3 shrink-0"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
               {item}
@@ -63,8 +62,8 @@ export default function Header() {
       </div>
 
       {/* ── Main header ── */}
-      <header className="bg-[#0c0c0c] border-b border-border shadow-[0_2px_20px_rgba(0,0,0,0.45)]">
-        <div className="max-w-[1280px] mx-auto px-5 flex items-center justify-between h-[100px] gap-6">
+      <header className="bg-[#0c0c0c] shadow-[0_2px_20px_rgba(0,0,0,0.45)]">
+        <div className="max-w-[1280px] mx-auto px-5 flex items-center justify-between h-[70px] gap-6">
 
           {/* Logo */}
           <Link href="/" className="shrink-0 flex items-center">
@@ -73,7 +72,7 @@ export default function Header() {
               alt="DAXOMART"
               width={340}
               height={100}
-              className="h-20 w-auto object-contain scale-110 origin-left mix-blend-screen"
+              className="h-13 w-auto object-contain scale-110 origin-left mix-blend-screen"
               priority
             />
           </Link>
@@ -107,15 +106,6 @@ export default function Header() {
                            placeholder:text-dim font-pally"
               />
             </div>
-
-            {/* Account */}
-            <Link
-              href="/account"
-              className="p-2 rounded-md text-muted hover:text-cream hover:bg-dark3
-                         transition-all duration-200 flex items-center justify-center"
-            >
-              <User size={18} />
-            </Link>
 
             {/* Cart */}
             <Link
