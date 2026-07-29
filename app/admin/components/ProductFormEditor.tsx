@@ -25,6 +25,7 @@ import {
   Eye,
   EyeOff,
   Palette,
+  Film,
 } from "lucide-react";
 
 export type ProductFormTab =
@@ -66,13 +67,51 @@ export default function ProductFormEditor({
   const [inStock, setInStock] = useState<boolean>(initialData?.inStock ?? true);
   const [badge, setBadge] = useState<string | null>(initialData?.badge || null);
 
-  // Images
+  // Images & Video
   const [img, setImg] = useState(initialData?.img || "/images/placeholder.png");
   const [galleryImages, setGalleryImages] = useState<string[]>(
     initialData?.images && initialData.images.length > 0
       ? initialData.images
       : [initialData?.img || "/images/placeholder.png"]
   );
+  const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || "");
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadStatus, setVideoUploadStatus] = useState("");
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingVideo(true);
+    setVideoUploadStatus(`Uploading ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
+
+    try {
+      const data = new FormData();
+      data.append("file", file);
+
+      const res = await fetch("/api/upload-video", {
+        method: "POST",
+        body: data,
+      });
+
+      const result = await res.json();
+      if (result.url) {
+        setVideoUrl(result.url);
+        setVideoUploadStatus("Video uploaded successfully!");
+      } else if (result.note) {
+        setVideoUploadStatus("Upload notice: " + result.note);
+      } else {
+        alert(result.error || "Failed to upload video");
+        setVideoUploadStatus("");
+      }
+    } catch (err: any) {
+      console.error("Video upload error:", err);
+      alert("Video upload failed: " + err.message);
+      setVideoUploadStatus("");
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
 
   // Pricing
   const [price, setPrice] = useState<number>(initialData?.price || 1299);
@@ -289,6 +328,7 @@ export default function ProductFormEditor({
       brand,
       specs,
       colors,
+      videoUrl: videoUrl || null,
       slug: slug || name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"),
       metaTitle: metaTitle || `${name} | DAXO-MART Premium Diecast`,
       metaDescription: metaDescription || description.slice(0, 160),
@@ -592,6 +632,84 @@ export default function ProductFormEditor({
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Showcase Video Reel Section */}
+            <div className="pt-6 border-t border-[#222226] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-[15px] font-bold text-white flex items-center gap-2">
+                    <Film className="text-[#C5A059]" size={18} />
+                    Product Showcase Video Reel (1 Video per Product)
+                  </h4>
+                  <p className="text-[12px] text-gray-400 mt-0.5">
+                    Upload a 10–30s portrait video (.mp4 / .webm) to display as a floating bubble at bottom-right corner of the product page.
+                  </p>
+                </div>
+                <label className="bg-[#1C1C20] hover:bg-[#25252A] text-white border border-[#2A2A2F] font-bold text-[12px] tracking-wider uppercase px-4 py-2.5 rounded-xl cursor-pointer transition-all flex items-center gap-2 shadow-md shrink-0 self-start sm:self-auto">
+                  <Upload size={15} />
+                  {isUploadingVideo ? "Uploading Video..." : "Upload MP4 Video"}
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    onChange={handleVideoUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {videoUploadStatus && (
+                <p className="text-xs font-semibold text-[#C5A059] bg-[#C5A059]/10 p-2.5 rounded-xl border border-[#C5A059]/20">
+                  {videoUploadStatus}
+                </p>
+              )}
+
+              <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B] flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-32 h-44 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-xl">
+                  {videoUrl ? (
+                    <video
+                      src={videoUrl}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 p-3 text-center">
+                      <Film className="text-gray-600" size={32} />
+                      <span className="text-[10px] text-gray-500 font-medium">No Video Uploaded</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 flex-1 w-full">
+                  <div>
+                    <h5 className="text-[13px] font-bold text-white">Video Source URL</h5>
+                    <p className="text-[11px] text-gray-400 font-mono truncate">{videoUrl || "None"}</p>
+                  </div>
+                  <input
+                    type="text"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="Paste direct MP4 video link or upload above..."
+                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-3.5 py-2 rounded-xl outline-none"
+                  />
+                  {videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVideoUrl("");
+                        setVideoUploadStatus("");
+                      }}
+                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg border border-red-500/30 transition-colors flex items-center gap-1.5"
+                    >
+                      <Trash2 size={13} />
+                      Remove Video
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
