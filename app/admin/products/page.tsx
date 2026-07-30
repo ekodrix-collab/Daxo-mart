@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
-import { fetchProducts, fetchCategories } from "@/service/storeService";
+import { fetchProducts, fetchCategories, deleteProductFromSupabase } from "@/service/storeService";
 import { type Product } from "@/lib/products";
 import { type CategoryItem } from "@/lib/categories";
-import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, LayoutGrid, List } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, LayoutGrid, List, AlertTriangle, Loader2 } from "lucide-react";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -16,6 +16,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   const { data: products = [], isLoading: loadingProducts } = useQuery<Product[]>({
     queryKey: ["products"],
@@ -29,7 +30,10 @@ export default function ProductsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number | string) => {
-      // In production calls DB delete API if configured
+      const ok = await deleteProductFromSupabase(id);
+      if (!ok) {
+        throw new Error("Failed to delete product from database");
+      }
       return id;
     },
     onMutate: async (id) => {
@@ -39,6 +43,15 @@ export default function ProductsPage() {
         old.filter((p) => p.id !== id)
       );
       return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["products"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setProductToDelete(null);
     },
   });
 
@@ -240,9 +253,7 @@ export default function ProductsPage() {
                     <Edit2 size={14} />
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm("Delete product?")) deleteMutation.mutate(p.id);
-                    }}
+                    onClick={() => setProductToDelete(p)}
                     className="p-2 rounded-xl bg-[#202024] hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-800 transition-colors cursor-pointer"
                     title="Delete Product"
                   >
@@ -310,9 +321,7 @@ export default function ProductsPage() {
                           <Edit2 size={14} />
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm("Delete product?")) deleteMutation.mutate(p.id);
-                          }}
+                          onClick={() => setProductToDelete(p)}
                           className="p-2 rounded-xl bg-[#202024] hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-800 transition-colors cursor-pointer"
                           title="Delete Product"
                         >
@@ -324,6 +333,59 @@ export default function ProductsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Luxury Delete Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#141416] border border-red-500/30 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 relative overflow-hidden">
+            <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mx-auto">
+              <AlertTriangle size={28} />
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-bold text-white tracking-tight font-pally">
+                Delete Product?
+              </h3>
+              <p className="text-[13px] text-gray-400 leading-relaxed">
+                Are you sure you want to permanently delete{" "}
+                <span className="font-semibold text-white font-mono">
+                  "{productToDelete.name}"
+                </span>
+                ? This action will remove it from Supabase backend and cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 py-3 px-4 rounded-xl bg-[#202024] hover:bg-[#2A2A30] text-gray-300 text-[13px] font-bold uppercase transition-colors border border-gray-800 disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate(productToDelete.id)}
+                className="flex-1 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[13px] font-bold uppercase transition-all shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Delete Product
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
