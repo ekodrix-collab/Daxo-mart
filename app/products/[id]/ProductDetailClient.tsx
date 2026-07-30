@@ -393,8 +393,9 @@ export default function ProductDetailClient({
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectedModalProduct, setSelectedModalProduct] = useState<Product | null>(null);
   const [addedToast, setAddedToast] = useState(false);
-  const [isDescOpen, setIsDescOpen] = useState(true);
-  const [isScaleGuideOpen, setIsScaleGuideOpen] = useState(true);
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const [isScaleGuideOpen, setIsScaleGuideOpen] = useState(false);
+  const [isSpecsOpen, setIsSpecsOpen] = useState(false);
 
   const { addToCart } = useCart();
   const router = useRouter();
@@ -659,17 +660,7 @@ export default function ProductDetailClient({
                 </div>
               )}
 
-              {/* Product Description */}
-              {product.description && (
-                <div className="mb-6 p-4 bg-dark2/60 border border-border/60 rounded-xl">
-                  <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-2.5 font-mono">
-                    Product Description
-                  </h3>
-                  <div className="text-[14px] text-cream/90 leading-relaxed whitespace-pre-wrap font-sans">
-                    {product.description}
-                  </div>
-                </div>
-              )}
+
 
               {/* Trust badges banner */}
               <div className="grid grid-cols-3 gap-2 p-3 bg-dark2/80 border border-border rounded-xl mb-6">
@@ -763,16 +754,43 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              {/* ── 4. SCALE SIZE ACCORDION (Exact Content & Images requested) ── */}
+              {/* ── ACCORDION 1: PRODUCT DESCRIPTION ── */}
+              {product.description && (
+                <div className="border-t border-border pt-4 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
+                    className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer group"
+                  >
+                    <span className="flex items-center gap-2 group-hover:text-accent transition-colors">
+                      <span>📝</span> Product Description
+                    </span>
+                    <span className="text-muted group-hover:text-accent transition-colors text-xl font-bold">
+                      {isDescriptionOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {isDescriptionOpen && (
+                    <div className="mt-3 bg-dark2/90 border border-border p-4 sm:p-5 rounded-2xl text-[13.5px] text-cream/90 leading-relaxed whitespace-pre-wrap font-sans animate-in fade-in duration-200">
+                      {product.description}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── ACCORDION 2: SCALE SIZE GUIDE ── */}
               <div className="border-t border-border pt-4 mb-4">
                 <button
+                  type="button"
                   onClick={() => setIsScaleGuideOpen(!isScaleGuideOpen)}
-                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer"
+                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer group"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 group-hover:text-accent transition-colors">
                     <span>📏</span> Scale Size Guide
                   </span>
-                  <span className="text-muted text-lg">{isScaleGuideOpen ? "−" : "+"}</span>
+                  <span className="text-muted group-hover:text-accent transition-colors text-xl font-bold">
+                    {isScaleGuideOpen ? "−" : "+"}
+                  </span>
                 </button>
 
                 {isScaleGuideOpen && (
@@ -863,17 +881,22 @@ export default function ProductDetailClient({
                 )}
               </div>
 
-              {/* 5. Specifications & What's Included */}
+              {/* ── ACCORDION 3: SPECIFICATIONS & BOX CONTENTS ── */}
               <div className="border-t border-border pt-4">
                 <button
-                  onClick={() => setIsDescOpen(!isDescOpen)}
-                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer"
+                  type="button"
+                  onClick={() => setIsSpecsOpen(!isSpecsOpen)}
+                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer group"
                 >
-                  <span>Specifications & What&apos;s Included</span>
-                  <span className="text-muted text-lg">{isDescOpen ? "−" : "+"}</span>
+                  <span className="flex items-center gap-2 group-hover:text-accent transition-colors">
+                    <span>📋</span> Specifications & Box Contents
+                  </span>
+                  <span className="text-muted group-hover:text-accent transition-colors text-xl font-bold">
+                    {isSpecsOpen ? "−" : "+"}
+                  </span>
                 </button>
 
-                {isDescOpen && (
+                {isSpecsOpen && (
                   <div className="mt-3 space-y-4 text-[13.5px] text-muted leading-relaxed animate-in fade-in duration-200">
                     {/* What's Included List */}
                     {product.includedItems && product.includedItems.length > 0 && (
