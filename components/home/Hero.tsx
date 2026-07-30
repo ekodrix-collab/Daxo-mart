@@ -1,48 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 
-const HERO_IMAGES = [
-  { id: "rolls-royce", alt: "Rolls-Royce Collection", img: "/images/hero-banner.png" },
-  { id: "bmw",         alt: "BMW M-Series Collection", img: "/images/hero-banner-bmw.png" },
-  { id: "porsche",     alt: "Porsche GT3 Collection",  img: "/images/hero-banner-porsche.png" },
-];
-
 export default function Hero() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Auto-rotate background car images every 5 seconds
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_IMAGES.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <section className="relative w-full overflow-hidden h-[calc(100dvh-102px)] min-h-[540px] md:h-[calc(100vh-102px)] md:min-h-[620px] bg-[#0c0c0c]">
 
-      {/* Background Image Carousel (Smooth Cross-fade) */}
-      {HERO_IMAGES.map((slide, idx) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            idx === currentSlide ? "opacity-100 z-0" : "opacity-0 -z-10"
-          }`}
-        >
-          <Image
-            src={slide.img}
-            alt={slide.alt}
-            fill
-            priority={idx === 0}
-            className="object-cover object-[72%_center] sm:object-center"
-            style={{ filter: "brightness(0.62)" }}
-          />
-        </div>
-      ))}
+      {/* Background Cinematic Video Loop */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        src="/videos/hero-cinematic.mp4"
+        className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-opacity duration-700"
+        style={{ filter: "brightness(0.62) contrast(1.05)" }}
+      />
 
       {/* Gradients */}
       <div className="hero-overlay" />
