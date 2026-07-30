@@ -23,7 +23,7 @@ export default function RcProductSection({
   const mobileVisibleProducts = showAll ? products : products.slice(0, 4);
 
   return (
-    <section className="bg-white py-10 sm:py-14 border-b border-[#e8e0d8]">
+    <section className="bg-white py-10 sm:py-14">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mb-6 sm:mb-8">
@@ -52,7 +52,7 @@ export default function RcProductSection({
         <div className="hidden md:block">
           {!showAll ? (
             <div
-              className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide touch-pan-x"
+              className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {products.map((p) => (
