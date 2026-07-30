@@ -596,19 +596,20 @@ export default function ProductDetailClient({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-accent">
-                  {product.category === "RC" ? "RC Toys" : product.category === "Frame" ? "3D Display Frame" : `${product.scale} Diecast Scale`}
+                  {product.category || `${product.scale || "1:24"} Scale`}
                 </span>
                 <span className="bg-dark2 border border-border text-[10px] font-extrabold text-cream px-2 py-0.5 rounded-full uppercase">
                   Scale: {product.scale || "1:24"}
                 </span>
               </div>
 
+              {/* 1. Product Title */}
               <h1 className="font-pally font-bold text-[24px] sm:text-[32px] text-cream leading-tight mb-3">
                 {formatTitleCase(product.name)}
               </h1>
 
-              {/* Price & Strike MRP & Off tag */}
-              <div className="flex items-center gap-3 mb-4 flex-wrap">
+              {/* 2. Price */}
+              <div className="flex items-center gap-3 mb-5 flex-wrap">
                 <span className="text-[32px] font-bold text-cream font-pally">
                   {product.priceStr || `₹${Number(product.price).toLocaleString("en-IN")}`}
                 </span>
@@ -624,7 +625,36 @@ export default function ProductDetailClient({
                 )}
               </div>
 
-              {/* Trust badges banner (3 pillars) */}
+              {/* 3. Product Highlights */}
+              {((product.highlights && product.highlights.length > 0) || (product.features && product.features.length > 0)) && (
+                <div className="mb-6 p-4 bg-dark2/90 border border-border/80 rounded-xl">
+                  <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-3 font-mono flex items-center gap-1.5">
+                    <span>✨</span> Product Highlights
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13.5px] text-cream">
+                    {(product.highlights && product.highlights.length > 0 ? product.highlights : product.features).map((feat, idx) => (
+                      <li key={idx} className="flex items-start gap-2 font-pally leading-snug">
+                        <span className="text-emerald-400 font-extrabold shrink-0 mt-0.5">✔</span>
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 4. Product Description (Preserves formatting with white-space: pre-wrap) */}
+              {product.description && (
+                <div className="mb-6 p-4 bg-dark2/60 border border-border/60 rounded-xl">
+                  <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-2.5 font-mono">
+                    Product Description
+                  </h3>
+                  <div className="text-[14px] text-cream/90 leading-relaxed whitespace-pre-wrap font-sans">
+                    {product.description}
+                  </div>
+                </div>
+              )}
+
+              {/* Trust badges banner */}
               <div className="grid grid-cols-3 gap-2 p-3 bg-dark2/80 border border-border rounded-xl mb-6">
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2 p-1">
                   <span className="text-xl">🛡️</span>
@@ -648,23 +678,6 @@ export default function ProductDetailClient({
                   </div>
                 </div>
               </div>
-
-              {/* Key Features & Bullet Points */}
-              {product.features && product.features.length > 0 && (
-                <div className="mb-6 p-4 bg-dark2/90 border border-border/80 rounded-xl">
-                  <h3 className="text-[11px] font-extrabold uppercase tracking-widest text-accent mb-2.5 font-mono flex items-center gap-1.5">
-                    <span>✨</span> Key Model Highlights
-                  </h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px] text-cream">
-                    {product.features.map((feat, idx) => (
-                      <li key={idx} className="flex items-start gap-2 font-pally leading-snug">
-                        <span className="text-emerald-400 font-extrabold shrink-0 mt-0.5">✓</span>
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
 
               {/* Color Options Section */}
               {colorOptions.length > 0 && (
@@ -769,24 +782,46 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              {/* Collapsible Description & Specifications Section */}
+              {/* 5. Specifications & What's Included */}
               <div className="border-t border-border pt-4">
                 <button
                   onClick={() => setIsDescOpen(!isDescOpen)}
                   className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer"
                 >
-                  <span>Description & Scale Details</span>
+                  <span>Specifications & What&apos;s Included</span>
                   <span className="text-muted text-lg">{isDescOpen ? "−" : "+"}</span>
                 </button>
 
                 {isDescOpen && (
                   <div className="mt-3 space-y-4 text-[13.5px] text-muted leading-relaxed animate-in fade-in duration-200">
-                    <p>{product.description}</p>
+                    {/* What's Included List */}
+                    {product.includedItems && product.includedItems.length > 0 && (
+                      <div className="bg-dark2 p-4 rounded-xl border border-border space-y-2">
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-accent mb-2">What&apos;s Included in Box</h4>
+                        <ul className="space-y-1.5 text-cream">
+                          {product.includedItems.map((item, idx) => (
+                            <li key={idx} className="flex items-center gap-2">
+                              <span className="text-emerald-400 font-bold">✔</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Specifications table */}
                     <div className="bg-dark2 p-4 rounded-xl border border-border space-y-2">
                       <div className="flex justify-between border-b border-border/60 pb-1.5">
                         <span className="text-gray-400">Scale Ratio:</span>
-                        <span className="text-cream font-bold">{product.scale || "1:24"}</span>
+                        <span className="text-cream font-bold">{product.scale || product.category || "N/A"}</span>
                       </div>
+                      {Array.isArray((product as any).specs) &&
+                        (product as any).specs.map((sp: { key: string; value: string }, idx: number) => (
+                          <div key={idx} className="flex justify-between border-b border-border/60 pb-1.5">
+                            <span className="text-gray-400">{sp.key}:</span>
+                            <span className="text-cream font-bold">{sp.value}</span>
+                          </div>
+                        ))}
                       <div className="flex justify-between border-b border-border/60 pb-1.5">
                         <span className="text-gray-400">SKU Code:</span>
                         <span className="text-cream font-bold">{product.sku}</span>

@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS public.products (
     is_active BOOLEAN DEFAULT true,
     rating NUMERIC(3, 2) DEFAULT 4.5,
     reviews_count INTEGER DEFAULT 0,
+    short_description TEXT,
+    highlights JSONB DEFAULT '[]'::jsonb,
+    included_items JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

@@ -19,6 +19,9 @@ export async function PUT(
       img,
       images,
       description,
+      shortDescription,
+      highlights,
+      includedItems,
       inStock,
       badge,
     } = body;
@@ -35,6 +38,9 @@ export async function PUT(
       category_name: category || "1:24",
       images: galleryImages,
       description: description || "",
+      short_description: shortDescription || "",
+      highlights: highlights || [],
+      included_items: includedItems || [],
       is_active: inStock !== false,
       is_featured: Boolean(badge),
     };
