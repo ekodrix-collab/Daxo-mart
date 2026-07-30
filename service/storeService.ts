@@ -84,7 +84,7 @@ export async function fetchProducts(): Promise<Product[]> {
         category: item.category_name || item.category || "1:24",
         img: primaryImg,
         images: allImages,
-        badge: item.badge || (item.is_featured ? "Featured" : null),
+        badge: item.badge || item.badge_text || (item.is_featured ? "Featured" : null),
         description: item.description || "",
         shortDescription: item.short_description || item.shortDescription || "",
         highlights: parsedHighlights,
@@ -148,6 +148,8 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       meta_description: productData.metaDescription || null,
       meta_keywords: productData.metaKeywords || null,
       og_image: productData.ogImage || null,
+      badge: productData.badge || null,
+      badge_text: productData.badge || null,
       stock: Number(productData.stock ?? 10),
       is_active: productData.isActive ?? true,
       is_featured: Boolean(productData.badge),
@@ -179,6 +181,8 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
         delete payload.meta_description;
         delete payload.meta_keywords;
         delete payload.og_image;
+        delete payload.badge;
+        delete payload.badge_text;
         const retry1 = await supabase
           .from("products")
           .update(payload)
@@ -231,6 +235,8 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
         delete payload.meta_description;
         delete payload.meta_keywords;
         delete payload.og_image;
+        delete payload.badge;
+        delete payload.badge_text;
         const retry1 = await supabase
           .from("products")
           .insert(payload)

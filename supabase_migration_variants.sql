@@ -33,8 +33,12 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_description text DEFAULT NULL
 ALTER TABLE products ADD COLUMN IF NOT EXISTS meta_keywords text DEFAULT NULL;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS og_image text DEFAULT NULL;
 
+-- Add Badge columns
+ALTER TABLE products ADD COLUMN IF NOT EXISTS badge text DEFAULT NULL;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS badge_text text DEFAULT NULL;
+
 -- Verify columns were added
 SELECT column_name, data_type FROM information_schema.columns 
 WHERE table_name = 'products' 
-AND column_name IN ('colors', 'sizes', 'hover_image', 'video_url', 'cost_price', 'scale', 'specs', 'sku', 'brand', 'material', 'meta_title', 'meta_description', 'meta_keywords', 'og_image')
+AND column_name IN ('colors', 'sizes', 'hover_image', 'video_url', 'cost_price', 'scale', 'specs', 'sku', 'brand', 'material', 'meta_title', 'meta_description', 'meta_keywords', 'og_image', 'badge', 'badge_text')
 ORDER BY column_name;

@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import PRODUCTS from "@/lib/products";
+import { type Product } from "@/lib/products";
 import { getStoredCategories, saveStoredCategories, type CategoryItem } from "@/lib/categories";
 import { Plus, Search, Edit2, Trash2, Tag, Layers, Loader2, Upload, ArrowUp, ArrowDown } from "lucide-react";
-import { fetchCategories, createCategory, updateCategory, updateCategoryOrder, deleteCategory } from "@/service/storeService";
+import { fetchCategories, fetchProducts, createCategory, updateCategory, updateCategoryOrder, deleteCategory } from "@/service/storeService";
 import { compressImage } from "@/lib/imageCompressor";
 
 export default function CategoriesTab() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
@@ -84,9 +85,13 @@ export default function CategoriesTab() {
 
   const loadCategories = async () => {
     setLoading(true);
-    const data = await fetchCategories();
-    setCategories(data);
-    saveStoredCategories(data);
+    const [catData, prodData] = await Promise.all([
+      fetchCategories(),
+      fetchProducts(),
+    ]);
+    setCategories(catData);
+    setProducts(prodData);
+    saveStoredCategories(catData);
     setLoading(false);
   };
 
@@ -225,9 +230,20 @@ export default function CategoriesTab() {
       {/* Grid of Categories */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredCategories.map((cat, idx) => {
-          const productCount = PRODUCTS.filter(
-            (p) => p.category === cat.filterValue || p.category === cat.name
-          ).length;
+          const productCount = products.filter((p) => {
+            if (!p.category) return false;
+            const pCat = p.category.toLowerCase().trim();
+            const cName = (cat.name || "").toLowerCase().trim();
+            const cFilter = (cat.filterValue || "").toLowerCase().trim();
+            const cSlug = (cat.slug || "").toLowerCase().trim();
+            return (
+              pCat === cName ||
+              pCat === cFilter ||
+              pCat === cSlug ||
+              cName.includes(pCat) ||
+              pCat.includes(cName)
+            );
+          }).length;
 
           return (
             <div
