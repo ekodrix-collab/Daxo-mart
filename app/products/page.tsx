@@ -44,15 +44,12 @@ const PRICE_PRESETS: { label: string; value: string; min: number; max: number }[
 ];
 
 const SORT_OPTIONS = [
-  { label: "Featured & Popular", value: "featured" },
+  { label: "Featured", value: "featured" },
   { label: "Price: Low to High", value: "price-low" },
   { label: "Price: High to Low", value: "price-high" },
   { label: "Biggest Discount", value: "discount" },
   { label: "Name: A to Z", value: "name-az" },
 ];
-
-
-
 
 function ProductsContent() {
   const router = useRouter();
@@ -107,28 +104,19 @@ function ProductsContent() {
     return options;
   }, [dbCategories]);
 
-  // Check if active filters are present
-  const hasActiveFilters = useMemo(() => {
-    return (
-      categoryFilter !== "ALL" ||
-      searchQuery.trim() !== "" ||
-      pricePreset !== "ALL" ||
-      customMin.trim() !== "" ||
-      customMax.trim() !== "" ||
-      badgeFilter !== "ALL" ||
-      inStockOnly ||
-      sortBy !== "featured"
-    );
-  }, [
-    categoryFilter,
-    searchQuery,
-    pricePreset,
-    customMin,
-    customMax,
-    badgeFilter,
-    inStockOnly,
-    sortBy,
-  ]);
+  // Count active filter count for badge indicator
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (categoryFilter !== "ALL") count++;
+    if (searchQuery.trim() !== "") count++;
+    if (pricePreset !== "ALL") count++;
+    if (customMin.trim() !== "" || customMax.trim() !== "") count++;
+    if (badgeFilter !== "ALL") count++;
+    if (inStockOnly) count++;
+    return count;
+  }, [categoryFilter, searchQuery, pricePreset, customMin, customMax, badgeFilter, inStockOnly]);
+
+  const hasActiveFilters = activeFilterCount > 0 || sortBy !== "featured";
 
   // Clear all filters handler
   const handleClearAllFilters = () => {
@@ -140,64 +128,55 @@ function ProductsContent() {
     setBadgeFilter("ALL");
     setInStockOnly(false);
     setSortBy("featured");
-    router.push("/products", { scroll: false });
+    router.replace("/products", { scroll: false });
   };
 
-  // Select Category handler
-  const handleSelectCategory = (cat: string) => {
-    setCategoryFilter(cat);
-    if (cat === "ALL") {
-      router.push("/products", { scroll: false });
+  const handleSelectCategory = (catVal: string) => {
+    setCategoryFilter(catVal);
+    const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
+    if (catVal && catVal !== "ALL") {
+      params.set("category", catVal);
     } else {
-      router.push(`/products?category=${encodeURIComponent(cat)}`, { scroll: false });
+      params.delete("category");
     }
+    const str = params.toString();
+    router.replace(str ? `/products?${str}` : "/products", { scroll: false });
   };
 
-  // Filtered & Sorted Products
+  // Filter & Sort Logic
   const filteredProducts = useMemo(() => {
-    let result = productsList.filter((p) => p.isActive !== false);
+    let result = [...productsList];
 
-    // 1. Category Filter
-    if (categoryFilter !== "ALL") {
-      const selectedCatObj = dbCategories.find(
-        (c) => c.filterValue === categoryFilter || c.slug === categoryFilter || c.name === categoryFilter
-      );
-      result = result.filter((p) => {
-        if (!p.category) return false;
-        if (p.category === categoryFilter) return true;
-        if (p.scale && p.scale === categoryFilter) return true;
-        if (selectedCatObj) {
-          if (p.category === selectedCatObj.name || p.category === selectedCatObj.filterValue) return true;
-        }
-        return false;
-      });
-    }
-
-    // 2. Search Query Filter
-    if (searchQuery.trim() !== "") {
+    // 1. Search Filter
+    if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.shortName.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          (p.scale && p.scale.toLowerCase().includes(q)) ||
-          (p.description && p.description.toLowerCase().includes(q)) ||
-          (p.sku && p.sku.toLowerCase().includes(q))
+          p.scale.toLowerCase().includes(q)
       );
+    }
+
+    // 2. Category Filter
+    if (categoryFilter !== "ALL") {
+      result = result.filter((p) => {
+        const cat = p.category.toLowerCase();
+        const filt = categoryFilter.toLowerCase();
+        return cat.includes(filt) || filt.includes(cat);
+      });
     }
 
     // 3. Price Preset Filter
     if (pricePreset !== "ALL") {
-      const foundPreset = PRICE_PRESETS.find((p) => p.value === pricePreset);
-      if (foundPreset) {
-        result = result.filter(
-          (p) => p.price >= foundPreset.min && p.price <= foundPreset.max
-        );
+      const preset = PRICE_PRESETS.find((pr) => pr.value === pricePreset);
+      if (preset) {
+        result = result.filter((p) => p.price >= preset.min && p.price <= preset.max);
       }
     }
 
-    // 4. Custom Min/Max Price Filter
+    // 4. Custom Price Range Filter
     if (customMin !== "") {
       const minVal = Number(customMin);
       if (!isNaN(minVal)) {
@@ -253,13 +232,15 @@ function ProductsContent() {
     <div className="bg-dark min-h-screen pb-20">
       {/* Main Container */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pt-6">
-        {/* Top Control Bar (Search, Mobile Filter Toggle, Sort, Clear Filters) */}
-        <div className="bg-dark2 border border-border rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
-          {/* Search Box */}
-          <div className="relative w-full md:w-80">
+        
+        {/* Top Control Bar — Clean Mobile-Responsive Layout */}
+        <div className="bg-dark2 border border-border rounded-xl p-3 sm:p-4 mb-6 shadow-sm flex flex-col gap-3">
+          
+          {/* Row 1: Search Box (Full Width) */}
+          <div className="relative w-full">
             <Search
               size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
             />
             <input
               type="text"
@@ -278,7 +259,7 @@ function ProductsContent() {
                 const str = params.toString();
                 router.replace(str ? `/products?${str}` : "/products", { scroll: false });
               }}
-              className="w-full bg-dark3 border border-border/80 focus:border-accent rounded-lg pl-9 pr-8 py-2 text-xs text-cream outline-none font-pally transition-colors"
+              className="w-full bg-dark3 border border-border/80 focus:border-accent rounded-lg pl-9 pr-8 py-2.5 text-xs text-cream outline-none font-pally transition-colors"
             />
             {searchQuery && (
               <button
@@ -297,31 +278,56 @@ function ProductsContent() {
             )}
           </div>
 
-          <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-3">
-            {/* Mobile Filter Button */}
-            <button
-              onClick={() => setMobileFilterOpen(true)}
-              className="md:hidden flex items-center gap-2 bg-dark3 hover:bg-dark border border-border text-cream text-xs font-bold px-3.5 py-2 rounded-lg cursor-pointer transition-colors"
-            >
-              <Filter size={15} className="text-accent" /> Filters
-              {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full bg-accent inline-block" />
-              )}
-            </button>
-
-            {/* Clear Filters Button (Always highlighted when active) */}
-            {hasActiveFilters && (
+          {/* Row 2: Filter & Sort Controls (Grid on mobile, Flex on Desktop) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 w-full">
+            
+            {/* Left Controls Group: Mobile Filter Trigger & Desktop Clear Filters */}
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+              
+              {/* Mobile Filter Button */}
               <button
-                onClick={handleClearAllFilters}
-                className="flex items-center gap-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2 rounded-lg cursor-pointer transition-colors"
+                onClick={() => setMobileFilterOpen(true)}
+                className="md:hidden flex items-center justify-center gap-2 bg-dark3 hover:bg-dark border border-border text-cream text-xs font-bold px-3.5 py-2.5 rounded-lg cursor-pointer transition-colors w-full sm:w-auto"
               >
-                <RotateCcw size={13} /> Clear Filters
+                <Filter size={14} className="text-accent" />
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="bg-accent text-dark w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
               </button>
-            )}
 
-            {/* Sort Selector */}
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <ArrowUpDown size={14} className="hidden sm:inline text-accent" />
+              {/* Sort Selector on Mobile (Right column of grid) */}
+              <div className="md:hidden relative w-full">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full bg-dark3 border border-border/80 text-cream text-xs font-bold rounded-lg px-3 py-2.5 outline-none focus:border-accent cursor-pointer font-pally appearance-none text-ellipsis overflow-hidden pr-7"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ArrowUpDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-accent pointer-events-none" />
+              </div>
+
+              {/* Clear Filters Button (Desktop & Mobile when active) */}
+              {hasActiveFilters && (
+                <button
+                  onClick={handleClearAllFilters}
+                  className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2 sm:py-2.5 rounded-lg cursor-pointer transition-colors w-full sm:w-auto"
+                >
+                  <RotateCcw size={13} /> Clear Filters
+                </button>
+              )}
+            </div>
+
+            {/* Desktop Sort Selector */}
+            <div className="hidden md:flex items-center gap-2 text-xs text-muted">
+              <ArrowUpDown size={14} className="text-accent" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -334,6 +340,7 @@ function ProductsContent() {
                 ))}
               </select>
             </div>
+
           </div>
         </div>
 
@@ -353,6 +360,24 @@ function ProductsContent() {
               </span>
             )}
 
+            {searchQuery.trim() && (
+              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+                Search: "{searchQuery}"
+                <X
+                  size={12}
+                  className="cursor-pointer hover:text-white"
+                  onClick={() => {
+                    setSearchQuery("");
+                    const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
+                    params.delete("search");
+                    params.delete("q");
+                    const str = params.toString();
+                    router.replace(str ? `/products?${str}` : "/products", { scroll: false });
+                  }}
+                />
+              </span>
+            )}
+
             {pricePreset !== "ALL" && (
               <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Price: {PRICE_PRESETS.find((p) => p.value === pricePreset)?.label}
@@ -366,7 +391,7 @@ function ProductsContent() {
 
             {(customMin || customMax) && (
               <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
-                Range: ₹{customMin || "0"} - ₹{customMax || "∞"}
+                Range: ₹{customMin || 0} - ₹{customMax || "∞"}
                 <X
                   size={12}
                   className="cursor-pointer hover:text-white"
@@ -378,20 +403,9 @@ function ProductsContent() {
               </span>
             )}
 
-            {searchQuery && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
-                Search: "{searchQuery}"
-                <X
-                  size={12}
-                  className="cursor-pointer hover:text-white"
-                  onClick={() => setSearchQuery("")}
-                />
-              </span>
-            )}
-
             {badgeFilter !== "ALL" && (
               <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
-                Tag: {badgeFilter}
+                Badge: {badgeFilter}
                 <X
                   size={12}
                   className="cursor-pointer hover:text-white"
@@ -401,7 +415,7 @@ function ProductsContent() {
             )}
 
             {inStockOnly && (
-              <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 In Stock Only
                 <X
                   size={12}
@@ -411,71 +425,74 @@ function ProductsContent() {
               </span>
             )}
 
+            {sortBy !== "featured" && (
+              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+                Sort: {SORT_OPTIONS.find((s) => s.value === sortBy)?.label}
+                <X
+                  size={12}
+                  className="cursor-pointer hover:text-white"
+                  onClick={() => setSortBy("featured")}
+                />
+              </span>
+            )}
+
             <button
               onClick={handleClearAllFilters}
-              className="text-rose-400 hover:underline font-bold ml-auto text-[11px] cursor-pointer"
+              className="text-rose-400 hover:text-rose-300 underline font-bold ml-auto cursor-pointer"
             >
               Clear All
             </button>
           </div>
         )}
 
-        {/* Content Layout: Sidebar + Grid */}
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* DESKTOP FILTER SIDEBAR */}
-          <aside className="hidden md:block w-64 lg:w-72 shrink-0 space-y-6">
-            <div className="bg-dark2 border border-border rounded-xl p-5 space-y-6">
+        {/* Content Layout (Sidebar + Main Grid) */}
+        <div className="flex gap-8">
+          {/* DESKTOP SIDEBAR FILTERS */}
+          <aside className="hidden md:block w-64 shrink-0 space-y-6">
+            <div className="bg-dark2 border border-border rounded-xl p-5 space-y-6 sticky top-24">
               <div className="flex items-center justify-between border-b border-border pb-3">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-cream flex items-center gap-2 font-pally">
-                  <SlidersHorizontal size={16} className="text-accent" /> Filter Products
+                <h2 className="text-sm font-extrabold uppercase tracking-wider text-cream flex items-center gap-2 font-pally">
+                  <Filter size={16} className="text-accent" /> Filter Products
                 </h2>
                 {hasActiveFilters && (
                   <button
                     onClick={handleClearAllFilters}
-                    className="text-[11px] text-rose-400 hover:underline font-semibold cursor-pointer"
+                    className="text-[11px] text-rose-400 hover:underline font-bold cursor-pointer"
                   >
-                    Clear All
+                    Reset
                   </button>
                 )}
               </div>
 
               {/* 1. Category Filter */}
               <div>
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3">
-                  Category
+                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3 font-pally">
+                  Categories
                 </h3>
                 <div className="space-y-1">
                   {categoryOptions.map((cat) => {
                     const isSelected = categoryFilter === cat.value;
-                    const count =
-                      cat.value === "ALL"
-                        ? productsList.length
-                        : productsList.filter((p) => p.category === cat.value).length;
                     return (
                       <button
                         key={cat.value}
                         onClick={() => handleSelectCategory(cat.value)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${isSelected
-                            ? "bg-accent text-dark font-extrabold"
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-accent text-dark font-bold shadow-sm"
                             : "text-muted hover:text-cream hover:bg-dark3"
-                          }`}
+                        }`}
                       >
                         <span>{cat.label}</span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded ${isSelected ? "bg-dark/20 text-dark" : "bg-dark3 text-dim"
-                            }`}
-                        >
-                          {count}
-                        </span>
+                        {isSelected && <Check size={14} />}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* 2. Price Presets */}
+              {/* 2. Price Range Filter */}
               <div className="border-t border-border pt-4">
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3">
+                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3 font-pally">
                   Price Range
                 </h3>
                 <div className="space-y-1">
@@ -484,20 +501,25 @@ function ProductsContent() {
                     return (
                       <button
                         key={preset.value}
-                        onClick={() => setPricePreset(preset.value)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${isSelected
-                            ? "bg-accent/20 border border-accent/50 text-accent font-bold"
+                        onClick={() => {
+                          setPricePreset(preset.value);
+                          setCustomMin("");
+                          setCustomMax("");
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-accent/20 border border-accent text-accent font-bold"
                             : "text-muted hover:text-cream hover:bg-dark3"
-                          }`}
+                        }`}
                       >
                         <span>{preset.label}</span>
-                        {isSelected && <Check size={14} className="text-accent" />}
+                        {isSelected && <Check size={13} />}
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Custom Min / Max inputs */}
+                {/* Custom Min / Max Inputs */}
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-muted block mb-1 font-medium">Min (₹)</label>
@@ -540,10 +562,11 @@ function ProductsContent() {
                       <button
                         key={badge}
                         onClick={() => setBadgeFilter(badge)}
-                        className={`px-3 py-1 rounded-md text-xs font-bold uppercase transition-all cursor-pointer ${isSelected
+                        className={`px-3 py-1 rounded-md text-xs font-bold uppercase transition-all cursor-pointer ${
+                          isSelected
                             ? "bg-accent text-dark"
                             : "bg-dark3 text-muted hover:text-cream border border-border"
-                          }`}
+                        }`}
                       >
                         {badge === "ALL" ? "All Tags" : badge}
                       </button>
@@ -641,7 +664,7 @@ function ProductsContent() {
       {/* MOBILE FILTER MODAL / DRAWER */}
       {mobileFilterOpen && (
         <div className="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm md:hidden">
-          <div className="w-[85%] max-w-sm bg-dark2 border-r border-border h-full p-6 overflow-y-auto flex flex-col justify-between">
+          <div className="w-[88%] max-w-sm bg-dark2 border-r border-border h-full p-6 overflow-y-auto flex flex-col justify-between shadow-2xl">
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-border pb-4">
                 <h2 className="text-base font-extrabold uppercase tracking-wider text-cream flex items-center gap-2 font-pally">
@@ -649,7 +672,7 @@ function ProductsContent() {
                 </h2>
                 <button
                   onClick={() => setMobileFilterOpen(false)}
-                  className="p-1 rounded bg-dark3 text-muted hover:text-cream cursor-pointer"
+                  className="p-1.5 rounded bg-dark3 text-muted hover:text-cream cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -669,12 +692,14 @@ function ProductsContent() {
                         onClick={() => {
                           handleSelectCategory(cat.value);
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium cursor-pointer ${isSelected
-                            ? "bg-accent text-dark font-bold"
-                            : "text-muted bg-dark3"
-                          }`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                          isSelected
+                            ? "bg-accent text-dark font-bold shadow-md"
+                            : "text-muted bg-dark3 hover:text-cream"
+                        }`}
                       >
                         <span>{cat.label}</span>
+                        {isSelected && <Check size={14} />}
                       </button>
                     );
                   })}
@@ -693,12 +718,14 @@ function ProductsContent() {
                       <button
                         key={preset.value}
                         onClick={() => setPricePreset(preset.value)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium cursor-pointer ${isSelected
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                          isSelected
                             ? "bg-accent/20 border border-accent text-accent font-bold"
-                            : "text-muted bg-dark3"
-                          }`}
+                            : "text-muted bg-dark3 hover:text-cream"
+                        }`}
                       >
                         <span>{preset.label}</span>
+                        {isSelected && <Check size={13} />}
                       </button>
                     );
                   })}
@@ -717,8 +744,9 @@ function ProductsContent() {
                       <button
                         key={badge}
                         onClick={() => setBadgeFilter(badge)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase cursor-pointer ${isSelected ? "bg-accent text-dark" : "bg-dark3 text-muted"
-                          }`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase cursor-pointer transition-all ${
+                          isSelected ? "bg-accent text-dark font-bold" : "bg-dark3 text-muted hover:text-cream"
+                        }`}
                       >
                         {badge}
                       </button>
@@ -732,7 +760,7 @@ function ProductsContent() {
             <div className="border-t border-border pt-4 mt-6 space-y-2">
               <button
                 onClick={() => setMobileFilterOpen(false)}
-                className="w-full bg-accent text-dark font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl cursor-pointer"
+                className="w-full bg-accent text-dark font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer shadow-lg font-pally"
               >
                 Apply Filters ({filteredProducts.length})
               </button>
