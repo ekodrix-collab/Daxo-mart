@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 const HERO_IMAGES = [
   { id: "rolls-royce", alt: "Rolls-Royce Collection", img: "/images/hero-banner.png" },
@@ -21,9 +21,6 @@ export default function Hero() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
-
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % HERO_IMAGES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length);
 
   return (
     <section className="relative w-full overflow-hidden h-[calc(100dvh-102px)] min-h-[540px] md:h-[calc(100vh-102px)] md:min-h-[620px] bg-[#0c0c0c]">
@@ -91,46 +88,12 @@ export default function Hero() {
 
       </div>
 
-      {/* ── 1. DEAD CENTER SCROLL INDICATOR ── */}
+      {/* Dead Center Scroll Indicator */}
       <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 opacity-85 hover:opacity-100 transition-opacity pointer-events-none">
         <span className="text-[9.5px] sm:text-[10px] font-bold tracking-[0.22em] uppercase text-white/70 font-pally whitespace-nowrap">
           Scroll To Explore
         </span>
         <ChevronDown size={16} className="text-accent animate-bounce" />
-      </div>
-
-      {/* ── 2. CORNER RIGHT SLIDE BUTTONS ── */}
-      <div className="absolute bottom-3.5 right-4 sm:right-8 z-30 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-xl">
-        <button
-          onClick={prevSlide}
-          className="w-7 h-7 rounded-full bg-white/10 hover:bg-accent text-white hover:text-dark flex items-center justify-center transition-all cursor-pointer"
-          title="Previous car"
-        >
-          <ChevronLeft size={14} />
-        </button>
-
-        <div className="flex items-center gap-1.5 px-1.5">
-          {HERO_IMAGES.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentSlide(idx)}
-              className={`transition-all rounded-full cursor-pointer ${
-                idx === currentSlide
-                  ? "w-5 h-1.5 bg-accent"
-                  : "w-1.5 h-1.5 bg-white/40 hover:bg-white/70"
-              }`}
-              title={`Go to car ${idx + 1}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={nextSlide}
-          className="w-7 h-7 rounded-full bg-white/10 hover:bg-accent text-white hover:text-dark flex items-center justify-center transition-all cursor-pointer"
-          title="Next car"
-        >
-          <ChevronRight size={14} />
-        </button>
       </div>
 
     </section>
