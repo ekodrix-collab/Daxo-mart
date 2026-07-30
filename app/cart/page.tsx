@@ -3,7 +3,8 @@
 import { useCart } from "@/components/cart/CartContext";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, ArrowRight, ShieldCheck, Truck } from "lucide-react";
 
 const WA_NUMBER = "919048571147";
 
@@ -11,6 +12,13 @@ export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+
+  // Always scroll to top of page on mount when Cart page opens
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, []);
 
   const [form, setForm] = useState({
     name: "",
@@ -101,38 +109,51 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="bg-dark min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-dark2 border border-border rounded-full flex items-center justify-center text-accent text-3xl mb-4">
-          🛒
+      <div className="bg-white min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center text-gray-800 text-3xl mb-4 shadow-sm">
+          <ShoppingBag size={36} className="text-gray-700" />
         </div>
-        <h2 className="text-[24px] font-bold text-cream font-pally mb-2">Your Cart is Empty</h2>
-        <p className="text-[14px] text-muted max-w-sm mb-6">
+        <h2 className="text-[24px] font-black text-gray-900 font-pally mb-2">Your Cart is Empty</h2>
+        <p className="text-[14px] text-gray-500 max-w-sm mb-6 font-pally">
           Explore our diecast scale models and RC toys to add items to your cart.
         </p>
         <Link
           href="/products"
-          className="bg-accent hover:bg-accent-lt text-dark font-pally font-bold text-[14px] tracking-wider uppercase px-6 py-3 rounded-xl transition-all no-underline shadow-md"
+          className="bg-[#0c0c0c] hover:bg-black text-white font-pally font-extrabold text-[13px] tracking-wider uppercase px-7 py-3.5 rounded-xl transition-all no-underline shadow-lg active:scale-95 flex items-center gap-2"
         >
-          Explore Products →
+          Explore Products <ArrowRight size={16} />
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="bg-dark min-h-screen py-10 sm:py-14">
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between pb-4 border-b border-border mb-8">
-          <div>
-            <h1 className="text-[26px] sm:text-[30px] font-extrabold text-cream font-pally">Shopping Cart</h1>
-            <p className="text-[13px] text-muted mt-1">{cart.length} unique item(s) in cart</p>
-          </div>
-          <button
-            onClick={clearCart}
-            className="text-[12px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer font-pally"
+    <div className="bg-white text-zinc-900 min-h-screen py-8 sm:py-14 font-pally">
+      <div className="max-w-[1180px] mx-auto px-4 sm:px-6">
+
+        {/* Back Link & Header */}
+        <div className="mb-6">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors mb-4 no-underline"
           >
-            Clear Cart
-          </button>
+            <ArrowLeft size={14} /> Continue Shopping
+          </Link>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-200 gap-3">
+            <div>
+              <h1 className="text-[26px] sm:text-[32px] font-black text-gray-900">Shopping Cart</h1>
+              <p className="text-[13px] text-gray-500 font-medium mt-0.5">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)} {cart.reduce((sum, item) => sum + item.quantity, 0) === 1 ? "item" : "items"} selected
+              </p>
+            </div>
+            <button
+              onClick={clearCart}
+              className="hidden sm:flex self-start sm:self-auto text-[12px] text-rose-600 hover:text-rose-700 font-extrabold uppercase tracking-wider bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-xs items-center gap-1.5"
+            >
+              <Trash2 size={14} /> Clear Cart
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -141,152 +162,203 @@ export default function CartPage() {
             {cart.map((item) => (
               <div
                 key={item.product.id}
-                className="bg-dark2 border border-border rounded-2xl p-4 flex items-center gap-4 shadow-sm"
+                className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm hover:border-gray-300 transition-all"
               >
-                <div className="w-20 h-20 bg-white rounded-xl overflow-hidden shrink-0 p-1">
+                {/* Product Image */}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shrink-0 p-1.5 flex items-center justify-center">
                   <Image
                     src={item.product.img}
                     alt={item.product.name}
-                    width={80}
-                    height={80}
+                    width={96}
+                    height={96}
                     className="w-full h-full object-contain"
                   />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[14px] font-bold text-cream truncate font-pally">
-                    {item.product.name}
-                  </h3>
-                  <p className="text-[12px] text-accent font-semibold mt-0.5">
-                    {item.product.priceStr}
-                  </p>
-
-                  <div className="flex items-center gap-3 mt-3">
-                    <div className="flex items-center bg-dark border border-border rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                        className="w-7 h-7 flex items-center justify-center text-cream hover:bg-dark3 transition-colors font-bold"
-                      >
-                        −
-                      </button>
-                      <span className="w-8 text-center text-cream text-[13px] font-bold">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        className="w-7 h-7 flex items-center justify-center text-cream hover:bg-dark3 transition-colors font-bold"
-                      >
-                        +
-                      </button>
+                {/* Product Meta */}
+                <div className="flex-1 min-w-0 w-full">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">
+                        {item.product.name}
+                      </h3>
+                      <p className="text-xs font-bold text-amber-700 mt-0.5">
+                        {item.product.priceStr}
+                      </p>
                     </div>
 
                     <button
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-[11px] text-dim hover:text-red-400 font-semibold transition-colors ml-auto"
+                      className="text-[12px] text-gray-400 hover:text-rose-600 font-bold transition-colors p-1"
+                      title="Remove item"
                     >
-                      Remove
+                      <Trash2 size={16} />
                     </button>
                   </div>
-                </div>
 
-                <div className="text-right shrink-0">
-                  <span className="text-[16px] font-extrabold text-cream font-pally">
-                    ₹{(item.product.price * item.quantity).toLocaleString("en-IN")}
-                  </span>
+                  {/* Quantity controls & Total item price */}
+                  <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        className="w-8 h-8 flex items-center justify-center text-gray-800 hover:bg-gray-200 transition-colors font-bold cursor-pointer"
+                      >
+                        <Minus size={13} />
+                      </button>
+                      <span className="w-9 text-center text-gray-900 text-xs font-extrabold">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        className="w-8 h-8 flex items-center justify-center text-gray-800 hover:bg-gray-200 transition-colors font-bold cursor-pointer"
+                      >
+                        <Plus size={13} />
+                      </button>
+                    </div>
+
+                    <span className="text-base font-black text-gray-900">
+                      ₹{(item.product.price * item.quantity).toLocaleString("en-IN")}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
+
+            {/* Trust highlights banner */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="bg-gray-50 border border-gray-200/80 rounded-2xl p-3.5 flex items-center gap-3">
+                <Truck size={20} className="text-amber-700 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900">Free Express Delivery</h4>
+                  <p className="text-[10px] text-gray-500">Pan-India fast shipping</p>
+                </div>
+              </div>
+              <div className="bg-gray-50 border border-gray-200/80 rounded-2xl p-3.5 flex items-center gap-3">
+                <ShieldCheck size={20} className="text-emerald-700 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold text-gray-900">100% Verified Quality</h4>
+                  <p className="text-[10px] text-gray-500">Original diecast scale models</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Cart Summary & Order Checkout */}
-          <div className="bg-dark2 border border-border rounded-2xl p-6 h-fit shadow-xl">
-            <h3 className="text-[16px] font-bold text-cream font-pally uppercase tracking-wider mb-4 pb-3 border-b border-border">
+          {/* Order Summary & Checkout Card */}
+          <div className="bg-gray-50 border border-gray-200/90 rounded-2xl p-5 sm:p-6 h-fit shadow-sm">
+            <h3 className="text-xs font-extrabold text-gray-900 uppercase tracking-wider mb-4 pb-3 border-b border-gray-200">
               Order Summary
             </h3>
 
-            <div className="space-y-2 text-[13px] mb-4">
-              <div className="flex justify-between text-muted">
+            <div className="space-y-2.5 text-xs mb-4">
+              <div className="flex justify-between text-gray-600 font-medium">
                 <span>Subtotal</span>
-                <span className="text-cream font-semibold">₹{totalAmount.toLocaleString("en-IN")}</span>
+                <span className="text-gray-900 font-bold">₹{totalAmount.toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex justify-between text-muted">
+              <div className="flex justify-between text-gray-600 font-medium">
                 <span>Shipping Fee</span>
-                <span className="text-green font-semibold">FREE</span>
+                <span className="text-emerald-700 font-extrabold uppercase">FREE</span>
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-[18px] font-extrabold text-cream pt-3 border-t border-border mb-6 font-pally">
+            <div className="flex justify-between items-center text-lg font-black text-gray-900 pt-3 border-t border-gray-200 mb-6">
               <span>Total Amount</span>
-              <span className="text-accent">₹{totalAmount.toLocaleString("en-IN")}</span>
+              <span className="text-gray-900">₹{totalAmount.toLocaleString("en-IN")}</span>
             </div>
 
             {!showCheckout ? (
               <button
                 onClick={() => setShowCheckout(true)}
-                className="w-full bg-accent hover:bg-accent-lt text-dark font-pally font-extrabold text-[14px] tracking-wider uppercase py-3.5 rounded-xl transition-all shadow-md cursor-pointer"
+                className="w-full bg-[#0c0c0c] hover:bg-black text-white font-extrabold text-xs uppercase tracking-wider py-4 rounded-xl transition-all shadow-md cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"
               >
-                Proceed to Checkout →
+                Proceed to Checkout <ArrowRight size={15} />
               </button>
             ) : (
-              <div className="space-y-3 pt-2 border-t border-border">
-                <p className="text-[11px] font-bold text-accent uppercase tracking-wider">Shipping Details</p>
-                <input
-                  type="text"
-                  placeholder="Full Name *"
-                  value={form.name}
-                  onChange={(e) => setField("name", e.target.value)}
-                  className="w-full bg-dark text-cream text-[12px] px-3 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
-                />
-                <input
-                  type="tel"
-                  placeholder="Mobile Number *"
-                  value={form.phone}
-                  onChange={(e) => setField("phone", e.target.value)}
-                  className="w-full bg-dark text-cream text-[12px] px-3 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
-                />
-                <input
-                  type="text"
-                  placeholder="Full Address *"
-                  value={form.address}
-                  onChange={(e) => setField("address", e.target.value)}
-                  className="w-full bg-dark text-cream text-[12px] px-3 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
-                />
-                <input
-                  type="text"
-                  placeholder="Landmark *"
-                  value={form.landmark}
-                  onChange={(e) => setField("landmark", e.target.value)}
-                  className={`w-full bg-dark text-cream text-[12px] px-3 py-2 rounded-lg border outline-none font-pally ${errors.landmark ? "border-red-500" : "border-border focus:border-accent"
-                    }`}
-                />
-                <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-3 pt-3 border-t border-gray-200">
+                <p className="text-[11px] font-extrabold text-gray-900 uppercase tracking-wider mb-2">
+                  Shipping Address Details
+                </p>
+
+                <div>
                   <input
                     type="text"
-                    placeholder="City *"
-                    value={form.city}
-                    onChange={(e) => setField("city", e.target.value)}
-                    className="w-full bg-dark text-cream text-[12px] px-2 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
+                    placeholder="Full Name *"
+                    value={form.name}
+                    onChange={(e) => setField("name", e.target.value)}
+                    className="w-full bg-white text-gray-900 text-xs px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
                   />
-                  <input
-                    type="text"
-                    placeholder="State *"
-                    value={form.state}
-                    onChange={(e) => setField("state", e.target.value)}
-                    className="w-full bg-dark text-cream text-[12px] px-2 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
-                  />
+                  {errors.name && <p className="text-[10px] text-rose-500 font-bold mt-1">{errors.name}</p>}
+                </div>
+
+                <div>
                   <input
                     type="tel"
-                    placeholder="Pincode *"
-                    value={form.pincode}
-                    onChange={(e) => setField("pincode", e.target.value)}
-                    className="w-full bg-dark text-cream text-[12px] px-2 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
+                    placeholder="Mobile Number *"
+                    value={form.phone}
+                    onChange={(e) => setField("phone", e.target.value)}
+                    className="w-full bg-white text-gray-900 text-xs px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
                   />
+                  {errors.phone && <p className="text-[10px] text-rose-500 font-bold mt-1">{errors.phone}</p>}
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Full Address *"
+                    value={form.address}
+                    onChange={(e) => setField("address", e.target.value)}
+                    className="w-full bg-white text-gray-900 text-xs px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
+                  />
+                  {errors.address && <p className="text-[10px] text-rose-500 font-bold mt-1">{errors.address}</p>}
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Landmark *"
+                    value={form.landmark}
+                    onChange={(e) => setField("landmark", e.target.value)}
+                    className="w-full bg-white text-gray-900 text-xs px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
+                  />
+                  {errors.landmark && <p className="text-[10px] text-rose-500 font-bold mt-1">{errors.landmark}</p>}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="City *"
+                      value={form.city}
+                      onChange={(e) => setField("city", e.target.value)}
+                      className="w-full bg-white text-gray-900 text-xs px-2.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
+                    />
+                    {errors.city && <p className="text-[9px] text-rose-500 font-bold mt-0.5">{errors.city}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="State *"
+                      value={form.state}
+                      onChange={(e) => setField("state", e.target.value)}
+                      className="w-full bg-white text-gray-900 text-xs px-2.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
+                    />
+                    {errors.state && <p className="text-[9px] text-rose-500 font-bold mt-0.5">{errors.state}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="tel"
+                      placeholder="Pincode *"
+                      value={form.pincode}
+                      onChange={(e) => setField("pincode", e.target.value)}
+                      className="w-full bg-white text-gray-900 text-xs px-2.5 py-2.5 rounded-xl border border-gray-200 focus:border-black outline-none placeholder:text-gray-400"
+                    />
+                    {errors.pincode && <p className="text-[9px] text-rose-500 font-bold mt-0.5">{errors.pincode}</p>}
+                  </div>
                 </div>
 
                 <button
                   onClick={handleCheckout}
                   disabled={loading}
-                  className="w-full bg-[#25D366] hover:bg-[#20c05c] text-white font-pally font-extrabold text-[14px] tracking-wide py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer mt-3"
+                  className="w-full bg-[#25D366] hover:bg-[#20c05c] text-white font-extrabold text-xs uppercase tracking-wider py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-4 active:scale-[0.99]"
                 >
                   {loading ? "Processing..." : "Place Order via WhatsApp"}
                 </button>
