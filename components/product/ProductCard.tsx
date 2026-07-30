@@ -32,6 +32,8 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
       ? product.images[1]
       : null);
 
+  const formattedTitle = formatTitleCase(product.shortName || product.name);
+
   return (
     <>
       <div
@@ -86,8 +88,8 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
           </div>
 
           {/* Details */}
-          <div className="p-3.5 sm:p-4 flex flex-col gap-1.5 flex-1 justify-between">
-            <div className="flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 flex flex-col gap-1 flex-1 justify-between">
+            <div className="flex items-center justify-between mb-0.5">
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                   isLight ? "bg-gray-100 text-gray-700" : "bg-dark3 text-muted/80"
@@ -105,15 +107,17 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
               )}
             </div>
 
-            {/* Product Title — Clean 2-line height so no text is hidden or cut off */}
-            <h3
-              className={`text-[13px] sm:text-[14px] font-bold leading-[1.38] line-clamp-2 min-h-[2.75rem] py-0.5 transition-colors font-pally ${
-                isLight ? "text-[#0c0c0c] group-hover:text-amber-700" : "text-cream group-hover:text-accent"
-              }`}
-              title={formatTitleCase(product.shortName || product.name)}
-            >
-              {formatTitleCase(product.shortName || product.name)}
-            </h3>
+            {/* Product Title — Strict 2-line clamp with overflow hidden & exact height so no half-cut 3rd line peeks through */}
+            <div className="h-[2.55rem] overflow-hidden flex items-center">
+              <h3
+                className={`text-[12.5px] sm:text-[13.5px] font-bold leading-[1.25] line-clamp-2 transition-colors font-pally ${
+                  isLight ? "text-[#0c0c0c] group-hover:text-amber-700" : "text-cream group-hover:text-accent"
+                }`}
+                title={formattedTitle}
+              >
+                {formattedTitle}
+              </h3>
+            </div>
 
             {/* Rating Stars */}
             <div className="flex items-center gap-1 my-0.5">
@@ -124,8 +128,8 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
             </div>
 
             {/* Price section */}
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className={`text-[17px] font-black font-pally ${isLight ? "text-[#0c0c0c]" : "text-cream"}`}>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className={`text-[16.5px] sm:text-[17px] font-black font-pally ${isLight ? "text-[#0c0c0c]" : "text-cream"}`}>
                 {product.priceStr || `₹${product.price.toLocaleString("en-IN")}`}
               </span>
               {(product.oldPriceStr || (product.oldPrice && product.oldPrice > product.price)) && (

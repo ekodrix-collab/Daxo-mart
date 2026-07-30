@@ -1,65 +1,72 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import PRODUCTS, { type Product, formatTitleCase } from "@/lib/products";
+import { type Product, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
-import ProductVideoFloating from "@/components/product/ProductVideoFloating";
-
-const WA_NUMBER = "919048571147";
 
 const INDIAN_STATES = [
   "Kerala",
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
   "Tamil Nadu",
+  "Karnataka",
+  "Maharashtra",
+  "Delhi",
   "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
+  "Andhra Pradesh",
+  "Gujarat",
   "West Bengal",
-  "Andaman & Nicobar Islands",
+  "Uttar Pradesh",
+  "Rajasthan",
+  "Punjab",
+  "Haryana",
+  "Madhya Pradesh",
+  "Bihar",
+  "Assam",
+  "Odisha",
+  "Goa",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Puducherry",
   "Chandigarh",
-  "Dadra & Nagar Haveli and Daman & Diu",
-  "Delhi (NCT)",
-  "Jammu & Kashmir",
-  "Ladakh",
-  "Lakshadweep",
-  "Puducherry"
+  "Chhattisgarh",
+  "Jharkhand",
+  "Uttarakhand",
 ];
 
+// Helper to determine exact scale size string for pill badge
+function getScaleSizePillText(scaleStr?: string, categoryStr?: string): { label: string; details: string } {
+  const sc = (scaleStr || "").toLowerCase();
+  const cat = (categoryStr || "").toLowerCase();
+
+  if (sc.includes("1:18") || sc.includes("1/18") || cat.includes("1:18")) {
+    return { label: "Extra Large (1:18)", details: "(10-11 Inch / 24-28 cm)" };
+  }
+  if (sc.includes("1:32") || sc.includes("1/32") || cat.includes("1:32")) {
+    return { label: "Medium (1:32)", details: "(5-6 Inch / 13-15 cm)" };
+  }
+  if (cat.includes("rc") || sc.includes("rc")) {
+    return { label: "Remote Control (RC)", details: "(8-12 Inch / 20-30 cm)" };
+  }
+  if (cat.includes("frame") || sc.includes("frame")) {
+    return { label: "Wall 3D Frame", details: "(12-16 Inch / 30-40 cm)" };
+  }
+  // Default to 1:24 Large
+  return { label: "Large (1:24)", details: "(7-8 Inch / 18-21 cm)" };
+}
+
 /* ═══════════════════════════════════════════════════════════════════
-   CHECKOUT MODAL FOR INSTANT "BUY NOW"
+   INSTANT BUY NOW WHATSAPP MODAL
 ═══════════════════════════════════════════════════════════════════ */
 export function BuyNowModal({
   product,
-  quantity,
+  quantity = 1,
   isOpen,
   onClose,
 }: {
   product: Product;
-  quantity: number;
+  quantity?: number;
   isOpen: boolean;
   onClose: () => void;
 }) {
@@ -70,82 +77,72 @@ export function BuyNowModal({
     address: "",
     city: "",
     state: "Kerala",
-    landmark: "",
     pincode: "",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   if (!isOpen) return null;
 
   const total = product.price * quantity;
 
-  const setField = (k: keyof typeof form, v: string) => {
-    setForm((f) => ({ ...f, [k]: v }));
-    setErrors((e) => ({ ...e, [k]: "" }));
+  const setField = (field: string, val: string) => {
+    setForm((prev) => ({ ...prev, [field]: val }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Full Name is required";
-    if (!/^[6-9]\d{9}$/.test(form.phone.trim()))
-      e.phone = "Enter valid 10-digit mobile number";
-    if (form.email.trim() && !/\S+@\S+\.\S+/.test(form.email.trim()))
-      e.email = "Enter valid email address";
-    if (!form.address.trim()) e.address = "Full address is required";
-    if (!form.landmark.trim()) e.landmark = "Landmark is required";
-    if (!form.city.trim()) e.city = "City is required";
-    if (!form.state.trim()) e.state = "State is required";
-    if (!/^\d{6}$/.test(form.pincode.trim()))
-      e.pincode = "Enter valid 6-digit pincode";
+  const handlePlaceOrder = (e: React.FormEvent) => {
+    e.preventDefault();
 
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+    const newErr: { [key: string]: string } = {};
+    if (!form.name.trim()) newErr.name = "Name is required";
+    if (!form.phone.trim() || form.phone.trim().length < 10)
+      newErr.phone = "Valid 10-digit mobile number required";
+    if (!form.address.trim()) newErr.address = "Street address is required";
+    if (!form.city.trim()) newErr.city = "City is required";
+    if (!form.pincode.trim() || form.pincode.trim().length < 6)
+      newErr.pincode = "Valid 6-digit pincode required";
 
-  const handlePlaceOrder = () => {
-    if (!validate()) return;
-    const orderNumber = `DXM-${Math.floor(100000 + Math.random() * 900000)}`;
+    if (Object.keys(newErr).length > 0) {
+      setErrors(newErr);
+      return;
+    }
 
-    const waMessage = [
-      `Hi DAXO-MART, I would like to place an order!`,
-      ``,
-      `📦 *Order:* ${orderNumber}`,
-      `🛒 *Product:* ${product.shortName || product.name} (Qty: ${quantity})`,
-      `💰 *Total Amount:* ₹${total.toLocaleString("en-IN")}`,
-      `Name: ${form.name.trim()}`,
-      `Full Address: ${form.address.trim()}`,
-      `City: ${form.city.trim()}`,
-      `State: ${form.state.trim()}`,
-      `Landmark: ${form.landmark.trim()}`,
-      `Pincode: ${form.pincode.trim()}`,
-      `Mobile Number: ${form.phone.trim()}`,
-      ``,
-      `Please confirm my order. Thank you! 🙏`,
-    ].join("\n");
+    const adminWhatsAppNumber = "919048571147";
 
-    // 1. Instantly trigger WhatsApp window in user event context (prevents popup blocker)
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMessage)}`, "_blank");
+    const message = `🛍️ *NEW DIRECT ORDER - DAXOMART* 🛍️
 
-    // 2. Fire background async order save without blocking the user
+*Customer Details:*
+👤 Name: ${form.name.trim()}
+📞 Phone: ${form.phone.trim()}
+${form.email ? `📧 Email: ${form.email.trim()}\n` : ""}
+📍 Address: ${form.address.trim()}
+🏙️ City: ${form.city.trim()}
+📌 State: ${form.state.trim()}
+📮 Pincode: ${form.pincode.trim()}
+
+*Order Details:*
+🚗 Product: ${product.name}
+📏 Scale: ${product.scale || "1:24"}
+📦 Quantity: ${quantity}
+💰 Unit Price: ₹${product.price.toLocaleString("en-IN")}
+💵 Total Amount: ₹${total.toLocaleString("en-IN")} (Free Delivery)
+
+Please confirm my order & provide delivery timeline!`;
+
+    const waUrl = `https://wa.me/${adminWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank");
+
     fetch("/api/orders/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         customer_name: form.name.trim(),
-        customer_phone: form.phone.trim(),
-        customer_email: form.email.trim() || undefined,
-        full_address: [form.address.trim(), form.landmark.trim() ? `Landmark: ${form.landmark.trim()}` : ""].filter(Boolean).join(", "),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        address: form.address.trim(),
         city: form.city.trim(),
         state: form.state.trim(),
         pincode: form.pincode.trim(),
@@ -160,7 +157,6 @@ export function BuyNowModal({
       console.error("Async order save error:", err);
     });
 
-    // 3. Immediately close modal with zero delay
     onClose();
   };
 
@@ -178,7 +174,7 @@ export function BuyNowModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-dark3 hover:bg-dark border border-border flex items-center justify-center text-muted hover:text-cream text-lg"
+            className="w-8 h-8 rounded-full bg-dark3 hover:bg-dark border border-border flex items-center justify-center text-muted hover:text-cream text-lg cursor-pointer"
           >
             ✕
           </button>
@@ -249,87 +245,17 @@ export function BuyNowModal({
 
           <div>
             <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-              Full Address *
+              Flat / House No. / Street Address *
             </label>
-            <input
-              type="text"
+            <textarea
+              rows={2}
               value={form.address}
               onChange={(e) => setField("address", e.target.value)}
-              placeholder="House/Flat No, Street"
+              placeholder="House/Flat No, Building Name, Street"
               className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.address ? "border-red-500" : "border-border focus:border-accent"
                 }`}
             />
             {errors.address && <p className="text-red-400 text-[11px] mt-0.5">{errors.address}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                Landmark
-              </label>
-              <input
-                type="text"
-                value={form.landmark}
-                onChange={(e) => setField("landmark", e.target.value)}
-                placeholder="e.g. Near Bus Stand"
-                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.landmark ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
-              {errors.landmark && <p className="text-red-400 text-[11px] mt-0.5">{errors.landmark}</p>}
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                City *
-              </label>
-              <input
-                type="text"
-                value={form.city}
-                onChange={(e) => setField("city", e.target.value)}
-                placeholder="City"
-                className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally ${errors.city ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
-              {errors.city && <p className="text-red-400 text-[11px] mt-0.5">{errors.city}</p>}
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                State *
-              </label>
-              <div className="relative">
-                <select
-                  value={form.state || "Kerala"}
-                  onChange={(e) => setField("state", e.target.value)}
-                  className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally appearance-none cursor-pointer pr-8 ${
-                    errors.state ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-                >
-                  {INDIAN_STATES.map((st) => (
-                    <option key={st} value={st} className="bg-dark text-cream py-1.5">
-                      {st}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-accent">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                Pincode *
-              </label>
-              <input
-                type="tel"
-                value={form.pincode}
-                onChange={(e) => setField("pincode", e.target.value)}
-                placeholder="6-digit"
-                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.pincode ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
-              {errors.pincode && <p className="text-red-400 text-[11px] mt-0.5">{errors.pincode}</p>}
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -362,6 +288,21 @@ export function BuyNowModal({
               {errors.state && <p className="text-red-400 text-[11px] mt-0.5">{errors.state}</p>}
             </div>
           </div>
+
+          <div>
+            <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
+              Pincode *
+            </label>
+            <input
+              type="tel"
+              value={form.pincode}
+              onChange={(e) => setField("pincode", e.target.value)}
+              placeholder="6-digit"
+              className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.pincode ? "border-red-500" : "border-border focus:border-accent"
+                }`}
+            />
+            {errors.pincode && <p className="text-red-400 text-[11px] mt-0.5">{errors.pincode}</p>}
+          </div>
         </div>
 
         {/* Action Button */}
@@ -379,10 +320,6 @@ export function BuyNowModal({
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-/* ═══════════════════════════════════════════════════════════════════
-   SMART RECOMMENDATION ENGINE (MULTI-TIERED CONTEXTUAL MATCHING)
-═══════════════════════════════════════════════════════════════════ */
 function getRecommendedProducts(
   currentProduct: Product,
   allProducts: Product[],
@@ -392,7 +329,6 @@ function getRecommendedProducts(
   const catalog = (allProducts && allProducts.length > 0 ? allProducts : fallbackProducts) || [];
   if (!catalog || catalog.length === 0) return [];
 
-  // Filter out current product and inactive products
   const candidates = catalog.filter(
     (p) =>
       String(p.id) !== String(currentProduct.id) &&
@@ -410,44 +346,29 @@ function getRecommendedProducts(
 
   const scored = candidates.map((p) => {
     let score = 0;
-
-    // 1. Scale Match (e.g. 1:24 vs 1:24)
     const pScale = (p.scale || "").toLowerCase().trim();
-    if (pScale && curScale && pScale === curScale) {
-      score += 20;
-    }
+    if (pScale && curScale && pScale === curScale) score += 20;
 
-    // 2. Category Match (e.g. Diecast vs RC vs Frame)
     const pCat = (p.category || "").toLowerCase().trim();
-    if (pCat && curCat && pCat === curCat) {
-      score += 15;
-    }
+    if (pCat && curCat && pCat === curCat) score += 15;
 
-    // 3. Car Brand / Model Keyword Overlap
     const pTitle = p.name.toLowerCase();
     const commonWords = ["diecast", "model", "scale", "car", "black", "red", "white", "blue", "yellow", "metal", "toy"];
     curTitleWords.forEach((word) => {
-      if (!commonWords.includes(word) && pTitle.includes(word)) {
-        score += 10;
-      }
+      if (!commonWords.includes(word) && pTitle.includes(word)) score += 10;
     });
 
-    // 4. Price Proximity (within ±30% range)
     if (curPrice > 0 && p.price > 0) {
       const priceDiffRatio = Math.abs(p.price - curPrice) / curPrice;
-      if (priceDiffRatio <= 0.3) {
-        score += 5;
-      }
+      if (priceDiffRatio <= 0.3) score += 5;
     }
 
-    // 5. Featured badge boost
     if (p.badge) score += 2;
 
     return { product: p, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
-
   return scored.slice(0, limit).map((s) => s.product);
 }
 
@@ -468,14 +389,13 @@ export default function ProductDetailClient({
   const [selectedModalProduct, setSelectedModalProduct] = useState<Product | null>(null);
   const [addedToast, setAddedToast] = useState(false);
   const [isDescOpen, setIsDescOpen] = useState(true);
+  const [isScaleGuideOpen, setIsScaleGuideOpen] = useState(true);
 
   const { addToCart } = useCart();
   const router = useRouter();
 
-  // Available color options or defaults if none configured
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
 
-  // Combine main images array with any color variant images for complete sub-images gallery
   const allGalleryImages = Array.from(
     new Set([
       ...(product.images || []),
@@ -494,16 +414,16 @@ export default function ProductDetailClient({
       ? product.oldPriceStr || `₹${Number(product.oldPrice).toLocaleString("en-IN")}`
       : product.oldPriceStr || null;
 
-  const related = getRecommendedProducts(product, allProducts, PRODUCTS, 4);
+  const related = getRecommendedProducts(product, allProducts, [], 4);
+
+  const scalePill = getScaleSizePillText(product.scale, product.category);
 
   const handleSelectColor = (index: number) => {
     setSelectedColor(index);
     const chosenColor = colorOptions[index];
     if (chosenColor?.image) {
       const imgIdx = allGalleryImages.findIndex((img) => img === chosenColor.image);
-      if (imgIdx !== -1) {
-        setActiveImg(imgIdx);
-      }
+      if (imgIdx !== -1) setActiveImg(imgIdx);
     }
   };
 
@@ -515,7 +435,6 @@ export default function ProductDetailClient({
 
   return (
     <div className="bg-dark min-h-screen relative">
-      {/* Toast alert */}
       {addedToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-green text-white font-pally font-bold px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
           <span>✓ Added to Cart!</span>
@@ -564,7 +483,7 @@ export default function ProductDetailClient({
               />
             </div>
 
-            {/* Thumbnail Strip (Sub-Images) */}
+            {/* Thumbnail Strip */}
             {allGalleryImages.length > 1 && (
               <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-none">
                 {allGalleryImages.map((img, i) => (
@@ -598,7 +517,7 @@ export default function ProductDetailClient({
                 <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-accent">
                   {product.category || `${product.scale || "1:24"} Scale`}
                 </span>
-                <span className="bg-dark2 border border-border text-[10px] font-extrabold text-cream px-2 py-0.5 rounded-full uppercase">
+                <span className="bg-dark2 border border-border text-[10px] font-extrabold text-cream px-2.5 py-0.5 rounded-full uppercase">
                   Scale: {product.scale || "1:24"}
                 </span>
               </div>
@@ -625,7 +544,19 @@ export default function ProductDetailClient({
                 )}
               </div>
 
-              {/* 3. Product Highlights */}
+              {/* ── 3. SIZE PILL BADGE (Exact Format Requested) ── */}
+              <div className="mb-6">
+                <label className="block text-[12px] font-semibold text-gray-400 mb-2 font-pally">
+                  Size
+                </label>
+                <div className="inline-flex items-center bg-[#141416] border border-gray-300/30 text-white px-5 py-2.5 rounded-full shadow-md">
+                  <span className="text-[13.5px] font-bold font-pally tracking-wide">
+                    {scalePill.label} : {scalePill.details}
+                  </span>
+                </div>
+              </div>
+
+              {/* Product Highlights */}
               {((product.highlights && product.highlights.length > 0) || (product.features && product.features.length > 0)) && (
                 <div className="mb-6 p-4 bg-dark2/90 border border-border/80 rounded-xl">
                   <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-3 font-mono flex items-center gap-1.5">
@@ -642,7 +573,7 @@ export default function ProductDetailClient({
                 </div>
               )}
 
-              {/* 4. Product Description (Preserves formatting with white-space: pre-wrap) */}
+              {/* Product Description */}
               {product.description && (
                 <div className="mb-6 p-4 bg-dark2/60 border border-border/60 rounded-xl">
                   <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-2.5 font-mono">
@@ -782,6 +713,106 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
+              {/* ── 4. SCALE SIZE ACCORDION (Exact Content & Images requested) ── */}
+              <div className="border-t border-border pt-4 mb-4">
+                <button
+                  onClick={() => setIsScaleGuideOpen(!isScaleGuideOpen)}
+                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>📏</span> Scale Size Guide
+                  </span>
+                  <span className="text-muted text-lg">{isScaleGuideOpen ? "−" : "+"}</span>
+                </button>
+
+                {isScaleGuideOpen && (
+                  <div className="mt-3 bg-dark2/90 border border-border p-4 sm:p-5 rounded-2xl space-y-4 text-[13px] text-muted leading-relaxed font-sans animate-in fade-in duration-200">
+                    <div>
+                      <p className="font-bold text-cream text-[14px] mb-1">What is diecast scale?</p>
+                      <p className="text-gray-300 leading-relaxed text-[12.5px]">
+                        Diecast scale is a measure of diecast car size relative to the actual real-world vehicle. It may seem confusing at first, but it&apos;s really simple!
+                      </p>
+                    </div>
+
+                    {/* Model Car Scale/Size Guide Visual Comparison Table */}
+                    <div>
+                      <h4 className="text-[12px] font-extrabold uppercase tracking-wider text-accent mb-3 font-mono">
+                        Model Car Scale / Size Guide
+                      </h4>
+
+                      <div className="border border-border/80 rounded-xl overflow-hidden bg-white text-dark">
+                        {/* 1:18 Scale Row */}
+                        <div className="grid grid-cols-12 border-b border-gray-200 items-center">
+                          <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
+                            <div className="w-full h-16 sm:h-20 relative">
+                              <Image
+                                src="/images/scale-1-18.png"
+                                alt="1:18 Diecast car scale guide"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-7 p-3.5">
+                            <p className="font-extrabold text-[14px] text-black">1:18 scale</p>
+                            <p className="text-[11.5px] text-gray-600 mt-0.5 leading-snug">
+                              Length (approx.) 23 - 28 cm<br />
+                              238 mm, 9.5 - 11 inches
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 1:24 Scale Row */}
+                        <div className="grid grid-cols-12 border-b border-gray-200 items-center">
+                          <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
+                            <div className="w-full h-14 sm:h-16 relative">
+                              <Image
+                                src="/images/scale-1-24.png"
+                                alt="1:24 Diecast car scale guide"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-7 p-3.5">
+                            <p className="font-extrabold text-[14px] text-black">1:24 scale</p>
+                            <p className="text-[11.5px] text-gray-600 mt-0.5 leading-snug">
+                              Length (approx.) 16.5 - 20 cm<br />
+                              179 mm, 6.5 - 8 inches
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 1:32 Scale Row */}
+                        <div className="grid grid-cols-12 items-center">
+                          <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
+                            <div className="w-full h-12 sm:h-14 relative">
+                              <Image
+                                src="/images/scale-1-32.png"
+                                alt="1:32 Diecast car scale guide"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-7 p-3.5">
+                            <p className="font-extrabold text-[14px] text-black">1:32 scale</p>
+                            <p className="text-[11.5px] text-gray-600 mt-0.5 leading-snug">
+                              Length (approx.) 12 - 15 cm<br />
+                              130 mm, 5 - 6 inches
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[12px] text-gray-300 leading-relaxed">
+                      A 1/18 scale diecast car is usually about 24 - 28cm (depending on the size of the actual car). A 1/24 scale diecast car is generally about 16 - 20cm. Many of the cars made in smaller scales (1/32) are made so that the car is around 5 inches long.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* 5. Specifications & What's Included */}
               <div className="border-t border-border pt-4">
                 <button
@@ -884,7 +915,6 @@ export default function ProductDetailClient({
                                hover:border-accent hover:shadow-[0_8px_30px_rgba(197,160,89,0.18)] hover:-translate-y-1.5 transition-all duration-300
                                no-underline flex flex-col relative"
                   >
-                    {/* Scale & Discount badges on thumbnail */}
                     <div className="bg-white overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
                       <span className="absolute top-2.5 left-2.5 z-10 text-[9.5px] font-extrabold text-dark bg-cream/90 backdrop-blur-md px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
                         {p.scale || "1:24"}
@@ -950,7 +980,7 @@ export default function ProductDetailClient({
         onClose={() => setShowBuyModal(false)}
       />
 
-      {/* Instant Checkout Modal for Recommended Product */}
+      {/* Instant Checkout Modal for Related Product */}
       {selectedModalProduct && (
         <BuyNowModal
           product={selectedModalProduct}
@@ -959,12 +989,6 @@ export default function ProductDetailClient({
           onClose={() => setSelectedModalProduct(null)}
         />
       )}
-
-      {/* Floating Showcase Video Reel */}
-      <ProductVideoFloating
-        videoUrl={product.videoUrl}
-        productName={product.name}
-      />
     </div>
   );
 }
