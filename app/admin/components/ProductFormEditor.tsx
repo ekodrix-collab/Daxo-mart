@@ -260,9 +260,44 @@ export default function ProductFormEditor({
 
     setIsUploadingVideo(true);
     setVideoSizeBytes(file.size);
-    setVideoUploadStatus(`Uploading ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
+    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+    setVideoUploadStatus(`Uploading ${file.name} (${sizeInMB} MB)...`);
 
     try {
+      // 1. Direct Browser-to-Cloudinary Upload via Signed API (Bypasses Vercel 4.5 MB limit)
+      const sigRes = await fetch("/api/upload-video/signature");
+      if (sigRes.ok) {
+        const sigData = await sigRes.json();
+        if (sigData.success && sigData.signature) {
+          const directData = new FormData();
+          directData.append("file", file);
+          directData.append("api_key", sigData.apiKey);
+          directData.append("timestamp", sigData.timestamp.toString());
+          directData.append("signature", sigData.signature);
+          directData.append("folder", sigData.folder);
+
+          const cRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${sigData.cloudName}/video/upload`,
+            {
+              method: "POST",
+              body: directData,
+            }
+          );
+
+          if (cRes.ok) {
+            const cResult = await cRes.json();
+            if (cResult.secure_url) {
+              setVideoUrl(cResult.secure_url);
+              setVideoSizeBytes(cResult.bytes || file.size);
+              setVideoUploadStatus("Video uploaded successfully!");
+              setIsUploadingVideo(false);
+              return;
+            }
+          }
+        }
+      }
+
+      // 2. Fallback to API route if signature isn't available
       const data = new FormData();
       data.append("file", file);
 
@@ -270,6 +305,14 @@ export default function ProductFormEditor({
         method: "POST",
         body: data,
       });
+
+      if (!res.ok) {
+        const textErr = await res.text();
+        if (res.status === 413) {
+          throw new Error("Video file exceeds server size limit. Please upload directly.");
+        }
+        throw new Error(`Upload failed (${res.status}): ${textErr.slice(0, 100)}`);
+      }
 
       const result = await res.json();
       if (result.url) {
@@ -282,7 +325,7 @@ export default function ProductFormEditor({
       }
     } catch (err: any) {
       console.error("Video upload error:", err);
-      alert("Video upload failed: " + err.message);
+      alert("Video upload error: " + (err.message || "Upload failed"));
       setVideoUploadStatus("");
     } finally {
       setIsUploadingVideo(false);
