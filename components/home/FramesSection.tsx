@@ -17,7 +17,7 @@ export default function FramesSection() {
   if (frames.length === 0) return null;
 
   return (
-    <section className="bg-white py-12 md:py-16 border-b border-[#e8e0d8]">
+    <section className="bg-white py-12 md:py-16 ">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}
