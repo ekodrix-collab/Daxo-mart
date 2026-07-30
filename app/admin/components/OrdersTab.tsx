@@ -21,6 +21,10 @@ import {
   ChevronRight,
   LayoutGrid,
   List,
+  Truck,
+  Send,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export interface Order {
@@ -65,6 +69,41 @@ const fmtDate = (d: string) =>
     minute: "2-digit",
   });
 
+/* ── Amazon-Style Professional WhatsApp Message Generator ── */
+export function buildAmazonStyleWhatsAppMsg(
+  order: Order,
+  targetStatus: OrderStatus = order.status,
+  courierName: string = "BlueDart Express",
+  trackingNo: string = ""
+): string {
+  const orderNum = order.order_number || order.id;
+  const itemsList = `🚗 *Product:* ${order.productName}\n📦 *Qty:* ${order.qty} × ₹${order.price.toLocaleString("en-IN")}\n💰 *Total Amount:* ₹${order.total.toLocaleString("en-IN")} (Free Express Shipping)`;
+  const deliveryAddr = `📍 *Delivery Address:*\n${order.customer}\n${order.address}, ${order.city}, ${order.state} - ${order.pincode}\n📞 *Contact:* +91 ${order.phone}`;
+  const trackingId = trackingNo || `DXM${Math.floor(100000 + Math.random() * 900000)}`;
+
+  switch (targetStatus) {
+    case "New":
+    case "Confirmed":
+      return `🛍️ *DAXOMART - ORDER CONFIRMED* 🛍️\n\nDear *${order.customer}*,\n\nThank you for your order at DAXOMART! Your order *#${orderNum}* has been confirmed and placed into priority processing.\n\n${itemsList}\n\n${deliveryAddr}\n\n⏳ *Next Step:* Our quality team is inspecting and packing your diecast model in multi-layer protective packaging.\n\nNeed assistance? Reply directly to this WhatsApp chat!\n🌐 *DAXOMART Official Store*`;
+
+    case "Processing":
+    case "Packed":
+      return `📦 *DAXOMART - PACKED & READY FOR DISPATCH* 📦\n\nDear *${order.customer}*,\n\nGreat news! Your DAXOMART order *#${orderNum}* has passed quality inspection and is packed securely.\n\n${itemsList}\n\n${deliveryAddr}\n\n🛡️ *Packing Note:* Sealed in damage-proof collector box.\n🚚 *Dispatch:* Handing over to express courier shortly.\n\nThank you for choosing DAXOMART! 🏎️💨`;
+
+    case "Shipped":
+      return `🚚 *DAXOMART - ORDER SHIPPED & IN TRANSIT* 🚚\n\nDear *${order.customer}*,\n\nYour DAXOMART order *#${orderNum}* has been dispatched via *${courierName}*!\n\n${itemsList}\n\n🚛 *Courier Partner:* ${courierName}\n🔢 *Tracking AWB:* *${trackingId}*\n⏱️ *Est. Delivery:* Within 3-5 Working Days\n\n${deliveryAddr}\n\nTrack your order anytime or chat with us for live status updates.\n🌐 *DAXOMART Diecast Store*`;
+
+    case "Delivered":
+      return `✅ *DAXOMART - ORDER DELIVERED* ✅\n\nDear *${order.customer}*,\n\nYour order *#${orderNum}* has been delivered to your shipping address!\n\n${itemsList}\n\nWe hope you love your new collector model! 🌟\n\n⭐ *Share Your Model:* Send us a photo or video of your unboxing to be featured on our official page!\n\nThank you for shopping with DAXOMART! 🏎️💨`;
+
+    case "Cancelled":
+      return `⚠️ *DAXOMART - ORDER CANCELLED* ⚠️\n\nDear *${order.customer}*,\n\nYour order *#${orderNum}* for *${order.productName}* has been cancelled.\n\nIf you have any questions or would like assistance placing a new order, reply directly to this chat.\n\nDAXOMART Customer Care`;
+
+    default:
+      return `📦 *DAXOMART ORDER UPDATE (#${orderNum})*\n\nDear *${order.customer}*,\n\nStatus Update: *${targetStatus}*\n\n${itemsList}\n\n${deliveryAddr}\n\nThank you for shopping with DAXOMART!`;
+  }
+}
+
 interface OrdersTabProps {
   orders: Order[];
   onUpdateStatus: (id: string, status: OrderStatus) => void;
@@ -83,14 +122,19 @@ export default function OrdersTab({
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
+  // WhatsApp Customization State for Modal
+  const [courierName, setCourierName] = useState("BlueDart Express");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [copiedMsg, setCopiedMsg] = useState(false);
+
   const handleSelectOrder = (o: Order) => {
     if (onOrderClick) {
       onOrderClick(o.id);
     } else {
       setSelectedOrder(o);
+      setTrackingNumber(`DXM${Math.floor(100000 + Math.random() * 900000)}`);
     }
   };
-
 
   const filteredOrders = orders
     .filter((o) => orderFilter === "All" || o.status === orderFilter)
@@ -167,6 +211,13 @@ export default function OrdersTab({
     printWindow.print();
   };
 
+  const getWhatsAppUrl = (order: Order, status: OrderStatus = order.status) => {
+    const rawPhone = order.phone.replace(/[^0-9]/g, "");
+    const formattedPhone = rawPhone.startsWith("91") ? rawPhone : `91${rawPhone}`;
+    const msg = buildAmazonStyleWhatsAppMsg(order, status, courierName, trackingNumber);
+    return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -176,11 +227,11 @@ export default function OrdersTab({
             Order Fulfillment Center
           </h2>
           <p className="text-[13px] text-gray-400 mt-1 font-normal">
-            Manage incoming diecast orders, customer communication & dispatch statuses.
+            Manage incoming diecast orders, automated Amazon-style WhatsApp status alerts &amp; courier dispatching.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-[#C5A059]/15 text-[#C5A059] font-bold text-[12px] rounded-full border border-[#C5A059]/30">
+          <span className="px-3.5 py-1.5 bg-[#C5A059]/15 text-[#C5A059] font-bold text-[12px] rounded-full border border-[#C5A059]/30">
             {orders.length} Total Orders
           </span>
         </div>
@@ -262,7 +313,7 @@ export default function OrdersTab({
         </div>
       </div>
 
-      {/* Render Table or Cards based on viewMode */}
+      {/* Render Table or Cards */}
       {filteredOrders.length === 0 ? (
         <div className="bg-[#141416] border border-[#222226] rounded-[20px] p-12 text-center text-gray-400 text-[14px]">
           No orders found matching criteria.
@@ -286,6 +337,7 @@ export default function OrdersTab({
               <tbody className="divide-y divide-[#222226] text-[13px]">
                 {filteredOrders.map((o) => {
                   const displayOrderNum = o.order_number || o.id;
+                  const waUrl = getWhatsAppUrl(o);
                   return (
                     <tr
                       key={o.id}
@@ -337,20 +389,19 @@ export default function OrdersTab({
                       <td className="py-4 px-4 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
                           <a
-                            href={`https://wa.me/${o.phone.startsWith("91") ? "" : "91"}${o.phone}?text=${encodeURIComponent(
-                              `Hi ${o.customer}, regarding your DAXO-MART Order ${displayOrderNum} (${o.productName}): Status update is ${o.status}.`
-                            )}`}
+                            href={waUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 rounded-lg border border-emerald-500/30 transition-colors"
-                            title="WhatsApp Customer"
+                            className="p-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 rounded-lg border border-emerald-500/30 transition-colors flex items-center gap-1 font-bold text-[11px]"
+                            title="Send Amazon-Style WhatsApp Alert"
                           >
                             <MessageSquare size={14} />
+                            <span>WhatsApp</span>
                           </a>
                           <button
                             onClick={() => handleSelectOrder(o)}
                             className="p-2 bg-[#202024] hover:bg-[#2A2A30] text-white rounded-lg border border-gray-800 transition-colors"
-                            title="View Details"
+                            title="View Order & Send Update"
                           >
                             <ChevronRight size={14} />
                           </button>
@@ -373,128 +424,125 @@ export default function OrdersTab({
       ) : (
         /* Cards View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-        {filteredOrders.map((o) => {
-          const displayOrderNum = o.order_number || o.id;
-          return (
-            <div
-              key={o.id}
-              onClick={() => handleSelectOrder(o)}
-              className="bg-[#141416] border border-[#222226] rounded-[20px] p-5 flex flex-col justify-between hover:border-[#C5A059]/60 hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer group"
-            >
-              <div>
-                {/* Order Top Header */}
-                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-[#222226]">
-                  <div>
-                    <span className="text-[14px] font-extrabold text-[#C5A059] font-mono group-hover:text-white transition-colors">
-                      {displayOrderNum}
-                    </span>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{fmtDate(o.createdAt)}</p>
-                  </div>
-
-                  {/* Status Dropdown */}
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={o.status}
-                      onChange={(e) =>
-                        onUpdateStatus(o.id, e.target.value as OrderStatus)
-                      }
-                      className="text-[12px] font-bold uppercase px-3 py-1 rounded-full border border-[#2D2D32] bg-[#1C1C20] text-white outline-none cursor-pointer hover:border-[#C5A059]"
-                    >
-                      {ALL_STATUSES.map((s) => (
-                        <option key={s} value={s} className="bg-[#141416] text-white">
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Customer Info */}
-                <div className="mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#202024] border border-gray-700 text-gray-300 font-bold text-[12px] flex items-center justify-center shrink-0">
-                      {o.customer?.[0]?.toUpperCase() || "C"}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[14px] font-bold text-white truncate">{o.customer}</p>
-                      <p className="text-[12px] text-gray-400 font-mono">{o.phone}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shipping Location */}
-                <div className="bg-[#1B1B1E] border border-[#252529] rounded-xl p-3 mb-3">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                    <MapPin size={12} className="text-[#C5A059]" /> Shipping Address
-                  </p>
-                  <p className="text-[12px] text-gray-300 line-clamp-2 leading-snug">
-                    {o.address}
-                  </p>
-                  <p className="text-[11px] text-gray-400 font-semibold mt-1">
-                    {o.city}, {o.state} - {o.pincode}
-                  </p>
-                </div>
-
-                {/* Product Summary Item */}
-                <div className="bg-[#1B1B1E] border border-[#252529] rounded-xl p-3 mb-4 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[12.5px] font-bold text-white truncate">
-                      {o.productName}
-                    </p>
-                    <p className="text-[11px] text-gray-400">
-                      Qty: {o.qty} × ₹{o.price.toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                  <span className="text-[15px] font-extrabold text-[#C5A059] whitespace-nowrap font-pally">
-                    {fmtINR(o.total)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Quick Card Footer */}
+          {filteredOrders.map((o) => {
+            const displayOrderNum = o.order_number || o.id;
+            const waUrl = getWhatsAppUrl(o);
+            return (
               <div
-                onClick={(e) => e.stopPropagation()}
-                className="pt-3 border-t border-[#222226] flex items-center justify-between gap-2"
+                key={o.id}
+                onClick={() => handleSelectOrder(o)}
+                className="bg-[#141416] border border-[#222226] rounded-[20px] p-5 flex flex-col justify-between hover:border-[#C5A059]/60 hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer group"
               >
-                <a
-                  href={`https://wa.me/${
-                    o.phone.startsWith("91") ? "" : "91"
-                  }${o.phone}?text=${encodeURIComponent(
-                    `Hi ${o.customer}, regarding your DAXO-MART Order ${displayOrderNum} (${o.productName}): Status update is ${o.status}.`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-[11.5px] font-bold py-2 rounded-xl transition-colors no-underline cursor-pointer"
-                >
-                  <MessageSquare size={14} /> WhatsApp
-                </a>
+                <div>
+                  {/* Order Top Header */}
+                  <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-[#222226]">
+                    <div>
+                      <span className="text-[14px] font-extrabold text-[#C5A059] font-mono group-hover:text-white transition-colors">
+                        {displayOrderNum}
+                      </span>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{fmtDate(o.createdAt)}</p>
+                    </div>
 
-                <button
-                  onClick={() => setSelectedOrder(o)}
-                  className="bg-[#202024] hover:bg-[#2A2A30] text-white px-3 py-2 text-[11.5px] font-bold rounded-xl transition-colors flex items-center gap-1 border border-gray-800 cursor-pointer"
-                >
-                  View Details <ChevronRight size={13} />
-                </button>
+                    {/* Status Dropdown */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <select
+                        value={o.status}
+                        onChange={(e) =>
+                          onUpdateStatus(o.id, e.target.value as OrderStatus)
+                        }
+                        className="text-[12px] font-bold uppercase px-3 py-1 rounded-full border border-[#2D2D32] bg-[#1C1C20] text-white outline-none cursor-pointer hover:border-[#C5A059]"
+                      >
+                        {ALL_STATUSES.map((s) => (
+                          <option key={s} value={s} className="bg-[#141416] text-white">
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-                <button
-                  onClick={() => onDeleteOrder(o.id)}
-                  className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 cursor-pointer"
-                  title="Delete Order"
+                  {/* Customer Info */}
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-[#202024] border border-gray-700 text-gray-300 font-bold text-[12px] flex items-center justify-center shrink-0">
+                        {o.customer?.[0]?.toUpperCase() || "C"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[14px] font-bold text-white truncate">{o.customer}</p>
+                        <p className="text-[12px] text-gray-400 font-mono">{o.phone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shipping Location */}
+                  <div className="bg-[#1B1B1E] border border-[#252529] rounded-xl p-3 mb-3">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <MapPin size={12} className="text-[#C5A059]" /> Shipping Address
+                    </p>
+                    <p className="text-[12px] text-gray-300 line-clamp-2 leading-snug">
+                      {o.address}
+                    </p>
+                    <p className="text-[11px] text-gray-400 font-semibold mt-1">
+                      {o.city}, {o.state} - {o.pincode}
+                    </p>
+                  </div>
+
+                  {/* Product Summary Item */}
+                  <div className="bg-[#1B1B1E] border border-[#252529] rounded-xl p-3 mb-4 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[12.5px] font-bold text-white truncate">
+                        {o.productName}
+                      </p>
+                      <p className="text-[11px] text-gray-400">
+                        Qty: {o.qty} × ₹{o.price.toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                    <span className="text-[15px] font-extrabold text-[#C5A059] whitespace-nowrap font-pally">
+                      {fmtINR(o.total)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick Card Footer */}
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="pt-3 border-t border-[#222226] flex items-center justify-between gap-2"
                 >
-                  <Trash2 size={16} />
-                </button>
+                  <a
+                    href={waUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-[11.5px] font-bold py-2 rounded-xl transition-colors no-underline cursor-pointer"
+                  >
+                    <MessageSquare size={14} /> WhatsApp Alert
+                  </a>
+
+                  <button
+                    onClick={() => handleSelectOrder(o)}
+                    className="bg-[#202024] hover:bg-[#2A2A30] text-white px-3 py-2 text-[11.5px] font-bold rounded-xl transition-colors flex items-center gap-1 border border-gray-800 cursor-pointer"
+                  >
+                    Details <ChevronRight size={13} />
+                  </button>
+
+                  <button
+                    onClick={() => onDeleteOrder(o.id)}
+                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 cursor-pointer"
+                    title="Delete Order"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* Showcase Order Detail Modal / Drawer - Dark Theme */}
+      {/* ── SHOWCASE ORDER DETAIL MODAL & AMAZON-STYLE WHATSAPP GENERATOR ── */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <div className="bg-[#121214] border border-[#222226] rounded-[24px] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col my-auto text-white">
+            
             {/* Modal Header */}
             <div className="p-6 border-b border-[#222226] flex items-center justify-between bg-[#0B0B0C] rounded-t-[24px] sticky top-0 z-10">
               <div className="flex items-center gap-3">
@@ -516,7 +564,7 @@ export default function OrdersTab({
 
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="w-9 h-9 rounded-xl bg-[#202024] hover:bg-[#2C2C32] text-gray-300 flex items-center justify-center transition-colors border border-gray-700"
+                className="w-9 h-9 rounded-xl bg-[#202024] hover:bg-[#2C2C32] text-gray-300 flex items-center justify-center transition-colors border border-gray-700 cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -524,12 +572,14 @@ export default function OrdersTab({
 
             {/* Showcase Grid Body */}
             <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#0B0B0C]">
+              
               {/* LEFT COLUMN: Customer & Address Info */}
               <div className="lg:col-span-7 space-y-5">
+                
                 {/* Customer Profile Card */}
                 <div className="bg-[#141416] border border-[#222226] rounded-[18px] p-5 shadow-md">
                   <h4 className="text-[13px] font-bold tracking-wider uppercase text-gray-400 mb-3 flex items-center gap-2">
-                    <User size={16} className="text-[#C5A059]" /> Customer Information
+                    <User size={16} className="text-[#C5A059]" /> Customer Details
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between py-1.5 border-b border-[#202024]">
@@ -582,31 +632,111 @@ export default function OrdersTab({
                   )}
                 </div>
 
-                {/* Fulfillment Timeline */}
-                <div className="bg-[#141416] border border-[#222226] rounded-[18px] p-5 shadow-md">
-                  <h4 className="text-[13px] font-bold tracking-wider uppercase text-gray-400 mb-3 flex items-center gap-2">
-                    <Clock size={16} className="text-[#C5A059]" /> Order Audit Trail
-                  </h4>
-                  <div className="space-y-3 pl-2 border-l-2 border-[#C5A059]/40 ml-2">
-                    <div className="relative pl-4">
-                      <div className="absolute -left-[13px] top-0.5 w-2.5 h-2.5 rounded-full bg-[#C5A059]" />
-                      <p className="text-[13px] font-bold text-white">
-                        Order Received & Created
-                      </p>
-                      <p className="text-[11px] text-gray-400">{fmtDate(selectedOrder.createdAt)}</p>
+                {/* ── AMAZON-STYLE WHATSAPP TEMPLATE GENERATOR & PREVIEW ── */}
+                <div className="bg-[#141416] border border-[#222226] rounded-[18px] p-5 shadow-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[13px] font-bold tracking-wider uppercase text-emerald-400 flex items-center gap-2 font-pally">
+                      <MessageSquare size={16} /> Amazon-Style WhatsApp Template
+                    </h4>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Auto-Formatted
+                    </span>
+                  </div>
+
+                  {/* Status Selection Buttons */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    {ALL_STATUSES.map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => {
+                          onUpdateStatus(selectedOrder.id, st);
+                          setSelectedOrder({ ...selectedOrder, status: st });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase shrink-0 transition-all border cursor-pointer ${
+                          selectedOrder.status === st
+                            ? "bg-emerald-500 text-black border-emerald-400 shadow-md font-extrabold"
+                            : "bg-[#1C1C20] text-gray-400 border-[#28282D] hover:text-white"
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Courier & Tracking Input for Shipped Status */}
+                  {selectedOrder.status === "Shipped" && (
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-[#1C1C20] rounded-xl border border-[#28282D]">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          Courier Partner
+                        </label>
+                        <select
+                          value={courierName}
+                          onChange={(e) => setCourierName(e.target.value)}
+                          className="w-full bg-[#121214] border border-gray-700 text-white text-[12px] font-bold rounded-lg p-2 outline-none"
+                        >
+                          <option value="BlueDart Express">BlueDart Express</option>
+                          <option value="Delhivery Courier">Delhivery Courier</option>
+                          <option value="DTDC Express">DTDC Express</option>
+                          <option value="India Post Speed Post">India Post Speed Post</option>
+                          <option value="XpressBees Courier">XpressBees Courier</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                          Tracking AWB #
+                        </label>
+                        <input
+                          type="text"
+                          value={trackingNumber}
+                          onChange={(e) => setTrackingNumber(e.target.value)}
+                          placeholder="e.g. DXM849201"
+                          className="w-full bg-[#121214] border border-gray-700 text-white text-[12px] font-mono font-bold rounded-lg p-2 outline-none focus:border-[#C5A059]"
+                        />
+                      </div>
                     </div>
-                    <div className="relative pl-4">
-                      <div className="absolute -left-[13px] top-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                      <p className="text-[13px] font-bold text-white">
-                        Current Status: {selectedOrder.status}
-                      </p>
-                      <p className="text-[11px] text-gray-400">Updated in database</p>
-                    </div>
+                  )}
+
+                  {/* Message Live Preview */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                      Message Preview:
+                    </label>
+                    <pre className="w-full bg-[#0A0A0C] border border-[#252529] rounded-xl p-3.5 text-[12px] text-gray-200 font-sans whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+                      {buildAmazonStyleWhatsAppMsg(selectedOrder, selectedOrder.status, courierName, trackingNumber)}
+                    </pre>
+                  </div>
+
+                  {/* Direct Send WhatsApp Button */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <a
+                      href={getWhatsAppUrl(selectedOrder, selectedOrder.status)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[12.5px] tracking-wider uppercase py-3 rounded-xl transition-all flex items-center justify-center gap-2 no-underline shadow-lg"
+                    >
+                      <Send size={15} /> Send WhatsApp Alert To Customer
+                    </a>
+
+                    <button
+                      onClick={() => {
+                        const msg = buildAmazonStyleWhatsAppMsg(selectedOrder, selectedOrder.status, courierName, trackingNumber);
+                        navigator.clipboard.writeText(msg);
+                        setCopiedMsg(true);
+                        setTimeout(() => setCopiedMsg(false), 2000);
+                      }}
+                      className="bg-[#202024] hover:bg-[#2A2A30] text-gray-300 font-bold text-[12px] px-3.5 py-3 rounded-xl transition-all flex items-center gap-1.5 border border-gray-700 cursor-pointer"
+                      title="Copy Message Text"
+                    >
+                      {copiedMsg ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
+                      <span>{copiedMsg ? "Copied" : "Copy"}</span>
+                    </button>
                   </div>
                 </div>
+
               </div>
 
-              {/* RIGHT COLUMN: Order Items & Pricing */}
+              {/* RIGHT COLUMN: Order Items & Summary */}
               <div className="lg:col-span-5 space-y-5">
                 {/* Product Info Card */}
                 <div className="bg-[#141416] border border-[#222226] rounded-[18px] p-5 shadow-md">
@@ -654,75 +784,49 @@ export default function OrdersTab({
                   </div>
                 </div>
 
-                {/* Status Update Quick Bar */}
+                {/* Print Invoice & Shipping Label */}
                 <div className="bg-[#141416] border border-[#222226] rounded-[18px] p-5 shadow-md space-y-3">
                   <h4 className="text-[13px] font-bold tracking-wider uppercase text-gray-400">
-                    Update Workflow Status
+                    Fulfillment Documents
                   </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ALL_STATUSES.map((st) => (
-                      <button
-                        key={st}
-                        onClick={() => {
-                          onUpdateStatus(selectedOrder.id, st);
-                          setSelectedOrder({ ...selectedOrder, status: st });
-                        }}
-                        className={`px-3 py-2 rounded-xl text-[12px] font-bold transition-all border ${
-                          selectedOrder.status === st
-                            ? "bg-[#C5A059] text-black border-[#C5A059] shadow-sm"
-                            : "bg-[#1C1C20] text-gray-300 border-[#28282D] hover:bg-[#25252A]"
-                        }`}
-                      >
-                        {st}
-                      </button>
-                    ))}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => handlePrintInvoice(selectedOrder)}
+                      className="bg-[#202024] hover:bg-[#2A2A30] text-white font-bold text-[12px] py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-gray-700 cursor-pointer"
+                    >
+                      <Printer size={15} /> Print Invoice
+                    </button>
+                    <button
+                      onClick={() => handlePrintInvoice(selectedOrder)}
+                      className="bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[12px] py-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                    >
+                      <FileText size={15} /> Shipping Label
+                    </button>
                   </div>
                 </div>
               </div>
+
             </div>
 
             {/* Bottom Actions Footer */}
-            <div className="p-5 border-t border-[#222226] bg-[#0F0F12] rounded-b-[24px] flex flex-wrap items-center justify-between gap-3 sticky bottom-0 z-10">
-              <div className="flex items-center gap-2">
-                <a
-                  href={`https://wa.me/${
-                    selectedOrder.phone.startsWith("91") ? "" : "91"
-                  }${selectedOrder.phone}?text=${encodeURIComponent(
-                    `Hi ${selectedOrder.customer}, regarding your DAXO-MART Order ${
-                      selectedOrder.order_number || selectedOrder.id
-                    }: Status is ${selectedOrder.status}.`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 no-underline"
-                >
-                  <MessageSquare size={15} /> WhatsApp
-                </a>
+            <div className="p-5 border-t border-[#222226] bg-[#0F0F12] rounded-b-[24px] flex items-center justify-between gap-3 sticky bottom-0 z-10">
+              <a
+                href={getWhatsAppUrl(selectedOrder, selectedOrder.status)}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[12px] px-5 py-3 rounded-xl transition-all flex items-center gap-2 no-underline shadow-lg"
+              >
+                <Send size={15} /> Open WhatsApp ({selectedOrder.status})
+              </a>
 
-                <a
-                  href={`tel:${selectedOrder.phone}`}
-                  className="bg-[#202024] hover:bg-[#2A2A30] text-white font-bold text-[12px] px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 no-underline border border-gray-700"
-                >
-                  <PhoneCall size={15} /> Call Customer
-                </a>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handlePrintInvoice(selectedOrder)}
-                  className="bg-[#202024] hover:bg-[#2A2A30] text-white font-bold text-[12px] px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 border border-gray-700"
-                >
-                  <Printer size={15} /> Print Invoice
-                </button>
-
-                <button
-                  onClick={() => handlePrintInvoice(selectedOrder)}
-                  className="bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[12px] px-4 py-2.5 rounded-xl transition-all flex items-center gap-2"
-                >
-                  <FileText size={15} /> Download Shipping Label
-                </button>
-              </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="bg-[#202024] hover:bg-[#2A2A30] text-white font-bold text-[12px] px-5 py-3 rounded-xl transition-all cursor-pointer border border-gray-700"
+              >
+                Close Modal
+              </button>
             </div>
+
           </div>
         </div>
       )}
