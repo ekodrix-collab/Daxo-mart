@@ -30,8 +30,8 @@ export default function FramesSection() {
   const formatPrice = (product: Product) => {
     if (product.priceStr) return product.priceStr;
     const num = typeof product.price === "number" ? product.price : parseFloat(String(product.price));
-    if (isNaN(num)) return `Rs. ${product.price}`;
-    return `Rs. ${num.toLocaleString("en-IN")}.00`;
+    if (isNaN(num)) return `₹${product.price}`;
+    return `₹${num.toLocaleString("en-IN")}`;
   };
 
   return (
@@ -48,6 +48,10 @@ export default function FramesSection() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
           {visibleFrames.map((frame) => {
             const title = (frame.shortName || frame.name).toUpperCase();
+            const hasOldPrice = Boolean(frame.oldPriceStr || (frame.oldPrice && frame.oldPrice > frame.price));
+            const oldPriceVal = frame.oldPrice || (frame.oldPriceStr ? parseFloat(frame.oldPriceStr.replace(/[^0-9.]/g, "")) : 0);
+            const discountPercent = oldPriceVal > frame.price ? Math.round(((oldPriceVal - frame.price) / oldPriceVal) * 100) : 0;
+
             return (
               <Link
                 key={frame.id}
@@ -61,10 +65,18 @@ export default function FramesSection() {
                     alt={frame.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
+                  
+                  {/* Discount Badge Tag */}
+                  {discountPercent > 0 && (
+                    <span className="absolute top-2 left-2 z-10 bg-red-600 text-white font-extrabold text-[9px] sm:text-[10px] tracking-wider uppercase px-2 py-0.5 rounded shadow">
+                      {discountPercent}% OFF
+                    </span>
+                  )}
+
                   {/* Pill Sale Badge */}
-                  {(frame.badge === "Sale" || (frame.oldPrice && frame.oldPrice > frame.price)) && (
-                    <span className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 bg-black/90 text-white text-[9px] sm:text-[11px] font-normal px-2 sm:px-2.5 py-0.5 rounded-full tracking-wide shadow-sm">
-                      Sale
+                  {(frame.badge || hasOldPrice) && (
+                    <span className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 bg-black/90 text-white text-[9px] sm:text-[11px] font-medium px-2.5 py-0.5 rounded-full tracking-wide shadow-sm">
+                      {frame.badge || "Sale"}
                     </span>
                   )}
                 </div>
@@ -74,9 +86,16 @@ export default function FramesSection() {
                   <h3 className="text-[11px] sm:text-[13px] font-semibold text-[#222222] uppercase tracking-wide leading-snug line-clamp-2">
                     {title}
                   </h3>
-                  <p className="text-[11px] sm:text-[13px] text-[#666666] font-normal">
-                    {formatPrice(frame)}
-                  </p>
+                  <div className="flex items-baseline gap-2 flex-wrap mt-0.5">
+                    <span className="text-[13px] sm:text-[15px] font-extrabold text-[#111111]">
+                      {formatPrice(frame)}
+                    </span>
+                    {hasOldPrice && (
+                      <span className="text-[11px] sm:text-[12.5px] text-gray-400 line-through font-medium">
+                        {frame.oldPriceStr || `₹${Number(frame.oldPrice).toLocaleString("en-IN")}`}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </Link>
             );
