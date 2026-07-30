@@ -65,11 +65,15 @@ export function BuyNowModal({
   quantity = 1,
   isOpen,
   onClose,
+  selectedColorName,
+  selectedSizeName,
 }: {
   product: Product;
   quantity?: number;
   isOpen: boolean;
   onClose: () => void;
+  selectedColorName?: string;
+  selectedSizeName?: string;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -126,7 +130,7 @@ ${form.email ? `📧 Email: ${form.email.trim()}\n` : ""}
 
 *Order Details:*
 🚗 Product: ${product.name}
-📏 Scale: ${product.scale || "1:24"}
+📏 Scale: ${product.scale || "1:24"}${selectedColorName ? `\n🎨 Color: ${selectedColorName}` : ""}${selectedSizeName ? `\n📐 Size: ${selectedSizeName}` : ""}
 📦 Quantity: ${quantity}
 💰 Unit Price: ₹${product.price.toLocaleString("en-IN")}
 💵 Total Amount: ₹${total.toLocaleString("en-IN")} (Free Delivery)
@@ -395,16 +399,9 @@ export default function ProductDetailClient({
   const { addToCart } = useCart();
   const router = useRouter();
 
-  const colorOptions =
-    product.colors && product.colors.length > 0
-      ? product.colors
-      : product.images && product.images.length > 1
-      ? product.images.map((img, idx) => ({
-          name: `Variant ${idx + 1}`,
-          image: img,
-          colorHex: ["#141416", "#C5A059", "#DC2626", "#2563EB", "#10B981"][idx % 5],
-        }))
-      : [];
+  // Only show colors if admin has actually added them
+  const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
+  const hasAdminColors = colorOptions.length > 0;
 
   const allGalleryImages = Array.from(
     new Set([
@@ -414,30 +411,15 @@ export default function ProductDetailClient({
     ])
   ).filter(Boolean);
 
+  // Only show sizes if admin has actually added them — no static fallback
   const availableSizes: SizeOption[] =
-    product.sizes && product.sizes.length > 0
-      ? product.sizes
-      : [
-          {
-            name: product.scale && product.scale.includes("1:18")
-              ? "Large (1:18) : (8-9 Inch)"
-              : "Regular (1:24) : (6-7 Inch)",
-            price: product.price,
-            oldPrice: product.oldPrice,
-          },
-          {
-            name: product.scale && product.scale.includes("1:18")
-              ? "Regular (1:24) : (6-7 Inch)"
-              : "Large (1:18) : (8-9 Inch)",
-            price: Math.round(product.price * 1.35),
-            oldPrice: Math.round((product.oldPrice || product.price * 1.5) * 1.35),
-          },
-        ];
+    product.sizes && product.sizes.length > 0 ? product.sizes : [];
+  const hasAdminSizes = availableSizes.length > 0;
 
   const [selectedSizeIdx, setSelectedSizeIdx] = useState<number>(0);
-  const activeSizeObj = availableSizes[selectedSizeIdx] || availableSizes[0];
-  const activePrice = activeSizeObj.price || product.price;
-  const activeOldPrice = activeSizeObj.oldPrice || product.oldPrice;
+  const activeSizeObj = hasAdminSizes ? (availableSizes[selectedSizeIdx] || availableSizes[0]) : null;
+  const activePrice = activeSizeObj?.price || product.price;
+  const activeOldPrice = activeSizeObj?.oldPrice || product.oldPrice;
 
   const dynamicDiscountPercent =
     activeOldPrice && activeOldPrice > activePrice
@@ -448,6 +430,9 @@ export default function ProductDetailClient({
     activeOldPrice && activeOldPrice > activePrice
       ? `₹${Number(activeOldPrice).toLocaleString("en-IN")}`
       : null;
+
+  const selectedColorName = hasAdminColors ? (colorOptions[selectedColor]?.name || "") : "";
+  const selectedSizeName = hasAdminSizes && activeSizeObj ? activeSizeObj.name : "";
 
   const related = getRecommendedProducts(product, allProducts, [], 4);
 
@@ -579,11 +564,12 @@ export default function ProductDetailClient({
                 )}
               </div>
 
-              {/* ── 3. COLOR VARIANT PHOTO TILES (Exact Design matching Screenshot 1) ── */}
-              {colorOptions.length > 0 && (
+              {/* ── 3. COLOR VARIANT PHOTO TILES (Only if admin added colors) ── */}
+              {hasAdminColors && (
                 <div className="mb-6">
                   <label className="block text-[13px] font-medium text-gray-300 mb-2 font-pally">
-                    Color
+                    Color{selectedColorName ? `: ` : ""}
+                    {selectedColorName && <span className="text-cream font-semibold">{selectedColorName}</span>}
                   </label>
                   <div className="flex items-center gap-3 flex-wrap">
                     {colorOptions.map((col, idx) => (
@@ -612,8 +598,8 @@ export default function ProductDetailClient({
                 </div>
               )}
 
-              {/* ── 4. MULTI-SIZE OPTION PILLS (Exact Design matching Screenshot 2) ── */}
-              {availableSizes.length > 0 && (
+              {/* ── 4. MULTI-SIZE OPTION PILLS (Only if admin added sizes) ── */}
+              {hasAdminSizes && (
                 <div className="mb-6">
                   <label className="block text-[13px] font-medium text-gray-300 mb-2 font-pally">
                     Size
@@ -960,11 +946,12 @@ export default function ProductDetailClient({
           ...product,
           price: activePrice,
           priceStr: `₹${activePrice.toLocaleString("en-IN")}`,
-          scale: activeSizeObj.name,
         }}
         quantity={qty}
         isOpen={showBuyModal}
         onClose={() => setShowBuyModal(false)}
+        selectedColorName={selectedColorName || undefined}
+        selectedSizeName={selectedSizeName || undefined}
       />
 
       {/* Instant Checkout Modal for Related Product */}
