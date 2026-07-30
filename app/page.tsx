@@ -11,11 +11,9 @@ export default function Home() {
       <Hero />
       <Categories />
       <FeaturedProducts />
- 
-  
       <FramesSection />
-            <BrandsBar />
-          <Testimonials />
+      <BrandsBar />
+      <Testimonials />
     </>
   );
 }
