@@ -472,6 +472,13 @@ export default function ProductDetailClient({
   const { addToCart } = useCart();
   const router = useRouter();
 
+  // Scroll to top on page load / product change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
+  }, [product.id]);
+
   // Available color options or defaults if none configured
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
 
