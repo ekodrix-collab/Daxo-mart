@@ -28,6 +28,8 @@ export interface Product {
   is_active: boolean;
   rating?: number;
   reviews_count?: number;
+  video_url?: string;
+  hover_image?: string | null;
   created_at?: string;
 }
 

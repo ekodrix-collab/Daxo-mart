@@ -11,6 +11,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const folder = (formData.get("folder") as string) || "daxo-mart/uploads";
 
     if (!file) {
       return NextResponse.json({ error: "No image file provided" }, { status: 400 });
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // If Cloudinary credentials are missing in local dev, return base64 data URL so uploaded images display directly
+    // If Cloudinary credentials are not configured in environment
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
       const mimeType = file.type || "image/png";
       const base64 = buffer.toString("base64");
@@ -27,17 +28,19 @@ export async function POST(req: Request) {
         success: true,
         url: `data:${mimeType};base64,${base64}`,
         format: mimeType.split("/")[1] || "png",
-        note: "Cloudinary credentials missing in .env.local. Base64 data URL fallback used.",
+        note: "Cloudinary credentials missing in .env. Base64 data URL fallback used.",
       });
     }
 
+    // Upload to Cloudinary with compression & WebP auto-conversion
     const uploadResponse = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
-            folder: "daxo-mart/products",
+            folder: folder,
             format: "webp",
             quality: "auto:good",
+            fetch_format: "auto",
           },
           (error, result) => {
             if (error) reject(error);

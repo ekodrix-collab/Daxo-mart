@@ -19,6 +19,7 @@ export default function CartPage() {
     address: "",
     city: "",
     state: "",
+    landmark: "",
     pincode: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,6 +36,7 @@ export default function CartPage() {
     if (!form.name.trim()) e.name = "Full Name is required";
     if (!/^[6-9]\d{9}$/.test(form.phone.trim())) e.phone = "Enter valid 10-digit mobile number";
     if (!form.address.trim()) e.address = "Full address is required";
+    if (!form.landmark.trim()) e.landmark = "Landmark is required";
     if (!form.city.trim()) e.city = "City is required";
     if (!form.state.trim()) e.state = "State is required";
     if (!/^\d{6}$/.test(form.pincode.trim())) e.pincode = "Enter valid 6-digit pincode";
@@ -58,7 +60,13 @@ export default function CartPage() {
       `🛒 *Items:*`,
       itemsSummary,
       `💰 *Total Amount:* ₹${totalAmount.toLocaleString("en-IN")}`,
-      `👤 *Name:* ${form.name.trim()}`,
+      `Name: ${form.name.trim()}`,
+      `Full Address: ${form.address.trim()}`,
+      `City: ${form.city.trim()}`,
+      `State: ${form.state.trim()}`,
+      `Landmark: ${form.landmark.trim()}`,
+      `Pincode: ${form.pincode.trim()}`,
+      `Mobile Number: ${form.phone.trim()}`,
       ``,
       `Please confirm my order. Thank you! 🙏`,
     ].join("\n");
@@ -75,7 +83,7 @@ export default function CartPage() {
         customer_name: form.name.trim(),
         customer_phone: form.phone.trim(),
         customer_email: form.email.trim() || undefined,
-        full_address: form.address.trim(),
+        full_address: [form.address.trim(), form.landmark.trim() ? `Landmark: ${form.landmark.trim()}` : ""].filter(Boolean).join(", "),
         city: form.city.trim(),
         state: form.state.trim(),
         pincode: form.pincode.trim(),
@@ -242,6 +250,14 @@ export default function CartPage() {
                   value={form.address}
                   onChange={(e) => setField("address", e.target.value)}
                   className="w-full bg-dark text-cream text-[12px] px-3 py-2 rounded-lg border border-border focus:border-accent outline-none font-pally"
+                />
+                <input
+                  type="text"
+                  placeholder="Landmark *"
+                  value={form.landmark}
+                  onChange={(e) => setField("landmark", e.target.value)}
+                  className={`w-full bg-dark text-cream text-[12px] px-3 py-2 rounded-lg border outline-none font-pally ${errors.landmark ? "border-red-500" : "border-border focus:border-accent"
+                    }`}
                 />
                 <div className="grid grid-cols-3 gap-2">
                   <input

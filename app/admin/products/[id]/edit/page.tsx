@@ -3,16 +3,18 @@
 import { use } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { fetchProducts, fetchCategories } from "@/service/storeService";
+import { fetchProducts, fetchCategories, saveProductToSupabase } from "@/service/storeService";
 import ProductFormEditor from "../../../components/ProductFormEditor";
 import { type Product } from "@/lib/products";
 import { type CategoryItem } from "@/lib/categories";
+import { useToast } from "@/components/ToastProvider";
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const productIdStr = resolvedParams.id;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const { data: products = [], isLoading: loadingProducts } = useQuery<Product[]>({
     queryKey: ["products"],
@@ -37,23 +39,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       oldPriceStr: formData.oldPrice ? `₹${Number(formData.oldPrice).toLocaleString("en-IN")}` : "",
     };
 
-    // 1. Direct cache update for instant SPA list response
+    // 1. Direct cache update for instant UI feedback
     queryClient.setQueryData<Product[]>(["products"], (old = []) =>
       old.map((p) => (String(p.id) === productIdStr || p.slug === productIdStr ? updatedProd : p))
     );
 
-    // 2. Async backend sync if endpoint configured
     try {
-      fetch(`/api/products/${productIdStr}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      }).catch((e) => console.error("Product edit API error:", e));
-    } catch (e) {
-      console.warn("Product edit API dispatch error:", e);
+      await saveProductToSupabase({ ...formData, id: product?.id || productIdStr });
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Product Updated Successfully", `"${formData.name}" has been updated in database.`);
+    } catch (e: any) {
+      console.error("Product edit Supabase error:", e);
+      toast.error("Database Update Failed", e?.message || "Could not persist product changes to Supabase.");
     }
 
-    // 3. Instant navigation back
     router.push("/admin/products");
   };
 

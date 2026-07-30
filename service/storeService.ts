@@ -1,45 +1,172 @@
-import PRODUCTS, { type Product } from "@/lib/products";
+import { type Product, formatTitleCase } from "@/lib/products";
 import { supabase } from "@/lib/supabase";
 import { getStoredCategories, type CategoryItem } from "@/lib/categories";
 import type { Order } from "@/app/admin/components/OrdersTab";
 
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
+
     if (error || !data || data.length === 0) {
       return [];
     }
-    
-    return data.map((item: any) => ({
-      id: item.id,
-      slug: item.slug || `prod-${item.id}`,
-      name: item.title,
-      shortName: item.title,
-      price: Number(item.price),
-      oldPrice: item.sale_price ? Number(item.sale_price) : Number(item.price) * 1.2,
-      priceStr: `₹${Number(item.price).toLocaleString('en-IN')}`,
-      oldPriceStr: item.sale_price ? `₹${Number(item.sale_price).toLocaleString('en-IN')}` : '',
-      scale: item.category_name || "1:24",
-      category: item.category_name || "1:24",
-      img: item.images && item.images.length > 0 ? item.images[0] : '/images/placeholder.png',
-      images: item.images && item.images.length > 0 ? item.images : ['/images/placeholder.png'],
-      badge: item.is_featured ? "Featured" : null,
-      description: item.description || "",
-      features: ["Quality Diecast Metal", "Detailed Interior", "Rubber Tyres"],
-      inStock: (item.stock ?? 10) > 0,
-      stock: typeof item.stock === "number" ? item.stock : 10,
-      isActive: item.is_active ?? item.isActive ?? true,
-      sku: item.sku || `DXM-${item.id.slice(0, 5)}`,
-      colors: Array.isArray(item.colors) ? item.colors : (item.colors ? JSON.parse(item.colors) : [])
-    }));
-  } catch {
+    return data.map((item: any) => {
+      let parsedImages: string[] = [];
+      if (Array.isArray(item.images)) {
+        parsedImages = item.images;
+      } else if (typeof item.images === "string") {
+        try {
+          const json = JSON.parse(item.images);
+          if (Array.isArray(json)) parsedImages = json;
+          else if (typeof json === "string") parsedImages = [json];
+        } catch {
+          if (item.images.startsWith("http") || item.images.startsWith("/")) {
+            parsedImages = [item.images];
+          }
+        }
+      }
+
+      if (parsedImages.length === 0 && item.image_url) {
+        parsedImages = [item.image_url];
+      }
+      if (parsedImages.length === 0 && item.img) {
+        parsedImages = [item.img];
+      }
+
+      const parsedColors = Array.isArray(item.colors)
+        ? item.colors
+        : (typeof item.colors === "string" ? (() => { try { return JSON.parse(item.colors); } catch { return []; } })() : []);
+
+      // Gather variant images from color options
+      const colorImages = parsedColors
+        .map((c: any) => c?.image)
+        .filter((url: any): url is string => typeof url === "string" && url.length > 0);
+
+      const allImages = Array.from(new Set([...parsedImages, ...colorImages])).filter(Boolean);
+      if (allImages.length === 0) allImages.push("/images/placeholder.png");
+
+      const primaryImg = allImages[0];
+
+      const parsedHighlights = Array.isArray(item.highlights)
+        ? item.highlights
+        : (typeof item.highlights === "string"
+        ? (() => { try { return JSON.parse(item.highlights); } catch { return item.features || []; } })()
+        : (Array.isArray(item.features) ? item.features : []));
+
+      const parsedIncludedItems = Array.isArray(item.included_items)
+        ? item.included_items
+        : (typeof item.included_items === "string"
+        ? (() => { try { return JSON.parse(item.included_items); } catch { return []; } })()
+        : []);
+
+      return {
+        id: item.id,
+        slug: item.slug || `prod-${item.id}`,
+        name: formatTitleCase(item.title || item.name || "Untitled Product"),
+        shortName: formatTitleCase(item.short_name || item.title || item.name || ""),
+        price: Number(item.price || 0),
+        costPrice: item.cost_price ? Number(item.cost_price) : (item.costPrice ? Number(item.costPrice) : undefined),
+        oldPrice: item.sale_price ? Number(item.sale_price) : Number(item.old_price || item.price || 0),
+        priceStr: `₹${Number(item.price || 0).toLocaleString("en-IN")}`,
+        oldPriceStr: item.sale_price
+          ? `₹${Number(item.sale_price).toLocaleString("en-IN")}`
+          : item.old_price
+          ? `₹${Number(item.old_price).toLocaleString("en-IN")}`
+          : "",
+        scale: item.scale || item.category_name || "1:24",
+        category: item.category_name || item.category || "1:24",
+        img: primaryImg,
+        images: allImages,
+        badge: item.badge || (item.is_featured ? "Featured" : null),
+        description: item.description || "",
+        shortDescription: item.short_description || item.shortDescription || "",
+        highlights: parsedHighlights,
+        includedItems: parsedIncludedItems,
+        features: Array.isArray(item.features)
+          ? item.features
+          : (typeof item.features === "string"
+          ? (() => { try { return JSON.parse(item.features); } catch { return []; } })()
+          : []),
+        inStock: (item.stock ?? 10) > 0,
+        stock: typeof item.stock === "number" ? item.stock : 10,
+        isActive: item.is_active ?? item.isActive ?? true,
+        sku: item.sku || `DXM-${String(item.id).slice(0, 5)}`,
+        colors: parsedColors,
+        videoUrl: item.video_url || item.videoUrl || null,
+        hoverImage: item.hover_image || item.hoverImage || null,
+      };
+    });
+  } catch (err) {
     return [];
+  }
+}
+
+export async function saveProductToSupabase(productData: any): Promise<any> {
+  try {
+    const isEdit = Boolean(productData.id);
+
+    const payload: Record<string, any> = {
+      title: productData.name,
+      slug: productData.slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      description: productData.description || "",
+      short_description: productData.shortDescription || "",
+      highlights: productData.highlights || [],
+      included_items: productData.includedItems || [],
+      price: Number(productData.price) || 0,
+      sale_price: Number(productData.oldPrice) || Number(productData.price) || 0,
+      category_name: productData.category || "1:24",
+      images: productData.images && productData.images.length > 0 ? productData.images : [productData.img],
+      stock: Number(productData.stock ?? 10),
+      is_active: productData.isActive ?? true,
+      is_featured: Boolean(productData.badge),
+      video_url: productData.videoUrl || null,
+      hover_image: productData.hoverImage || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isEdit) {
+      const { data, error } = await supabase
+        .from("products")
+        .update(payload)
+        .eq("id", productData.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating product in Supabase:", error);
+        throw error;
+      }
+      return data;
+    } else {
+      payload.created_at = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("products")
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error inserting product into Supabase:", error);
+        throw error;
+      }
+      return data;
+    }
+  } catch (err) {
+    console.error("saveProductToSupabase exception:", err);
+    throw err;
   }
 }
 
 export async function fetchBanners() {
   try {
-    const { data, error } = await supabase.from('banners').select('*').eq('is_active', true).order('sort_order', { ascending: true });
+    const { data, error } = await supabase
+      .from("banners")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
     if (error || !data || data.length === 0) return null;
     return data;
   } catch {
@@ -50,24 +177,24 @@ export async function fetchBanners() {
 export async function fetchCategories(): Promise<CategoryItem[]> {
   try {
     const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true });
+      .from("categories")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
     if (error || !data || data.length === 0) return getStoredCategories();
     return data.map((item: any) => {
-      const slug = item.slug || item.name.toLowerCase().replace(/\s+/g, '-');
+      const slug = item.slug || item.name.toLowerCase().replace(/\s+/g, "-");
       let filterValue = item.filter_value;
       if (!filterValue) {
-        if (slug === 'frames' || slug === '3d-frames') filterValue = 'Frame';
-        else if (slug === 'rc-toys' || slug.includes('rc')) filterValue = 'RC';
-        else filterValue = item.name.replace(' Diecast', '');
+        if (slug === "frames" || slug === "3d-frames") filterValue = "Frame";
+        else if (slug === "rc-toys" || slug.includes("rc")) filterValue = "RC";
+        else filterValue = item.name.replace(" Diecast", "");
       }
       return {
         id: item.id,
         name: item.name,
         slug: slug,
-        img: item.image_url || '/images/placeholder.png',
+        img: item.image_url || "/images/placeholder.png",
         filterValue: filterValue,
         sortOrder: item.sort_order || 0,
       };
@@ -80,14 +207,14 @@ export async function fetchCategories(): Promise<CategoryItem[]> {
 export async function createCategory(cat: { name: string; slug: string; image_url: string; sort_order?: number }) {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from("categories")
       .insert([{ name: cat.name, slug: cat.slug, image_url: cat.image_url, sort_order: cat.sort_order || 0 }])
       .select()
       .single();
     if (error) throw error;
     return data;
   } catch (err) {
-    console.error('Error creating category in Supabase:', err);
+    console.error("Error creating category in Supabase:", err);
     return null;
   }
 }
@@ -95,15 +222,15 @@ export async function createCategory(cat: { name: string; slug: string; image_ur
 export async function updateCategory(id: string, cat: { name: string; slug: string; image_url: string; sort_order?: number }) {
   try {
     const { data, error } = await supabase
-      .from('categories')
+      .from("categories")
       .update({ name: cat.name, slug: cat.slug, image_url: cat.image_url, sort_order: cat.sort_order })
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
     if (error) throw error;
     return data;
   } catch (err) {
-    console.error('Error updating category in Supabase:', err);
+    console.error("Error updating category in Supabase:", err);
     return null;
   }
 }
@@ -111,23 +238,23 @@ export async function updateCategory(id: string, cat: { name: string; slug: stri
 export async function updateCategoryOrder(orderedCategories: { id: string; sortOrder: number }[]) {
   try {
     const promises = orderedCategories.map((c) =>
-      supabase.from('categories').update({ sort_order: c.sortOrder }).eq('id', c.id)
+      supabase.from("categories").update({ sort_order: c.sortOrder }).eq("id", c.id)
     );
     await Promise.all(promises);
     return true;
   } catch (err) {
-    console.error('Error updating category orders in Supabase:', err);
+    console.error("Error updating category orders in Supabase:", err);
     return false;
   }
 }
 
 export async function deleteCategory(id: string) {
   try {
-    const { error } = await supabase.from('categories').delete().eq('id', id);
+    const { error } = await supabase.from("categories").delete().eq("id", id);
     if (error) throw error;
     return true;
   } catch (err) {
-    console.error('Error deleting category in Supabase:', err);
+    console.error("Error deleting category in Supabase:", err);
     return false;
   }
 }
@@ -196,16 +323,13 @@ export async function syncOrderStockOnStatusChange(
   let stockDelta = 0;
 
   if (isInitialStatus(oldStatus) && isDeductingStatus(newStatus)) {
-    // Transitioning from unconfirmed to confirmed/shipped: deduct stock
     stockDelta = -Math.abs(order.qty || 1);
   } else if (isDeductingStatus(oldStatus) && newStatus === "Cancelled") {
-    // Transitioning from confirmed/shipped to cancelled: restore stock
     stockDelta = Math.abs(order.qty || 1);
   }
 
   if (stockDelta === 0) return;
 
-  // Update Query Client cache for products
   queryClient.setQueryData(["products"], (old: Product[] = []) => {
     return old.map((p) => {
       const isMatch =
@@ -224,7 +348,6 @@ export async function syncOrderStockOnStatusChange(
     });
   });
 
-  // Async sync to Supabase DB if possible
   try {
     const { data: dbProducts } = await supabase.from("products").select("*");
     if (dbProducts && dbProducts.length > 0) {
@@ -243,5 +366,3 @@ export async function syncOrderStockOnStatusChange(
     console.warn("Error syncing order stock change to DB:", e);
   }
 }
-
-

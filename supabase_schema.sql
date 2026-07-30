@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS public.products (
     is_active BOOLEAN DEFAULT true,
     rating NUMERIC(3, 2) DEFAULT 4.5,
     reviews_count INTEGER DEFAULT 0,
+    short_description TEXT,
+    highlights JSONB DEFAULT '[]'::jsonb,
+    included_items JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -166,3 +169,23 @@ INSERT INTO public.coupons (code, discount_percent, min_spend) VALUES
 ('SUPER20', 20, 100.00),
 ('DAXO50', 50, 200.00)
 ON CONFLICT (code) DO NOTHING;
+
+-- 13. PRODUCT SHOWCASE VIDEO & STORAGE BUCKET MIGRATION
+ALTER TABLE public.products 
+ADD COLUMN IF NOT EXISTS video_url TEXT DEFAULT NULL;
+
+COMMENT ON COLUMN public.products.video_url IS 'Public URL of product showcase reel video stored in Supabase storage';
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'product-videos',
+  'product-videos',
+  TRUE,
+  52428800, -- 50 MB limit per video
+  ARRAY['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = TRUE,
+  file_size_limit = 52428800,
+  allowed_mime_types = ARRAY['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska'];
+

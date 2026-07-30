@@ -3,16 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/components/cart/CartContext";
+import SearchModal from "@/components/layout/SearchModal";
 
 const NAV_ITEMS = [
   { title: "Home", path: "/" },
-  { title: "1:32 Diecast", path: "/products?category=1%3A32" },
-  { title: "1:24 Diecast", path: "/products?category=1%3A24" },
-  { title: "1:18 Diecast", path: "/products?category=1%3A18" },
-  { title: "RC Toys", path: "/products?category=RC" },
-  { title: "3D Frames", path: "/products?category=Frame" },
+  { title: "1:32", path: "/products?category=1%3A32" },
+  { title: "1:24", path: "/products?category=1%3A24" },
+  { title: "1:18", path: "/products?category=1%3A18" },
+  { title: "1:64", path: "/products?category=1%3A64" },
+  { title: "RC Toys", path: "/products?category=RC+Toys" },
+  { title: "3D Frames", path: "/products?category=3D+Frames" },
 ];
 
 /* Announcement Bar — Free Delivery Available */
@@ -23,7 +25,6 @@ const ANNOUNCE = [
   " Free Delivery Available On All Orders",
   " Pan-India Free Shipping Available",
   " Free Delivery Available Across India",
-  // duplicate set for seamless loop
   " Free Delivery Available On All Orders",
   " Pan-India Free Shipping Available",
   " Free Delivery Available Across India",
@@ -33,21 +34,29 @@ const ANNOUNCE = [
 ];
 
 export default function Header() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [initialSearchQuery, setInitialSearchQuery] = useState("");
   const { cartCount } = useCart();
 
   useEffect(() => {
-    const fn = () => { if (window.innerWidth > 768) setMobileOpen(false); };
-    window.addEventListener("resize", fn);
-    return () => window.removeEventListener("resize", fn);
+    const handleResize = () => {
+      if (window.innerWidth > 768) setMobileOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const openSearchModal = (query = "") => {
+    setInitialSearchQuery(query);
+    setIsSearchModalOpen(true);
+    setMobileOpen(false);
+  };
 
   return (
     <div className="sticky top-0 z-50">
-
       {/* ── Single announcement marquee ── */}
-      <div className="bg-dark2  overflow-hidden h-8 flex items-center">
+      <div className="bg-dark2 overflow-hidden h-8 flex items-center">
         <div className="marquee-track gap-15 px-10">
           {ANNOUNCE.map((item, i) => (
             <span
@@ -62,9 +71,8 @@ export default function Header() {
       </div>
 
       {/* ── Main header ── */}
-      <header className="bg-[#0c0c0c] shadow-[0_2px_20px_rgba(0,0,0,0.45)]">
+      <header className="bg-[#0c0c0c] shadow-[0_2px_20px_rgba(0,0,0,0.45)] relative">
         <div className="max-w-[1280px] mx-auto px-5 flex items-center justify-between h-[70px] gap-6">
-
           {/* Logo */}
           <Link href="/" className="shrink-0 flex items-center">
             <Image
@@ -93,19 +101,24 @@ export default function Header() {
 
           {/* Search + Icons */}
           <div className="flex items-center gap-2">
-            {/* Search */}
-            <div className="hidden lg:flex items-center gap-2.5 bg-dark3 border border-border rounded-md
-                            px-3.5 py-2 w-64 focus-within:border-accent transition-colors duration-200">
+            {/* Desktop Search Input Trigger */}
+            <div
+              onClick={() => openSearchModal("")}
+              className="hidden lg:flex items-center gap-2.5 bg-dark3 border border-border rounded-md
+                         px-3.5 py-2 w-64 cursor-pointer hover:border-accent transition-colors duration-200"
+            >
               <Search size={14} className="text-dim shrink-0" />
-              <input
-                type="text"
-                placeholder="Search products…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none outline-none text-[13px] text-cream w-full
-                           placeholder:text-dim font-pally"
-              />
+              <span className="text-[13px] text-dim font-pally select-none">Search products…</span>
             </div>
+
+            {/* Mobile Search Icon Button */}
+            <button
+              onClick={() => openSearchModal("")}
+              className="lg:hidden p-2 rounded-md text-muted hover:text-cream hover:bg-dark3 transition-all duration-200 flex items-center justify-center cursor-pointer"
+              title="Search"
+            >
+              <Search size={18} />
+            </button>
 
             {/* Cart */}
             <Link
@@ -135,6 +148,15 @@ export default function Header() {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden bg-dark3 border-t border-border px-5 py-4 flex flex-col gap-4">
+            {/* Mobile Search Input Trigger */}
+            <div
+              onClick={() => openSearchModal("")}
+              className="flex items-center gap-2 bg-dark2 border border-border rounded-lg px-3.5 py-2 cursor-pointer"
+            >
+              <Search size={14} className="text-muted" />
+              <span className="text-xs text-muted font-pally">Search products...</span>
+            </div>
+
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.path}
@@ -149,6 +171,13 @@ export default function Header() {
           </div>
         )}
       </header>
+
+      {/* Split-Layout Search Modal Popover */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        initialQuery={initialSearchQuery}
+      />
     </div>
   );
 }
