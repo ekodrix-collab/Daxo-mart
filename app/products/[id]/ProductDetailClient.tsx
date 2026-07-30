@@ -561,54 +561,54 @@ export default function ProductDetailClient({
                 className="w-full h-full object-contain p-8 transition-all duration-300 pointer-events-none"
                 priority
               />
-
-              {/* Prev & Next Arrow Buttons */}
-              {allGalleryImages.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handlePrevImg}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center border border-white/20 shadow-lg cursor-pointer transition-all hover:scale-110 active:scale-95"
-                    title="Previous Image"
-                  >
-                    <ChevronLeft size={22} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleNextImg}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center border border-white/20 shadow-lg cursor-pointer transition-all hover:scale-110 active:scale-95"
-                    title="Next Image"
-                  >
-                    <ChevronRight size={22} />
-                  </button>
-                </>
-              )}
             </div>
 
-            {/* Thumbnail Strip */}
+            {/* Thumbnail Strip with Prev/Next Arrows */}
             {allGalleryImages.length > 1 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-none">
-                {allGalleryImages.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImg(i)}
-                    className={`w-16 h-16 rounded-xl bg-white border-2 shrink-0 overflow-hidden transition-all cursor-pointer ${
-                      activeImg === i
-                        ? "border-accent shadow-[0_0_12px_rgba(200,169,110,0.4)] scale-105"
-                        : "border-gray-200 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Image
-                      src={img}
-                      alt={`Sub image ${i + 1}`}
-                      width={64}
-                      height={64}
-                      unoptimized
-                      className="w-full h-full object-contain p-1"
-                    />
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 mt-4">
+                {/* Prev Arrow */}
+                <button
+                  type="button"
+                  onClick={handlePrevImg}
+                  className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-dark2 hover:bg-dark3 border border-border text-cream flex items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95"
+                  title="Previous Image"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                {/* Thumbnails */}
+                <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none flex-1">
+                  {allGalleryImages.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white border-2 shrink-0 overflow-hidden transition-all cursor-pointer ${
+                        activeImg === i
+                          ? "border-accent shadow-[0_0_12px_rgba(200,169,110,0.4)] scale-105"
+                          : "border-gray-200 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Sub image ${i + 1}`}
+                        width={64}
+                        height={64}
+                        unoptimized
+                        className="w-full h-full object-contain p-1"
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next Arrow */}
+                <button
+                  type="button"
+                  onClick={handleNextImg}
+                  className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-dark2 hover:bg-dark3 border border-border text-cream flex items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95"
+                  title="Next Image"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             )}
           </div>
