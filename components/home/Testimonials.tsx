@@ -173,7 +173,7 @@ export default function Testimonials() {
             DAXOMART
           </p>
 
-          <h2 className="text-[26px] font-bold uppercase tracking-[0.05em] text-dark">
+          <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.05em] text-dark">
             Hear From Our Happy Customers
           </h2>
         </div>
