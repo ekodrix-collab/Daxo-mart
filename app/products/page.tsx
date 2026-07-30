@@ -27,11 +27,12 @@ import ProductCard from "@/components/product/ProductCard";
 
 const CATEGORY_OPTIONS = [
   { label: "All Categories", value: "ALL" },
-  { label: "1:24 Diecast", value: "1:24" },
-  { label: "1:18 Diecast", value: "1:18" },
-  { label: "1:32 Diecast", value: "1:32" },
-  { label: "RC Toys", value: "RC" },
-  { label: "3D Car Frames", value: "Frame" },
+  { label: "1:18", value: "1:18" },
+  { label: "1:24", value: "1:24" },
+  { label: "1:32", value: "1:32" },
+  { label: "1:64", value: "1:64" },
+  { label: "RC Toys", value: "RC Toys" },
+  { label: "3D Frames", value: "3D Frames" },
 ];
 
 const PRICE_PRESETS: { label: string; value: string; min: number; max: number }[] = [

@@ -14,10 +14,10 @@ export async function generateMetadata({
   const product = products.find((p) => p.slug === id || String(p.id) === String(id));
   if (!product) return { title: "Product Not Found – Daxo-mart" };
 
-  const title = `${product.name} | Daxo-mart`;
+  const title = (product as any).metaTitle || `${product.name} | Daxo-mart`;
   const description =
-    product.description ||
-    `Buy ${product.name} at Daxo-mart for ₹${product.price}. High quality, fast delivery guaranteed.`;
+    (product as any).metaDescription ||
+    (product.description ? product.description.slice(0, 160) : `Buy ${product.name} at Daxo-mart for ₹${product.price}. High quality, fast delivery guaranteed.`);
   const imageUrl = product.images?.[0] || "/og-image.png";
 
   return {

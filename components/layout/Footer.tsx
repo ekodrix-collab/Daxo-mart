@@ -5,11 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 
 const COL1 = [
-  { label: "1:32 Diecast", path: "/products?category=1%3A32" },
-  { label: "1:24 Diecast", path: "/products?category=1%3A24" },
-  { label: "1:18 Diecast", path: "/products?category=1%3A18" },
-  { label: "RC Toys", path: "/products?category=RC" },
-  { label: "3D Frames", path: "/products?category=Frame" },
+  { label: "1:18", path: "/products?category=1%3A18" },
+  { label: "1:24", path: "/products?category=1%3A24" },
+  { label: "1:32", path: "/products?category=1%3A32" },
+  { label: "1:64", path: "/products?category=1%3A64" },
+  { label: "RC Toys", path: "/products?category=RC+Toys" },
+  { label: "3D Frames", path: "/products?category=3D+Frames" },
 ];
 const COL2 = [
   { label: "Wishlist", path: "/wishlist" },
