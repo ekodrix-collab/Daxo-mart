@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 
 const COL1 = [
   { label: "1:18", path: "/products?category=1%3A18" },
@@ -222,6 +223,19 @@ function FooterAccordionSection({
 }
 
 export default function Footer() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      router.refresh();
+    } else {
+      router.push("/");
+    }
+  };
+
   return (
     <footer className="bg-dark4 border-t border-border" suppressHydrationWarning>
       <div className="max-w-[1280px] mx-auto px-5 py-12 sm:py-16" suppressHydrationWarning>
@@ -229,7 +243,7 @@ export default function Footer() {
 
           {/* Brand Logo & Bio */}
           <div className="border-b border-border/60 sm:border-none pb-6 sm:pb-0 mb-4 sm:mb-0" suppressHydrationWarning>
-            <Link href="/" className="inline-block mb-4">
+            <Link href="/" onClick={handleLogoClick} className="inline-block mb-4 cursor-pointer">
               <Image
                 src="/images/daxo-mart-new-logo.png"
                 alt="DAXOMART"

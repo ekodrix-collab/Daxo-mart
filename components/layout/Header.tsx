@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { Search, ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/components/cart/CartContext";
 import SearchModal from "@/components/layout/SearchModal";
@@ -38,6 +39,18 @@ export default function Header() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [initialSearchQuery, setInitialSearchQuery] = useState("");
   const { cartCount } = useCart();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      router.refresh();
+    } else {
+      router.push("/");
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -74,7 +87,7 @@ export default function Header() {
       <header className="bg-[#0c0c0c] shadow-[0_2px_20px_rgba(0,0,0,0.45)] relative">
         <div className="max-w-[1280px] mx-auto px-5 flex items-center justify-between h-[70px] gap-6">
           {/* Logo */}
-          <Link href="/" className="shrink-0 flex items-center">
+          <Link href="/" onClick={handleLogoClick} className="shrink-0 flex items-center cursor-pointer">
             <Image
               src="/images/daxo-mart-new-logo.png"
               alt="DAXOMART"
