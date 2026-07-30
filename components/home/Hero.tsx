@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 export default function Hero() {
 
   return (
-    <section className="relative w-full overflow-hidden h-[calc(100dvh-102px)] min-h-[540px] md:h-[calc(100vh-102px)] md:min-h-[620px] bg-[#0c0c0c]">
+    <section className="relative w-full overflow-hidden h-dvh min-h-[640px] md:h-screen md:min-h-[720px] bg-[#0c0c0c] -mt-[102px]">
 
       {/* Background Cinematic Video Loop */}
       <video
@@ -23,7 +23,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent pointer-events-none" />
 
       {/* Main Content */}
-      <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-12 md:px-16 max-w-[680px] py-8">
+      <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-12 md:px-16 max-w-[680px] pt-[102px] pb-8">
 
         {/* Text Container */}
         <div>

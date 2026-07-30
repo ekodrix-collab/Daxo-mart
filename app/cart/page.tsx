@@ -177,9 +177,9 @@ export default function CartPage() {
 
                 {/* Product Meta */}
                 <div className="flex-1 min-w-0 w-full">
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">
+                  <div className="flex justify-between items-start gap-2 w-full">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 sm:line-clamp-1">
                         {item.product.name}
                       </h3>
                       <p className="text-xs font-bold text-amber-700 mt-0.5">
@@ -189,7 +189,7 @@ export default function CartPage() {
 
                     <button
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-[12px] text-gray-400 hover:text-rose-600 font-bold transition-colors p-1"
+                      className="text-[12px] text-gray-400 hover:text-rose-600 font-bold transition-colors p-1 shrink-0"
                       title="Remove item"
                     >
                       <Trash2 size={16} />
