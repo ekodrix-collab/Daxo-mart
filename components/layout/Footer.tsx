@@ -28,7 +28,7 @@ const COL3 = [
 const SOCIAL_LINKS = [
   {
     name: "Instagram",
-    href: "#",
+    href: "https://www.instagram.com/daxomart?igsh=cWxxNmp0aTdiMjEw",
     icon: (
       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
@@ -54,11 +54,15 @@ const SOCIAL_LINKS = [
     ),
   },
   {
-    name: "X",
-    href: "#",
+    name: "whatsapp",
+    href: "https://chat.whatsapp.com/HKVLOFVzE19HxCbBh7J96t?s=cl&p=a&mlu=4&amv=2",
     icon: (
-      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      <svg
+        className="w-3.5 h-3.5 fill-current"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M20.52 3.48A11.86 11.86 0 0 0 12.02 0C5.39 0 .02 5.37.02 12c0 2.11.55 4.17 1.6 5.99L0 24l6.19-1.62A11.95 11.95 0 0 0 12.02 24C18.65 24 24 18.63 24 12c0-3.2-1.25-6.22-3.48-8.52zM12.02 21.82a9.8 9.8 0 0 1-4.99-1.37l-.36-.21-3.67.96.98-3.58-.23-.37a9.8 9.8 0 1 1 8.27 4.57zm5.38-7.35c-.29-.15-1.71-.84-1.98-.94-.26-.1-.45-.15-.64.15-.19.29-.74.94-.91 1.13-.17.19-.33.22-.62.07-.29-.15-1.2-.44-2.29-1.42-.85-.76-1.43-1.7-1.6-1.99-.17-.29-.02-.45.13-.6.13-.13.29-.33.43-.5.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.15-.64-1.54-.88-2.1-.23-.56-.47-.48-.64-.49h-.55c-.19 0-.5.07-.76.36-.26.29-1 1-.98 2.43.02 1.43 1.03 2.8 1.18 2.99.15.19 2.02 3.08 4.9 4.32.69.3 1.23.48 1.65.61.69.22 1.32.19 1.82.12.56-.08 1.71-.7 1.95-1.38.24-.68.24-1.26.17-1.38-.07-.12-.26-.19-.55-.34z" />
       </svg>
     ),
   },
@@ -137,9 +141,8 @@ function NewsletterForm() {
             placeholder="Your email address"
             disabled={status === "loading"}
             className={`footer-input flex-1 bg-dark3 border text-cream
-                       text-[13px] px-3.5 py-2.5 rounded-l-md placeholder:text-dim font-pally outline-none transition-colors ${
-                         status === "error" ? "border-red-500" : "border-border focus:border-accent"
-                       }`}
+                       text-[13px] px-3.5 py-2.5 rounded-l-md placeholder:text-dim font-pally outline-none transition-colors ${status === "error" ? "border-red-500" : "border-border focus:border-accent"
+              }`}
           />
           <button
             type="submit"
@@ -157,9 +160,8 @@ function NewsletterForm() {
         </div>
         {message && (
           <p
-            className={`text-[11.5px] font-bold font-pally mt-1.5 transition-all ${
-              status === "success" ? "text-emerald-400" : "text-red-400"
-            }`}
+            className={`text-[11.5px] font-bold font-pally mt-1.5 transition-all ${status === "success" ? "text-emerald-400" : "text-red-400"
+              }`}
           >
             {message}
           </p>
@@ -194,9 +196,8 @@ function FooterAccordionSection({
           {title}
         </span>
         <span
-          className={`sm:hidden text-muted transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-accent" : ""
-          }`}
+          className={`sm:hidden text-muted transition-transform duration-200 ${isOpen ? "rotate-180 text-accent" : ""
+            }`}
         >
           <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
             <path
@@ -209,11 +210,10 @@ function FooterAccordionSection({
       </button>
 
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isOpen
+        className={`overflow-hidden transition-all duration-300 ${isOpen
             ? "max-h-[500px] opacity-100 mt-3 sm:mt-0"
             : "max-h-0 opacity-0 sm:max-h-none sm:opacity-100 sm:mt-0"
-        }`}
+          }`}
       >
         {children}
       </div>
