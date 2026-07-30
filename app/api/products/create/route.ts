@@ -88,6 +88,8 @@ export async function POST(req: Request) {
       meta_description: metaDescription || null,
       meta_keywords: metaKeywords || null,
       og_image: ogImage || null,
+      badge: badge || null,
+      badge_text: badge || null,
       hover_image: hoverImage || null,
       video_url: videoUrl || null,
       stock: inStock !== false ? 10 : 0,
@@ -120,6 +122,8 @@ export async function POST(req: Request) {
       delete corePayload.meta_description;
       delete corePayload.meta_keywords;
       delete corePayload.og_image;
+      delete corePayload.badge;
+      delete corePayload.badge_text;
       delete corePayload.hover_image;
       delete corePayload.video_url;
 

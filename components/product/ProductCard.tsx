@@ -56,12 +56,16 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
             {/* Custom Tag / Badge */}
             {product.badge && (
               <span
-                className={`absolute top-2.5 right-2.5 z-10 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${
-                  product.badge === "New"
+                className={`absolute top-2.5 right-2.5 z-10 text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded shadow ${
+                  product.badge === "Limited Edition"
+                    ? "bg-amber-600 text-white"
+                    : product.badge === "Best Seller"
+                    ? "bg-purple-600 text-white"
+                    : product.badge === "New Arrival" || product.badge === "New"
                     ? "bg-emerald-600 text-white"
                     : product.badge === "Sale"
-                    ? "bg-amber-500 text-black"
-                    : "bg-accent text-dark"
+                    ? "bg-red-600 text-white"
+                    : "bg-accent text-dark font-black"
                 }`}
               >
                 {product.badge}

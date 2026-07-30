@@ -541,12 +541,16 @@ export default function ProductDetailClient({
             >
               {product.badge && (
                 <span
-                  className={`absolute top-4 left-4 z-10 text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-md shadow-sm ${
-                    product.badge === "New"
-                      ? "bg-emerald-600 text-white"
+                  className={`absolute top-4 left-4 z-10 text-[10.5px] font-extrabold tracking-wider uppercase px-3.5 py-1.5 rounded-lg shadow-md border ${
+                    product.badge === "Limited Edition"
+                      ? "bg-amber-600 text-white border-amber-400/40 shadow-amber-900/30"
+                      : product.badge === "Best Seller"
+                      ? "bg-purple-600 text-white border-purple-400/40 shadow-purple-900/30"
+                      : product.badge === "New Arrival" || product.badge === "New"
+                      ? "bg-emerald-600 text-white border-emerald-400/40 shadow-emerald-900/30"
                       : product.badge === "Sale"
-                      ? "bg-red-600 text-white"
-                      : "bg-amber-500 text-black"
+                      ? "bg-red-600 text-white border-red-400/40 shadow-red-900/30"
+                      : "bg-[#C5A059] text-black font-black border-amber-300/40"
                   }`}
                 >
                   {product.badge}
