@@ -50,6 +50,18 @@ export async function fetchProducts(): Promise<Product[]> {
 
       const primaryImg = allImages[0];
 
+      const parsedHighlights = Array.isArray(item.highlights)
+        ? item.highlights
+        : (typeof item.highlights === "string"
+        ? (() => { try { return JSON.parse(item.highlights); } catch { return item.features || []; } })()
+        : (Array.isArray(item.features) ? item.features : []));
+
+      const parsedIncludedItems = Array.isArray(item.included_items)
+        ? item.included_items
+        : (typeof item.included_items === "string"
+        ? (() => { try { return JSON.parse(item.included_items); } catch { return []; } })()
+        : []);
+
       return {
         id: item.id,
         slug: item.slug || `prod-${item.id}`,
@@ -70,11 +82,14 @@ export async function fetchProducts(): Promise<Product[]> {
         images: allImages,
         badge: item.badge || (item.is_featured ? "Featured" : null),
         description: item.description || "",
+        shortDescription: item.short_description || item.shortDescription || "",
+        highlights: parsedHighlights,
+        includedItems: parsedIncludedItems,
         features: Array.isArray(item.features)
           ? item.features
           : (typeof item.features === "string"
-          ? (() => { try { return JSON.parse(item.features); } catch { return ["Quality Diecast Metal", "Detailed Interior", "Rubber Tyres"]; } })()
-          : ["Quality Diecast Metal", "Detailed Interior", "Rubber Tyres"]),
+          ? (() => { try { return JSON.parse(item.features); } catch { return []; } })()
+          : []),
         inStock: (item.stock ?? 10) > 0,
         stock: typeof item.stock === "number" ? item.stock : 10,
         isActive: item.is_active ?? item.isActive ?? true,
@@ -97,6 +112,9 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       title: productData.name,
       slug: productData.slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       description: productData.description || "",
+      short_description: productData.shortDescription || "",
+      highlights: productData.highlights || [],
+      included_items: productData.includedItems || [],
       price: Number(productData.price) || 0,
       sale_price: Number(productData.oldPrice) || Number(productData.price) || 0,
       category_name: productData.category || "1:24",

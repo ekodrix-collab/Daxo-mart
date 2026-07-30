@@ -27,6 +27,9 @@ import {
   ArrowRight,
   Sparkles,
   RefreshCw,
+  ChevronUp,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 
 export type ProductFormTab = "essentials" | "variants" | "seo_specs";
@@ -113,30 +116,93 @@ export default function ProductFormEditor({
     initialData?.lowStockThreshold ?? 5
   );
 
-  // Description & Features
+  // Description, Highlights & Included Items
   const [description, setDescription] = useState(initialData?.description || "");
   const [shortDescription, setShortDescription] = useState(
     initialData?.shortDescription || ""
   );
-  const [features, setFeatures] = useState<string[]>(
-    initialData?.features || [
-      "Quality Diecast Metal Body",
-      "Opening Doors & Hood",
-      "Detailed Interior Replica",
-    ]
-  );
-  const [newFeature, setNewFeature] = useState("");
+
+  // Section A: Product Highlights
+  const [highlights, setHighlights] = useState<string[]>(() => {
+    if (initialData?.highlights && Array.isArray(initialData.highlights)) {
+      return initialData.highlights;
+    }
+    if (initialData?.features && Array.isArray(initialData.features)) {
+      return initialData.features;
+    }
+    return [];
+  });
+  const [newHighlight, setNewHighlight] = useState("");
+
+  const addHighlight = () => {
+    if (!newHighlight.trim()) return;
+    setHighlights([...highlights, newHighlight.trim()]);
+    setNewHighlight("");
+  };
+
+  const removeHighlight = (idx: number) => {
+    setHighlights(highlights.filter((_, i) => i !== idx));
+  };
+
+  const moveHighlight = (idx: number, direction: "up" | "down") => {
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === highlights.length - 1) return;
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    const updated = [...highlights];
+    const temp = updated[idx];
+    updated[idx] = updated[targetIdx];
+    updated[targetIdx] = temp;
+    setHighlights(updated);
+  };
+
+  const updateHighlight = (idx: number, val: string) => {
+    const updated = [...highlights];
+    updated[idx] = val;
+    setHighlights(updated);
+  };
+
+  // Section C: What's Included
+  const [includedItems, setIncludedItems] = useState<string[]>(() => {
+    if (initialData?.includedItems && Array.isArray(initialData.includedItems)) {
+      return initialData.includedItems;
+    }
+    return [];
+  });
+  const [newIncludedItem, setNewIncludedItem] = useState("");
+
+  const addIncludedItem = () => {
+    if (!newIncludedItem.trim()) return;
+    setIncludedItems([...includedItems, newIncludedItem.trim()]);
+    setNewIncludedItem("");
+  };
+
+  const removeIncludedItem = (idx: number) => {
+    setIncludedItems(includedItems.filter((_, i) => i !== idx));
+  };
+
+  const moveIncludedItem = (idx: number, direction: "up" | "down") => {
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === includedItems.length - 1) return;
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    const updated = [...includedItems];
+    const temp = updated[idx];
+    updated[idx] = updated[targetIdx];
+    updated[targetIdx] = temp;
+    setIncludedItems(updated);
+  };
+
+  const updateIncludedItem = (idx: number, val: string) => {
+    const updated = [...includedItems];
+    updated[idx] = val;
+    setIncludedItems(updated);
+  };
 
   // Specifications
-  const [scale, setScale] = useState(initialData?.scale || "1:24");
-  const [material, setMaterial] = useState(initialData?.material || "Diecast Metal & ABS");
-  const [brand, setBrand] = useState(initialData?.brand || "Premium Replica");
+  const [scale, setScale] = useState(initialData?.scale || "");
+  const [material, setMaterial] = useState(initialData?.material || "");
+  const [brand, setBrand] = useState(initialData?.brand || "");
   const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>(
-    initialData?.specs || [
-      { key: "Material", value: "Diecast Metal Body with Plastic Parts" },
-      { key: "Doors", value: "All Doors & Trunk Openable" },
-      { key: "Wheels", value: "Rubber Tires with Steering Mechanism" },
-    ]
+    initialData?.specs || []
   );
 
   // Color Options
@@ -339,16 +405,6 @@ export default function ProductFormEditor({
     setHoverImage(targetUrl);
   };
 
-  const addFeature = () => {
-    if (!newFeature.trim()) return;
-    setFeatures([...features, newFeature.trim()]);
-    setNewFeature("");
-  };
-
-  const removeFeature = (idx: number) => {
-    setFeatures(features.filter((_, i) => i !== idx));
-  };
-
   const addSpec = () => {
     setSpecs([...specs, { key: "Attribute", value: "Value" }]);
   };
@@ -395,7 +451,9 @@ export default function ProductFormEditor({
       lowStockThreshold: Number(lowStockThreshold),
       shortDescription,
       description,
-      features,
+      highlights,
+      includedItems,
+      features: highlights,
       scale,
       material,
       brand,
@@ -432,7 +490,7 @@ export default function ProductFormEditor({
         name: initialData?.name || "",
         shortName: initialData?.shortName || "",
         category: initialData?.category || "1:24",
-        sku: initialData?.sku || generateAutoSku(initialData?.name),
+        sku,
         isActive: initialData?.isActive ?? true,
         inStock: initialData?.inStock ?? true,
         badge: initialData?.badge || null,
@@ -448,31 +506,29 @@ export default function ProductFormEditor({
         lowStockThreshold: Number(initialData?.lowStockThreshold ?? 5),
         description: initialData?.description || "",
         shortDescription: initialData?.shortDescription || "",
-        features:
-          initialData?.features || [
-            "Quality Diecast Metal Body",
-            "Opening Doors & Hood",
-            "Detailed Interior Replica",
-          ],
-        scale: initialData?.scale || "1:24",
-        material: initialData?.material || "Diecast Metal & ABS",
-        brand: initialData?.brand || "Premium Replica",
-        specs:
-          initialData?.specs || [
-            { key: "Material", value: "Diecast Metal Body with Plastic Parts" },
-            { key: "Doors", value: "All Doors & Trunk Openable" },
-            { key: "Wheels", value: "Rubber Tires with Steering Mechanism" },
-          ],
+        highlights:
+          initialData?.highlights && Array.isArray(initialData.highlights)
+            ? initialData.highlights
+            : (initialData?.features && Array.isArray(initialData.features) ? initialData.features : []),
+        includedItems:
+          initialData?.includedItems && Array.isArray(initialData.includedItems)
+            ? initialData.includedItems
+            : [],
+        scale: initialData?.scale || "",
+        material: initialData?.material || "",
+        brand: initialData?.brand || "",
+        specs: initialData?.specs || [],
         colors: initialData?.colors || [],
         videoUrl: initialData?.videoUrl || "",
-        slug: initialData?.slug || generateAutoSlug(initialData?.name || "product"),
+        hoverImage: initialData?.hoverImage || null,
+        slug,
         metaTitle: initialData?.metaTitle || "",
         metaDescription: initialData?.metaDescription || "",
         metaKeywords: initialData?.metaKeywords || "",
         ogImage: initialData?.ogImage || "",
       });
     }
-  }, [initialData]);
+  }, [initialData, sku, slug]);
 
   const [isDirty, setIsDirty] = useState(false);
 
@@ -483,16 +539,16 @@ export default function ProductFormEditor({
     const currentSnapshot = JSON.stringify({
       name, shortName, category, sku, isActive, inStock, badge,
       img, galleryImages, price, oldPrice, taxRate, stock, lowStockThreshold,
-      description, shortDescription, features, scale, material, brand, specs,
-      colors, videoUrl, slug, metaTitle, metaDescription, metaKeywords, ogImage
+      description, shortDescription, highlights, includedItems, scale, material, brand, specs,
+      colors, videoUrl, hoverImage, slug, metaTitle, metaDescription, metaKeywords, ogImage
     });
 
     setIsDirty(currentSnapshot !== initialSnapshotRef.current);
   }, [
     name, shortName, category, sku, isActive, inStock, badge,
     img, galleryImages, price, oldPrice, taxRate, stock, lowStockThreshold,
-    description, shortDescription, features, scale, material, brand, specs,
-    colors, videoUrl, slug, metaTitle, metaDescription, metaKeywords, ogImage
+    description, shortDescription, highlights, includedItems, scale, material, brand, specs,
+    colors, videoUrl, hoverImage, slug, metaTitle, metaDescription, metaKeywords, ogImage
   ]);
 
   // Handle discard back to initial snapshot
@@ -516,13 +572,15 @@ export default function ProductFormEditor({
       setLowStockThreshold(snap.lowStockThreshold);
       setDescription(snap.description);
       setShortDescription(snap.shortDescription);
-      setFeatures(snap.features);
+      if (Array.isArray(snap.highlights)) setHighlights(snap.highlights);
+      if (Array.isArray(snap.includedItems)) setIncludedItems(snap.includedItems);
       setScale(snap.scale);
       setMaterial(snap.material);
       setBrand(snap.brand);
       setSpecs(snap.specs);
       setColors(snap.colors);
       setVideoUrl(snap.videoUrl);
+      if (snap.hoverImage !== undefined) setHoverImage(snap.hoverImage);
       setSlug(snap.slug);
       setMetaTitle(snap.metaTitle);
       setMetaDescription(snap.metaDescription);
@@ -538,8 +596,8 @@ export default function ProductFormEditor({
     initialSnapshotRef.current = JSON.stringify({
       name, shortName, category, sku, isActive, inStock, badge,
       img, galleryImages, price, oldPrice, taxRate, stock, lowStockThreshold,
-      description, shortDescription, features, scale, material, brand, specs,
-      colors, videoUrl, slug, metaTitle, metaDescription, metaKeywords, ogImage
+      description, shortDescription, highlights, includedItems, scale, material, brand, specs,
+      colors, videoUrl, hoverImage, slug, metaTitle, metaDescription, metaKeywords, ogImage
     });
     setIsDirty(false);
   };
@@ -765,17 +823,12 @@ export default function ProductFormEditor({
                     onChange={(e) => setCategory(e.target.value as any)}
                     className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059] cursor-pointer"
                   >
-                    <option value="1:24">1:24 Scale</option>
-                    <option value="1:18">1:18 Scale</option>
-                    <option value="1:32">1:32 Scale</option>
-                    <option value="1:64">1:64 Scale</option>
-                    <option value="RC">RC Toys</option>
-                    <option value="Frame">3D Frames</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.filterValue}>
-                        {c.name}
-                      </option>
-                    ))}
+                    <option value="1:18">1:18</option>
+                    <option value="1:24">1:24</option>
+                    <option value="1:32">1:32</option>
+                    <option value="1:64">1:64</option>
+                    <option value="RC Toys">RC Toys</option>
+                    <option value="3D Frames">3D Frames</option>
                   </select>
                 </div>
 
@@ -1257,6 +1310,202 @@ export default function ProductFormEditor({
                 </div>
               )}
             </div>
+
+            {/* SECTION A: PRODUCT HIGHLIGHTS */}
+            <div className="space-y-4 pt-6 border-t border-[#222226]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#C5A059] tracking-wide uppercase flex items-center gap-2">
+                    <Sparkles size={18} /> Product Highlights
+                  </h3>
+                  <p className="text-[12px] text-gray-400 mt-1">
+                    Key features shown with checkmarks on product page.
+                  </p>
+                </div>
+              </div>
+
+              {highlights.length === 0 ? (
+                <div className="p-4 bg-[#141416] rounded-xl border border-[#222226] flex items-center justify-between">
+                  <p className="text-[13px] text-gray-500 italic">No highlights added yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {highlights.map((hl, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 p-2.5 bg-[#1C1C20] rounded-xl border border-[#26262B] group"
+                    >
+                      <span className="text-emerald-400 font-bold text-sm pl-2">+</span>
+                      <input
+                        type="text"
+                        value={hl}
+                        onChange={(e) => updateHighlight(idx, e.target.value)}
+                        className="flex-1 bg-[#141416] border border-[#2A2A2E] text-white text-[13.5px] px-3 py-2 rounded-lg outline-none focus:border-[#C5A059]"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => moveHighlight(idx, "up")}
+                          disabled={idx === 0}
+                          className="p-1.5 text-gray-400 hover:text-white disabled:opacity-30 cursor-pointer"
+                          title="Move Up"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveHighlight(idx, "down")}
+                          disabled={idx === highlights.length - 1}
+                          className="p-1.5 text-gray-400 hover:text-white disabled:opacity-30 cursor-pointer"
+                          title="Move Down"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeHighlight(idx)}
+                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded cursor-pointer"
+                          title="Remove highlight"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Highlight Row */}
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="text"
+                  value={newHighlight}
+                  onChange={(e) => setNewHighlight(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addHighlight();
+                    }
+                  }}
+                  placeholder="e.g. Opening Doors, LED Headlights..."
+                  className="flex-1 bg-[#18181A] border border-[#2A2A2E] text-white text-[13.5px] px-4 py-2.5 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+                <button
+                  type="button"
+                  onClick={addHighlight}
+                  className="bg-[#202024] hover:bg-[#2A2A30] text-white border border-[#303036] font-bold text-[12.5px] px-4 py-2.5 rounded-xl transition-all shadow cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <Plus size={16} /> Add Highlight
+                </button>
+              </div>
+            </div>
+
+            {/* SECTION B: PRODUCT DESCRIPTION */}
+            <div className="space-y-4 pt-6 border-t border-[#222226]">
+              <div>
+                <h3 className="text-[16px] font-bold text-[#C5A059] tracking-wide uppercase flex items-center gap-2">
+                  <FileText size={18} /> Product Description
+                </h3>
+                <p className="text-[12px] text-gray-400 mt-1">
+                  Enter complete model description. Exact paragraphs, line breaks, and spacing will be preserved on storefront.
+                </p>
+              </div>
+
+              <textarea
+                rows={10}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Write the complete product description..."
+                className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] p-4 rounded-xl outline-none focus:border-[#C5A059] leading-relaxed whitespace-pre-wrap font-sans"
+              />
+            </div>
+
+            {/* SECTION C: WHAT'S INCLUDED */}
+            <div className="space-y-4 pt-6 border-t border-[#222226]">
+              <div>
+                <h3 className="text-[16px] font-bold text-[#C5A059] tracking-wide uppercase flex items-center gap-2">
+                  <Package size={18} /> What&apos;s Included
+                </h3>
+                <p className="text-[12px] text-gray-400 mt-1">
+                  List items included in the package.
+                </p>
+              </div>
+
+              {includedItems.length === 0 ? (
+                <div className="p-4 bg-[#141416] rounded-xl border border-[#222226] flex items-center justify-between">
+                  <p className="text-[13px] text-gray-500 italic">No included items added yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {includedItems.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 p-2.5 bg-[#1C1C20] rounded-xl border border-[#26262B] group"
+                    >
+                      <span className="text-emerald-400 font-bold text-sm pl-2">✔</span>
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) => updateIncludedItem(idx, e.target.value)}
+                        className="flex-1 bg-[#141416] border border-[#2A2A2E] text-white text-[13.5px] px-3 py-2 rounded-lg outline-none focus:border-[#C5A059]"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => moveIncludedItem(idx, "up")}
+                          disabled={idx === 0}
+                          className="p-1.5 text-gray-400 hover:text-white disabled:opacity-30 cursor-pointer"
+                          title="Move Up"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveIncludedItem(idx, "down")}
+                          disabled={idx === includedItems.length - 1}
+                          className="p-1.5 text-gray-400 hover:text-white disabled:opacity-30 cursor-pointer"
+                          title="Move Down"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeIncludedItem(idx)}
+                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Included Item Row */}
+              <div className="flex items-center gap-3 pt-2">
+                <input
+                  type="text"
+                  value={newIncludedItem}
+                  onChange={(e) => setNewIncludedItem(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addIncludedItem();
+                    }
+                  }}
+                  placeholder="e.g. Premium Display Box, Remote Control..."
+                  className="flex-1 bg-[#18181A] border border-[#2A2A2E] text-white text-[13.5px] px-4 py-2.5 rounded-xl outline-none focus:border-[#C5A059]"
+                />
+                <button
+                  type="button"
+                  onClick={addIncludedItem}
+                  className="bg-[#202024] hover:bg-[#2A2A30] text-white border border-[#303036] font-bold text-[12.5px] px-4 py-2.5 rounded-xl transition-all shadow cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <Plus size={16} /> Add Item
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1269,38 +1518,6 @@ export default function ProductFormEditor({
               <h3 className="text-[16px] font-bold text-[#C5A059] tracking-wide uppercase border-b border-[#222226] pb-2 flex items-center gap-2">
                 <Sliders size={18} /> Technical Specifications
               </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="text-[13px] font-semibold text-gray-300 block mb-2">Scale</label>
-                  <input
-                    type="text"
-                    value={scale}
-                    onChange={(e) => setScale(e.target.value)}
-                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[13px] font-semibold text-gray-300 block mb-2">Material</label>
-                  <input
-                    type="text"
-                    value={material}
-                    onChange={(e) => setMaterial(e.target.value)}
-                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[13px] font-semibold text-gray-300 block mb-2">Brand</label>
-                  <input
-                    type="text"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
 
               {/* Key-Value Attributes */}
               <div>
@@ -1315,33 +1532,40 @@ export default function ProductFormEditor({
                   </button>
                 </div>
 
-                <div className="space-y-3">
-                  {specs.map((sp, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        value={sp.key}
-                        onChange={(e) => updateSpec(idx, e.target.value, sp.value)}
-                        placeholder="Attribute (e.g. Doors)"
-                        className="w-1/3 bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-3.5 py-2.5 rounded-xl outline-none font-medium"
-                      />
-                      <input
-                        type="text"
-                        value={sp.value}
-                        onChange={(e) => updateSpec(idx, sp.key, e.target.value)}
-                        placeholder="Value (e.g. All 4 Openable)"
-                        className="flex-1 bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-3.5 py-2.5 rounded-xl outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeSpec(idx)}
-                        className="text-red-400 hover:text-red-300 p-2"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                {specs.length === 0 ? (
+                  <div className="p-4 bg-[#141416] rounded-xl border border-[#222226] flex items-center justify-between mb-3">
+                    <p className="text-[13px] text-gray-500 italic">No specifications added yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {specs.map((sp, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <input
+                          type="text"
+                          value={sp.key}
+                          onChange={(e) => updateSpec(idx, e.target.value, sp.value)}
+                          placeholder="Attribute (e.g. Doors)"
+                          className="w-1/3 bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-3.5 py-2.5 rounded-xl outline-none font-medium"
+                        />
+                        <input
+                          type="text"
+                          value={sp.value}
+                          onChange={(e) => updateSpec(idx, sp.key, e.target.value)}
+                          placeholder="Value (e.g. All 4 Openable)"
+                          className="flex-1 bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-3.5 py-2.5 rounded-xl outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeSpec(idx)}
+                          className="text-red-400 hover:text-red-300 p-2 cursor-pointer"
+                          title="Remove specification"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
