@@ -108,6 +108,18 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
   try {
     const isEdit = Boolean(productData.id);
 
+    const colorImgs = (productData.colors || [])
+      .map((c: any) => c?.image)
+      .filter((url: any): url is string => typeof url === "string" && url.length > 0);
+
+    const allImagesCombined = Array.from(
+      new Set([
+        ...(productData.images || []),
+        productData.img,
+        ...colorImgs,
+      ])
+    ).filter(Boolean);
+
     const payload: Record<string, any> = {
       title: productData.name,
       slug: productData.slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
@@ -118,7 +130,8 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       price: Number(productData.price) || 0,
       sale_price: Number(productData.oldPrice) || Number(productData.price) || 0,
       category_name: productData.category || "1:24",
-      images: productData.images && productData.images.length > 0 ? productData.images : [productData.img],
+      images: allImagesCombined.length > 0 ? allImagesCombined : [productData.img || "/images/placeholder.png"],
+      colors: productData.colors || [],
       stock: Number(productData.stock ?? 10),
       is_active: productData.isActive ?? true,
       is_featured: Boolean(productData.badge),
