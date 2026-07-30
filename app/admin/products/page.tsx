@@ -207,17 +207,6 @@ export default function ProductsPage() {
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => toggleStockMutation.mutate(p.id)}
-                    className={`absolute top-3 right-3 p-1.5 rounded-xl border backdrop-blur-md cursor-pointer transition-colors ${
-                      p.inStock
-                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/40"
-                        : "bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/40"
-                    }`}
-                    title={p.inStock ? "In Stock (Click to toggle)" : "Out of Stock (Click to toggle)"}
-                  >
-                    {p.inStock ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                  </button>
                 </div>
 
                 <div className="p-4 space-y-2">

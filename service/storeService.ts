@@ -81,6 +81,7 @@ export async function fetchProducts(): Promise<Product[]> {
         sku: item.sku || `DXM-${String(item.id).slice(0, 5)}`,
         colors: parsedColors,
         videoUrl: item.video_url || item.videoUrl || null,
+        hoverImage: item.hover_image || item.hoverImage || null,
       };
     });
   } catch (err) {
@@ -104,6 +105,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       is_active: productData.isActive ?? true,
       is_featured: Boolean(productData.badge),
       video_url: productData.videoUrl || null,
+      hover_image: productData.hoverImage || null,
       updated_at: new Date().toISOString(),
     };
 

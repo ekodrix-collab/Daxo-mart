@@ -417,24 +417,6 @@ export default function ProductsTab() {
                     <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#202024] text-[#C5A059] border border-[#2D2D32]">
                       {p.category === "Frame" ? "3D Frame" : p.category}
                     </span>
-                    <button
-                      onClick={() => toggleStock(p.id)}
-                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border transition-colors cursor-pointer flex items-center gap-1 ${
-                        p.inStock
-                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                          : "bg-red-500/15 text-red-400 border-red-500/30"
-                      }`}
-                    >
-                      {p.inStock ? (
-                        <>
-                          <CheckCircle size={12} /> Stock
-                        </>
-                      ) : (
-                        <>
-                          <XCircle size={12} /> Out
-                        </>
-                      )}
-                    </button>
                   </div>
 
                   <h3 className="text-[14.5px] font-bold text-white mt-2 leading-snug truncate group-hover:text-[#C5A059] transition-colors font-pally">

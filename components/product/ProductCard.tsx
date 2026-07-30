@@ -26,6 +26,12 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
 
   const isLight = variant === "light";
 
+  const secondaryImage =
+    product.hoverImage ||
+    (product.images && product.images.length > 1 && product.images[1] !== product.img
+      ? product.images[1]
+      : null);
+
   return (
     <>
       <div
@@ -60,11 +66,23 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
               </span>
             )}
 
+            {/* Primary Main Cover Image */}
             <img
               src={product.img}
               alt={product.shortName || product.name}
-              className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full object-contain p-4 transition-all duration-300 ${
+                secondaryImage ? "group-hover:opacity-0 group-hover:scale-105" : "group-hover:scale-105"
+              }`}
             />
+
+            {/* Secondary Hover Image */}
+            {secondaryImage && (
+              <img
+                src={secondaryImage}
+                alt={`${product.shortName || product.name} hover view`}
+                className="absolute inset-0 w-full h-full object-contain p-4 opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+              />
+            )}
           </div>
 
           {/* Details */}

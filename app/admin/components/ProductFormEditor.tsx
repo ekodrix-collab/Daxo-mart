@@ -90,6 +90,7 @@ export default function ProductFormEditor({
 
   // Images & Video
   const [img, setImg] = useState(initialData?.img || "/images/placeholder.png");
+  const [hoverImage, setHoverImage] = useState<string | null>(initialData?.hoverImage || null);
   const [galleryImages, setGalleryImages] = useState<string[]>(
     initialData?.images && initialData.images.length > 0
       ? initialData.images
@@ -334,6 +335,10 @@ export default function ProductFormEditor({
     });
   };
 
+  const handleSetHoverImage = (targetUrl: string) => {
+    setHoverImage(targetUrl);
+  };
+
   const addFeature = () => {
     if (!newFeature.trim()) return;
     setFeatures([...features, newFeature.trim()]);
@@ -397,6 +402,7 @@ export default function ProductFormEditor({
       specs,
       colors,
       videoUrl: videoUrl || null,
+      hoverImage: hoverImage || null,
       slug: finalSlug,
       metaTitle: metaTitle || `${name} | DAXO-MART Premium Diecast`,
       metaDescription: metaDescription || (description ? description.slice(0, 160) : `${name} premium replica`),
@@ -883,65 +889,140 @@ export default function ProductFormEditor({
                 </label>
               </div>
 
-              {/* Main Cover & Gallery Grid */}
-              <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B] flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-36 h-36 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-lg">
-                  {img ? (
-                    <Image src={img} alt="Main product cover" fill unoptimized className="object-cover" />
-                  ) : (
-                    <ImageIcon className="text-gray-600" size={36} />
-                  )}
-                  <span className="absolute bottom-2 left-2 bg-[#C5A059] text-black font-extrabold text-[9px] uppercase px-1.5 py-0.5 rounded shadow">
-                    ★ Main Cover
-                  </span>
+              {/* Primary & Hover Cover Previews */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Primary Display Cover */}
+                <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B] flex items-center gap-4">
+                  <div className="w-28 h-28 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-lg">
+                    {img ? (
+                      <Image src={img} alt="Main product cover" fill unoptimized className="object-cover" />
+                    ) : (
+                      <ImageIcon className="text-gray-600" size={32} />
+                    )}
+                    <span className="absolute bottom-1.5 left-1.5 bg-[#C5A059] text-black font-extrabold text-[8px] uppercase px-1.5 py-0.5 rounded shadow">
+                      ★ Main Cover
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div>
+                      <h4 className="text-[13.5px] font-bold text-white">Primary Display Cover</h4>
+                      <p className="text-[11px] text-gray-400 font-mono truncate">{img || "No cover image set"}</p>
+                    </div>
+                    <input
+                      type="text"
+                      value={img}
+                      onChange={(e) => setImg(e.target.value)}
+                      placeholder="Enter main image URL manually..."
+                      className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[12px] px-3 py-1.5 rounded-xl outline-none"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-3 flex-1 w-full">
-                  <div>
-                    <h4 className="text-[14px] font-bold text-white">Primary Display Cover</h4>
-                    <p className="text-[12px] text-gray-400 font-mono truncate">{img}</p>
+                {/* Hover Display Image */}
+                <div className="p-4 bg-[#1C1C20] rounded-2xl border border-[#26262B] flex items-center gap-4">
+                  <div className="w-28 h-28 rounded-2xl bg-[#141416] border border-[#2A2A2E] relative overflow-hidden shrink-0 flex items-center justify-center shadow-lg">
+                    {hoverImage ? (
+                      <Image src={hoverImage} alt="Hover product image" fill unoptimized className="object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-gray-500 text-center px-1">
+                        <ImageIcon size={24} />
+                        <span className="text-[9px] font-semibold">Auto (2nd image)</span>
+                      </div>
+                    )}
+                    <span className="absolute bottom-1.5 left-1.5 bg-cyan-500 text-black font-extrabold text-[8px] uppercase px-1.5 py-0.5 rounded shadow">
+                      ⚡ Hover View
+                    </span>
                   </div>
-                  <input
-                    type="text"
-                    value={img}
-                    onChange={(e) => setImg(e.target.value)}
-                    placeholder="Enter main image URL manually..."
-                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-3.5 py-2 rounded-xl outline-none"
-                  />
+
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[13.5px] font-bold text-white">Hover Display Image</h4>
+                      {hoverImage && (
+                        <button
+                          type="button"
+                          onClick={() => setHoverImage(null)}
+                          className="text-[10px] text-rose-400 hover:underline"
+                        >
+                          Clear Custom
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400 font-mono truncate">
+                      {hoverImage || (galleryImages[1] ? `Auto: ${galleryImages[1]}` : "No hover image")}
+                    </p>
+                    <input
+                      type="text"
+                      value={hoverImage || ""}
+                      onChange={(e) => setHoverImage(e.target.value || null)}
+                      placeholder="Hover image URL (or select from gallery below)..."
+                      className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[12px] px-3 py-1.5 rounded-xl outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Gallery Thumbnails */}
               <div>
-                <h4 className="text-[13.5px] font-bold text-white mb-3">
-                  Gallery Images ({galleryImages.length})
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-[13.5px] font-bold text-white">
+                    Gallery Images ({galleryImages.length})
+                  </h4>
+                  <span className="text-[11px] text-gray-400">
+                    Hover image defaults to 2nd photo if custom hover image is not set.
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                   {galleryImages.map((gUrl, idx) => {
                     const isMain = gUrl === img;
+                    const isHover = gUrl === hoverImage || (!hoverImage && idx === 1 && galleryImages.length > 1);
+                    const isExplicitHover = gUrl === hoverImage;
+
                     return (
                       <div
                         key={idx}
-                        className={`group relative h-28 rounded-xl bg-[#1C1C20] border overflow-hidden transition-all ${
-                          isMain ? "border-[#C5A059] ring-2 ring-[#C5A059]/30" : "border-[#26262B]"
+                        className={`group relative h-32 rounded-xl bg-[#1C1C20] border overflow-hidden transition-all ${
+                          isMain
+                            ? "border-[#C5A059] ring-2 ring-[#C5A059]/30"
+                            : isExplicitHover
+                            ? "border-cyan-500 ring-2 ring-cyan-500/30"
+                            : "border-[#26262B]"
                         }`}
                       >
                         <Image src={gUrl} alt={`Thumbnail ${idx}`} fill unoptimized className="object-cover" />
 
-                        {isMain && (
-                          <div className="absolute top-1.5 left-1.5 bg-[#C5A059] text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
-                            <Star size={9} fill="currentColor" /> Main
-                          </div>
-                        )}
+                        {/* Badges */}
+                        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
+                          {isMain && (
+                            <span className="bg-[#C5A059] text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
+                              <Star size={9} fill="currentColor" /> Main
+                            </span>
+                          )}
+                          {isHover && (
+                            <span className="bg-cyan-500 text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
+                              ⚡ Hover
+                            </span>
+                          )}
+                        </div>
 
-                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-2">
+                        {/* Thumbnail Action Overlay */}
+                        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1.5 z-20">
                           {!isMain && (
                             <button
                               type="button"
                               onClick={() => handleSetMainImage(gUrl)}
-                              className="w-full py-1 bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[9px] uppercase rounded shadow cursor-pointer"
+                              className="w-full py-1 bg-[#C5A059] hover:bg-[#b08b46] text-black font-extrabold text-[8.5px] uppercase rounded shadow cursor-pointer"
                             >
                               Set Main
+                            </button>
+                          )}
+                          {!isExplicitHover && (
+                            <button
+                              type="button"
+                              onClick={() => handleSetHoverImage(gUrl)}
+                              className="w-full py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-[8.5px] uppercase rounded shadow cursor-pointer"
+                            >
+                              Set Hover
                             </button>
                           )}
                           <button
@@ -952,8 +1033,11 @@ export default function ProductFormEditor({
                               if (isMain && newGallery.length > 0) {
                                 setImg(newGallery[0]);
                               }
+                              if (isExplicitHover) {
+                                setHoverImage(null);
+                              }
                             }}
-                            className="p-1 bg-red-500/80 hover:bg-red-500 text-white rounded cursor-pointer"
+                            className="p-1 bg-red-500/80 hover:bg-red-500 text-white rounded cursor-pointer mt-0.5"
                             title="Delete image"
                           >
                             <Trash2 size={12} />
