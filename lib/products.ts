@@ -27,6 +27,7 @@ export interface Product {
   sku: string;
   colors?: ColorOption[];
   videoUrl?: string | null;
+  hoverImage?: string | null;
 }
 
 const PRODUCTS: Product[] = [];
