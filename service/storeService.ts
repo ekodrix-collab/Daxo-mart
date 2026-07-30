@@ -138,6 +138,16 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       images: allImagesCombined.length > 0 ? allImagesCombined : [productData.img || "/images/placeholder.png"],
       colors: productData.colors || [],
       sizes: productData.sizes || [],
+      scale: productData.scale || "1:24",
+      cost_price: Number(productData.costPrice) || 0,
+      specs: productData.specs || [],
+      sku: productData.sku || null,
+      brand: productData.brand || null,
+      material: productData.material || null,
+      meta_title: productData.metaTitle || null,
+      meta_description: productData.metaDescription || null,
+      meta_keywords: productData.metaKeywords || null,
+      og_image: productData.ogImage || null,
       stock: Number(productData.stock ?? 10),
       is_active: productData.isActive ?? true,
       is_featured: Boolean(productData.badge),
@@ -156,9 +166,19 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
 
       if (error) {
         console.warn("First update attempt failed, retrying without optional schema columns (colors, video_url, etc.):", error.message);
-        // Fallback: If 'colors' column is missing in Supabase DB schema, remove 'colors' and retry
+        // Fallback: If extra columns are missing in Supabase DB schema, remove them and retry
         delete payload.colors;
         delete payload.sizes;
+        delete payload.specs;
+        delete payload.scale;
+        delete payload.cost_price;
+        delete payload.sku;
+        delete payload.brand;
+        delete payload.material;
+        delete payload.meta_title;
+        delete payload.meta_description;
+        delete payload.meta_keywords;
+        delete payload.og_image;
         const retry1 = await supabase
           .from("products")
           .update(payload)
@@ -201,6 +221,16 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
         console.warn("First insert attempt failed, retrying without optional schema columns:", error.message);
         delete payload.colors;
         delete payload.sizes;
+        delete payload.specs;
+        delete payload.scale;
+        delete payload.cost_price;
+        delete payload.sku;
+        delete payload.brand;
+        delete payload.material;
+        delete payload.meta_title;
+        delete payload.meta_description;
+        delete payload.meta_keywords;
+        delete payload.og_image;
         const retry1 = await supabase
           .from("products")
           .insert(payload)

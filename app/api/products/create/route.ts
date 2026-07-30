@@ -25,6 +25,14 @@ export async function POST(req: Request) {
       sizes,
       hoverImage,
       videoUrl,
+      scale,
+      specs,
+      brand,
+      material,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      ogImage,
     } = body;
 
     if (!name || price === undefined) {
@@ -71,6 +79,15 @@ export async function POST(req: Request) {
       images: galleryImages,
       colors: colors || [],
       sizes: sizes || [],
+      scale: scale || "1:24",
+      specs: specs || [],
+      sku: sku || null,
+      brand: brand || null,
+      material: material || null,
+      meta_title: metaTitle || null,
+      meta_description: metaDescription || null,
+      meta_keywords: metaKeywords || null,
+      og_image: ogImage || null,
       hover_image: hoverImage || null,
       video_url: videoUrl || null,
       stock: inStock !== false ? 10 : 0,
@@ -94,6 +111,15 @@ export async function POST(req: Request) {
       delete corePayload.cost_price;
       delete corePayload.colors;
       delete corePayload.sizes;
+      delete corePayload.specs;
+      delete corePayload.scale;
+      delete corePayload.sku;
+      delete corePayload.brand;
+      delete corePayload.material;
+      delete corePayload.meta_title;
+      delete corePayload.meta_description;
+      delete corePayload.meta_keywords;
+      delete corePayload.og_image;
       delete corePayload.hover_image;
       delete corePayload.video_url;
 
