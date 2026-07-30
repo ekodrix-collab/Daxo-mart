@@ -85,7 +85,7 @@ export default function ProductVideoFloating({
             />
 
             {/* Top Bar inside Mini Bubble */}
-            <div className="absolute top-2 left-2 flex items-center z-10">
+            <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-20">
               {/* Sound Toggle Button */}
               <button
                 type="button"
@@ -103,6 +103,21 @@ export default function ProductVideoFloating({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                   </svg>
                 )}
+              </button>
+
+              {/* Close (X) Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDismissed(true);
+                }}
+                className="w-7 h-7 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all cursor-pointer shadow-lg hover:scale-110 active:scale-95"
+                title="Dismiss Video"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
