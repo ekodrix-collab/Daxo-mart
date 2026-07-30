@@ -22,6 +22,8 @@ export async function POST(req: Request) {
       inStock,
       badge,
       colors,
+      hoverImage,
+      videoUrl,
     } = body;
 
     if (!name || price === undefined) {
@@ -67,6 +69,8 @@ export async function POST(req: Request) {
       category_name: category || "1:24",
       images: galleryImages,
       colors: colors || [],
+      hover_image: hoverImage || null,
+      video_url: videoUrl || null,
       stock: inStock !== false ? 10 : 0,
       is_active: inStock !== false,
       is_featured: Boolean(badge),

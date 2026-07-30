@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type Product, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
+import ProductCard from "@/components/product/ProductCard";
 
 const INDIAN_STATES = [
   "Kerala",
@@ -901,72 +902,9 @@ export default function ProductDetailClient({
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {related.map((p) => {
-                const itemDiscount =
-                  p.oldPrice > p.price
-                    ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
-                    : 0;
-
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/products/${p.slug || p.id}`}
-                    className="group bg-dark2 border border-border rounded-2xl overflow-hidden
-                               hover:border-accent hover:shadow-[0_8px_30px_rgba(197,160,89,0.18)] hover:-translate-y-1.5 transition-all duration-300
-                               no-underline flex flex-col relative"
-                  >
-                    <div className="bg-white overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-                      <span className="absolute top-2.5 left-2.5 z-10 text-[9.5px] font-extrabold text-dark bg-cream/90 backdrop-blur-md px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
-                        {p.scale || "1:24"}
-                      </span>
-
-                      {itemDiscount > 0 && (
-                        <span className="absolute top-2.5 right-2.5 z-10 text-[9.5px] font-extrabold text-white bg-promo px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
-                          {itemDiscount}% OFF
-                        </span>
-                      )}
-
-                      <Image
-                        src={p.img}
-                        alt={p.shortName || p.name}
-                        width={280}
-                        height={210}
-                        className="w-full h-full object-contain p-4 group-hover:scale-108 transition-transform duration-300"
-                      />
-                    </div>
-
-                    <div className="p-4 flex flex-col justify-between flex-1 bg-dark2">
-                      <div>
-                        <span className="text-[10px] font-bold text-accent/80 uppercase tracking-widest block mb-1">
-                          {p.category === "RC" ? "RC Toy" : p.category === "Frame" ? "3D Display" : `${p.scale || "1:24"} Scale`}
-                        </span>
-                        <p className="text-[13px] font-bold text-cream leading-snug group-hover:text-accent transition-colors line-clamp-2">
-                          {p.shortName || p.name}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/50">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-[15px] font-extrabold text-cream font-pally">{p.priceStr}</span>
-                          {p.oldPriceStr && (
-                            <span className="text-[11px] text-dim line-through">{p.oldPriceStr}</span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSelectedModalProduct(p);
-                          }}
-                          className="text-[11px] font-pally font-extrabold text-accent hover:text-white bg-accent/10 hover:bg-accent px-3 py-1.5 rounded-lg border border-accent/30 tracking-wider uppercase transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-                        >
-                          BUY NOW
-                        </button>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {related.map((p) => (
+                <ProductCard key={p.id} product={p} variant="dark" />
+              ))}
             </div>
           </div>
         )}

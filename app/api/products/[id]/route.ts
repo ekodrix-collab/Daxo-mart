@@ -25,6 +25,8 @@ export async function PUT(
       inStock,
       badge,
       colors,
+      hoverImage,
+      videoUrl,
     } = body;
 
     const colorImgs = (colors || [])
@@ -51,6 +53,8 @@ export async function PUT(
       category_name: category || "1:24",
       images: galleryImages,
       colors: colors || [],
+      hover_image: hoverImage || null,
+      video_url: videoUrl || null,
       description: description || "",
       short_description: shortDescription || "",
       highlights: highlights || [],
