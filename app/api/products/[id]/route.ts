@@ -24,11 +24,27 @@ export async function PUT(
       includedItems,
       inStock,
       badge,
+      colors,
+      sizes,
+      hoverImage,
+      videoUrl,
     } = body;
 
-    const galleryImages = Array.isArray(images) && images.length > 0
-      ? images
-      : img ? [img] : ["/images/placeholder.png"];
+    const colorImgs = (colors || [])
+      .map((c: any) => c?.image)
+      .filter((url: any): url is string => typeof url === "string" && url.length > 0);
+
+    const galleryImages = Array.from(
+      new Set([
+        ...(Array.isArray(images) ? images : []),
+        img,
+        ...colorImgs,
+      ])
+    ).filter(Boolean);
+
+    if (galleryImages.length === 0) {
+      galleryImages.push("/images/placeholder.png");
+    }
 
     // Base payload with standard columns present in Supabase table
     const corePayload: Record<string, any> = {
@@ -37,6 +53,10 @@ export async function PUT(
       sale_price: Number(oldPrice) || Number(price) || 0,
       category_name: category || "1:24",
       images: galleryImages,
+      colors: colors || [],
+      sizes: sizes || [],
+      hover_image: hoverImage || null,
+      video_url: videoUrl || null,
       description: description || "",
       short_description: shortDescription || "",
       highlights: highlights || [],
@@ -57,10 +77,13 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.warn("First update failed, removing non-standard columns & stringifying images:", error.message);
+      console.warn("First update failed, removing non-standard columns (colors, cost_price, etc.) & stringifying images:", error.message);
       
-      // Fallback: exclude cost_price if column doesn't exist and stringify images array if needed
       delete corePayload.cost_price;
+      delete corePayload.colors;
+      delete corePayload.sizes;
+      delete corePayload.hover_image;
+      delete corePayload.video_url;
       
       const retry1 = await supabase
         .from("products")

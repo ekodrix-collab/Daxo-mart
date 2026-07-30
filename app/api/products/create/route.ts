@@ -21,6 +21,10 @@ export async function POST(req: Request) {
       features,
       inStock,
       badge,
+      colors,
+      sizes,
+      hoverImage,
+      videoUrl,
     } = body;
 
     if (!name || price === undefined) {
@@ -38,9 +42,21 @@ export async function POST(req: Request) {
       .replace(/[\s_-]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
-    const galleryImages = Array.isArray(images) && images.length > 0
-      ? images
-      : img ? [img] : ["/images/placeholder.png"];
+    const colorImgs = (colors || [])
+      .map((c: any) => c?.image)
+      .filter((url: any): url is string => typeof url === "string" && url.length > 0);
+
+    const galleryImages = Array.from(
+      new Set([
+        ...(Array.isArray(images) ? images : []),
+        img,
+        ...colorImgs,
+      ])
+    ).filter(Boolean);
+
+    if (galleryImages.length === 0) {
+      galleryImages.push("/images/placeholder.png");
+    }
 
     const corePayload: Record<string, any> = {
       title,
@@ -53,6 +69,10 @@ export async function POST(req: Request) {
       sale_price: Number(oldPrice) || Number(price) || 0,
       category_name: category || "1:24",
       images: galleryImages,
+      colors: colors || [],
+      sizes: sizes || [],
+      hover_image: hoverImage || null,
+      video_url: videoUrl || null,
       stock: inStock !== false ? 10 : 0,
       is_active: inStock !== false,
       is_featured: Boolean(badge),
@@ -70,8 +90,12 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.warn("First insert failed, retrying without optional columns:", error.message);
+      console.warn("First insert failed, retrying without optional columns (colors, video_url, etc.):", error.message);
       delete corePayload.cost_price;
+      delete corePayload.colors;
+      delete corePayload.sizes;
+      delete corePayload.hover_image;
+      delete corePayload.video_url;
 
       const retry1 = await supabase
         .from("products")

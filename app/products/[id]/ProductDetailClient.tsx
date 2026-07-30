@@ -1,67 +1,80 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import PRODUCTS, { type Product, formatTitleCase } from "@/lib/products";
+import { type Product, type SizeOption, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
-import ProductVideoFloating from "@/components/product/ProductVideoFloating";
-
-const WA_NUMBER = "919048571147";
+import ProductCard from "@/components/product/ProductCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const INDIAN_STATES = [
   "Kerala",
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
   "Tamil Nadu",
+  "Karnataka",
+  "Maharashtra",
+  "Delhi",
   "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
+  "Andhra Pradesh",
+  "Gujarat",
   "West Bengal",
-  "Andaman & Nicobar Islands",
+  "Uttar Pradesh",
+  "Rajasthan",
+  "Punjab",
+  "Haryana",
+  "Madhya Pradesh",
+  "Bihar",
+  "Assam",
+  "Odisha",
+  "Goa",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Puducherry",
   "Chandigarh",
-  "Dadra & Nagar Haveli and Daman & Diu",
-  "Delhi (NCT)",
-  "Jammu & Kashmir",
-  "Ladakh",
-  "Lakshadweep",
-  "Puducherry"
+  "Chhattisgarh",
+  "Jharkhand",
+  "Uttarakhand",
 ];
 
+// Helper to determine exact scale size string for pill badge
+function getScaleSizePillText(scaleStr?: string, categoryStr?: string): { label: string; details: string } {
+  const sc = (scaleStr || "").toLowerCase();
+  const cat = (categoryStr || "").toLowerCase();
+
+  if (sc.includes("1:18") || sc.includes("1/18") || cat.includes("1:18")) {
+    return { label: "Extra Large (1:18)", details: "(10-11 Inch / 24-28 cm)" };
+  }
+  if (sc.includes("1:32") || sc.includes("1/32") || cat.includes("1:32")) {
+    return { label: "Medium (1:32)", details: "(5-6 Inch / 13-15 cm)" };
+  }
+  if (cat.includes("rc") || sc.includes("rc")) {
+    return { label: "Remote Control (RC)", details: "(8-12 Inch / 20-30 cm)" };
+  }
+  if (cat.includes("frame") || sc.includes("frame")) {
+    return { label: "Wall 3D Frame", details: "(12-16 Inch / 30-40 cm)" };
+  }
+  // Default to 1:24 Large
+  return { label: "Large (1:24)", details: "(7-8 Inch / 18-21 cm)" };
+}
+
 /* ═══════════════════════════════════════════════════════════════════
-   CHECKOUT MODAL FOR INSTANT "BUY NOW"
+   INSTANT BUY NOW WHATSAPP MODAL
 ═══════════════════════════════════════════════════════════════════ */
 export function BuyNowModal({
   product,
-  quantity,
+  quantity = 1,
   isOpen,
   onClose,
+  selectedColorName,
+  selectedSizeName,
 }: {
   product: Product;
-  quantity: number;
+  quantity?: number;
   isOpen: boolean;
   onClose: () => void;
+  selectedColorName?: string;
+  selectedSizeName?: string;
 }) {
   const [form, setForm] = useState({
     name: "",
@@ -70,82 +83,72 @@ export function BuyNowModal({
     address: "",
     city: "",
     state: "Kerala",
-    landmark: "",
     pincode: "",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   if (!isOpen) return null;
 
   const total = product.price * quantity;
 
-  const setField = (k: keyof typeof form, v: string) => {
-    setForm((f) => ({ ...f, [k]: v }));
-    setErrors((e) => ({ ...e, [k]: "" }));
+  const setField = (field: string, val: string) => {
+    setForm((prev) => ({ ...prev, [field]: val }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Full Name is required";
-    if (!/^[6-9]\d{9}$/.test(form.phone.trim()))
-      e.phone = "Enter valid 10-digit mobile number";
-    if (form.email.trim() && !/\S+@\S+\.\S+/.test(form.email.trim()))
-      e.email = "Enter valid email address";
-    if (!form.address.trim()) e.address = "Full address is required";
-    if (!form.landmark.trim()) e.landmark = "Landmark is required";
-    if (!form.city.trim()) e.city = "City is required";
-    if (!form.state.trim()) e.state = "State is required";
-    if (!/^\d{6}$/.test(form.pincode.trim()))
-      e.pincode = "Enter valid 6-digit pincode";
+  const handlePlaceOrder = (e: React.FormEvent) => {
+    e.preventDefault();
 
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+    const newErr: { [key: string]: string } = {};
+    if (!form.name.trim()) newErr.name = "Name is required";
+    if (!form.phone.trim() || form.phone.trim().length < 10)
+      newErr.phone = "Valid 10-digit mobile number required";
+    if (!form.address.trim()) newErr.address = "Street address is required";
+    if (!form.city.trim()) newErr.city = "City is required";
+    if (!form.pincode.trim() || form.pincode.trim().length < 6)
+      newErr.pincode = "Valid 6-digit pincode required";
 
-  const handlePlaceOrder = () => {
-    if (!validate()) return;
-    const orderNumber = `DXM-${Math.floor(100000 + Math.random() * 900000)}`;
+    if (Object.keys(newErr).length > 0) {
+      setErrors(newErr);
+      return;
+    }
 
-    const waMessage = [
-      `Hi DAXO-MART, I would like to place an order!`,
-      ``,
-      `📦 *Order:* ${orderNumber}`,
-      `🛒 *Product:* ${product.shortName || product.name} (Qty: ${quantity})`,
-      `💰 *Total Amount:* ₹${total.toLocaleString("en-IN")}`,
-      `Name: ${form.name.trim()}`,
-      `Full Address: ${form.address.trim()}`,
-      `City: ${form.city.trim()}`,
-      `State: ${form.state.trim()}`,
-      `Landmark: ${form.landmark.trim()}`,
-      `Pincode: ${form.pincode.trim()}`,
-      `Mobile Number: ${form.phone.trim()}`,
-      ``,
-      `Please confirm my order. Thank you! 🙏`,
-    ].join("\n");
+    const adminWhatsAppNumber = "919048571147";
 
-    // 1. Instantly trigger WhatsApp window in user event context (prevents popup blocker)
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMessage)}`, "_blank");
+    const message = `🛍️ *NEW DIRECT ORDER - DAXOMART* 🛍️
 
-    // 2. Fire background async order save without blocking the user
+*Customer Details:*
+👤 Name: ${form.name.trim()}
+📞 Phone: ${form.phone.trim()}
+${form.email ? `📧 Email: ${form.email.trim()}\n` : ""}
+📍 Address: ${form.address.trim()}
+🏙️ City: ${form.city.trim()}
+📌 State: ${form.state.trim()}
+📮 Pincode: ${form.pincode.trim()}
+
+*Order Details:*
+🚗 Product: ${product.name}
+📏 Scale: ${product.scale || "1:24"}${selectedColorName ? `\n🎨 Color: ${selectedColorName}` : ""}${selectedSizeName ? `\n📐 Size: ${selectedSizeName}` : ""}
+📦 Quantity: ${quantity}
+💰 Unit Price: ₹${product.price.toLocaleString("en-IN")}
+💵 Total Amount: ₹${total.toLocaleString("en-IN")} (Free Delivery)
+
+Please confirm my order & provide delivery timeline!`;
+
+    const waUrl = `https://wa.me/${adminWhatsAppNumber}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank");
+
     fetch("/api/orders/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         customer_name: form.name.trim(),
-        customer_phone: form.phone.trim(),
-        customer_email: form.email.trim() || undefined,
-        full_address: [form.address.trim(), form.landmark.trim() ? `Landmark: ${form.landmark.trim()}` : ""].filter(Boolean).join(", "),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        address: form.address.trim(),
         city: form.city.trim(),
         state: form.state.trim(),
         pincode: form.pincode.trim(),
@@ -160,7 +163,6 @@ export function BuyNowModal({
       console.error("Async order save error:", err);
     });
 
-    // 3. Immediately close modal with zero delay
     onClose();
   };
 
@@ -178,7 +180,7 @@ export function BuyNowModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-dark3 hover:bg-dark border border-border flex items-center justify-center text-muted hover:text-cream text-lg"
+            className="w-8 h-8 rounded-full bg-dark3 hover:bg-dark border border-border flex items-center justify-center text-muted hover:text-cream text-lg cursor-pointer"
           >
             ✕
           </button>
@@ -249,87 +251,17 @@ export function BuyNowModal({
 
           <div>
             <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-              Full Address *
+              Flat / House No. / Street Address *
             </label>
-            <input
-              type="text"
+            <textarea
+              rows={2}
               value={form.address}
               onChange={(e) => setField("address", e.target.value)}
-              placeholder="House/Flat No, Street"
+              placeholder="House/Flat No, Building Name, Street"
               className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.address ? "border-red-500" : "border-border focus:border-accent"
                 }`}
             />
             {errors.address && <p className="text-red-400 text-[11px] mt-0.5">{errors.address}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                Landmark
-              </label>
-              <input
-                type="text"
-                value={form.landmark}
-                onChange={(e) => setField("landmark", e.target.value)}
-                placeholder="e.g. Near Bus Stand"
-                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.landmark ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
-              {errors.landmark && <p className="text-red-400 text-[11px] mt-0.5">{errors.landmark}</p>}
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                City *
-              </label>
-              <input
-                type="text"
-                value={form.city}
-                onChange={(e) => setField("city", e.target.value)}
-                placeholder="City"
-                className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally ${errors.city ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
-              {errors.city && <p className="text-red-400 text-[11px] mt-0.5">{errors.city}</p>}
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                State *
-              </label>
-              <div className="relative">
-                <select
-                  value={form.state || "Kerala"}
-                  onChange={(e) => setField("state", e.target.value)}
-                  className={`w-full bg-dark text-cream text-[13px] px-3 py-2.5 rounded-xl border outline-none font-pally appearance-none cursor-pointer pr-8 ${
-                    errors.state ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-                >
-                  {INDIAN_STATES.map((st) => (
-                    <option key={st} value={st} className="bg-dark text-cream py-1.5">
-                      {st}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-accent">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
-                Pincode *
-              </label>
-              <input
-                type="tel"
-                value={form.pincode}
-                onChange={(e) => setField("pincode", e.target.value)}
-                placeholder="6-digit"
-                className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.pincode ? "border-red-500" : "border-border focus:border-accent"
-                  }`}
-              />
-              {errors.pincode && <p className="text-red-400 text-[11px] mt-0.5">{errors.pincode}</p>}
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -362,6 +294,21 @@ export function BuyNowModal({
               {errors.state && <p className="text-red-400 text-[11px] mt-0.5">{errors.state}</p>}
             </div>
           </div>
+
+          <div>
+            <label className="block text-[10.5px] font-bold tracking-wider uppercase text-muted mb-1">
+              Pincode *
+            </label>
+            <input
+              type="tel"
+              value={form.pincode}
+              onChange={(e) => setField("pincode", e.target.value)}
+              placeholder="6-digit"
+              className={`w-full bg-dark text-cream text-[13px] px-3.5 py-2.5 rounded-xl border outline-none font-pally ${errors.pincode ? "border-red-500" : "border-border focus:border-accent"
+                }`}
+            />
+            {errors.pincode && <p className="text-red-400 text-[11px] mt-0.5">{errors.pincode}</p>}
+          </div>
         </div>
 
         {/* Action Button */}
@@ -379,10 +326,6 @@ export function BuyNowModal({
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-/* ═══════════════════════════════════════════════════════════════════
-   SMART RECOMMENDATION ENGINE (MULTI-TIERED CONTEXTUAL MATCHING)
-═══════════════════════════════════════════════════════════════════ */
 function getRecommendedProducts(
   currentProduct: Product,
   allProducts: Product[],
@@ -392,7 +335,6 @@ function getRecommendedProducts(
   const catalog = (allProducts && allProducts.length > 0 ? allProducts : fallbackProducts) || [];
   if (!catalog || catalog.length === 0) return [];
 
-  // Filter out current product and inactive products
   const candidates = catalog.filter(
     (p) =>
       String(p.id) !== String(currentProduct.id) &&
@@ -410,44 +352,29 @@ function getRecommendedProducts(
 
   const scored = candidates.map((p) => {
     let score = 0;
-
-    // 1. Scale Match (e.g. 1:24 vs 1:24)
     const pScale = (p.scale || "").toLowerCase().trim();
-    if (pScale && curScale && pScale === curScale) {
-      score += 20;
-    }
+    if (pScale && curScale && pScale === curScale) score += 20;
 
-    // 2. Category Match (e.g. Diecast vs RC vs Frame)
     const pCat = (p.category || "").toLowerCase().trim();
-    if (pCat && curCat && pCat === curCat) {
-      score += 15;
-    }
+    if (pCat && curCat && pCat === curCat) score += 15;
 
-    // 3. Car Brand / Model Keyword Overlap
     const pTitle = p.name.toLowerCase();
     const commonWords = ["diecast", "model", "scale", "car", "black", "red", "white", "blue", "yellow", "metal", "toy"];
     curTitleWords.forEach((word) => {
-      if (!commonWords.includes(word) && pTitle.includes(word)) {
-        score += 10;
-      }
+      if (!commonWords.includes(word) && pTitle.includes(word)) score += 10;
     });
 
-    // 4. Price Proximity (within ±30% range)
     if (curPrice > 0 && p.price > 0) {
       const priceDiffRatio = Math.abs(p.price - curPrice) / curPrice;
-      if (priceDiffRatio <= 0.3) {
-        score += 5;
-      }
+      if (priceDiffRatio <= 0.3) score += 5;
     }
 
-    // 5. Featured badge boost
     if (p.badge) score += 2;
 
     return { product: p, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
-
   return scored.slice(0, limit).map((s) => s.product);
 }
 
@@ -467,7 +394,12 @@ export default function ProductDetailClient({
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectedModalProduct, setSelectedModalProduct] = useState<Product | null>(null);
   const [addedToast, setAddedToast] = useState(false);
-  const [isDescOpen, setIsDescOpen] = useState(true);
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const [isScaleGuideOpen, setIsScaleGuideOpen] = useState(false);
+  const [isSpecsOpen, setIsSpecsOpen] = useState(false);
+
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const { addToCart } = useCart();
   const router = useRouter();
@@ -479,10 +411,10 @@ export default function ProductDetailClient({
     }
   }, [product.id]);
 
-  // Available color options or defaults if none configured
+  // Only show colors if admin has actually added them
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
+  const hasAdminColors = colorOptions.length > 0;
 
-  // Combine main images array with any color variant images for complete sub-images gallery
   const allGalleryImages = Array.from(
     new Set([
       ...(product.images || []),
@@ -491,38 +423,88 @@ export default function ProductDetailClient({
     ])
   ).filter(Boolean);
 
-  const discountPercent =
-    product.oldPrice && product.oldPrice > product.price
-      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+  // Only show sizes if admin has actually added them — no static fallback
+  const availableSizes: SizeOption[] =
+    product.sizes && product.sizes.length > 0 ? product.sizes : [];
+  const hasAdminSizes = availableSizes.length > 0;
+
+  const [selectedSizeIdx, setSelectedSizeIdx] = useState<number>(0);
+  const activeSizeObj = hasAdminSizes ? (availableSizes[selectedSizeIdx] || availableSizes[0]) : null;
+  const activePrice = activeSizeObj?.price || product.price;
+  const activeOldPrice = activeSizeObj?.oldPrice || product.oldPrice;
+
+  const dynamicDiscountPercent =
+    activeOldPrice && activeOldPrice > activePrice
+      ? Math.round(((activeOldPrice - activePrice) / activeOldPrice) * 100)
       : 0;
 
-  const strikePriceStr =
-    product.oldPrice && product.oldPrice > product.price
-      ? product.oldPriceStr || `₹${Number(product.oldPrice).toLocaleString("en-IN")}`
-      : product.oldPriceStr || null;
+  const dynamicStrikePriceStr =
+    activeOldPrice && activeOldPrice > activePrice
+      ? `₹${Number(activeOldPrice).toLocaleString("en-IN")}`
+      : null;
 
-  const related = getRecommendedProducts(product, allProducts, PRODUCTS, 4);
+  const selectedColorName = hasAdminColors ? (colorOptions[selectedColor]?.name || "") : "";
+  const selectedSizeName = hasAdminSizes && activeSizeObj ? activeSizeObj.name : "";
+
+  const related = getRecommendedProducts(product, allProducts, [], 4);
+
+  const scalePill = getScaleSizePillText(product.scale, product.category);
 
   const handleSelectColor = (index: number) => {
     setSelectedColor(index);
     const chosenColor = colorOptions[index];
     if (chosenColor?.image) {
       const imgIdx = allGalleryImages.findIndex((img) => img === chosenColor.image);
-      if (imgIdx !== -1) {
-        setActiveImg(imgIdx);
-      }
+      if (imgIdx !== -1) setActiveImg(imgIdx);
+    }
+  };
+
+  const handlePrevImg = () => {
+    if (allGalleryImages.length <= 1) return;
+    setActiveImg((prev) => (prev === 0 ? allGalleryImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImg = () => {
+    if (allGalleryImages.length <= 1) return;
+    setActiveImg((prev) => (prev === allGalleryImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 40;
+    if (distance > minSwipeDistance) {
+      handleNextImg();
+    } else if (distance < -minSwipeDistance) {
+      handlePrevImg();
     }
   };
 
   const handleAddToCart = () => {
-    addToCart(product, qty);
+    addToCart(
+      {
+        ...product,
+        price: activePrice,
+        priceStr: `₹${activePrice.toLocaleString("en-IN")}`,
+        scale: selectedSizeName || product.scale,
+      },
+      qty
+    );
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 2500);
   };
 
   return (
     <div className="bg-dark min-h-screen relative">
-      {/* Toast alert */}
       {addedToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-green text-white font-pally font-bold px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
           <span>✓ Added to Cart!</span>
@@ -549,51 +531,91 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16">
           {/* Left: Images */}
           <div>
-            <div className="bg-white rounded-2xl overflow-hidden relative border border-gray-100 shadow-md"
-              style={{ aspectRatio: "1" }}>
+            <div
+              className="bg-white rounded-2xl overflow-hidden relative border border-gray-100 shadow-md select-none touch-pan-y"
+              style={{ aspectRatio: "1" }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               {product.badge && (
-                <span className={`absolute top-4 left-4 z-10 text-[10px] font-bold tracking-wider
-                                 uppercase px-3 py-1 rounded-md shadow-sm
-                                 ${product.badge === "New" ? "bg-green text-white" :
-                    product.badge === "Sale" ? "bg-promo text-white" :
-                      "bg-accent text-dark"}`}>
+                <span
+                  className={`absolute top-4 left-4 z-10 text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-md shadow-sm ${
+                    product.badge === "New"
+                      ? "bg-green text-white"
+                      : product.badge === "Sale"
+                      ? "bg-promo text-white"
+                      : "bg-accent text-dark"
+                  }`}
+                >
                   {product.badge}
                 </span>
               )}
+
+              {/* Counter Badge */}
+              {allGalleryImages.length > 1 && (
+                <span className="absolute top-4 right-4 z-10 text-[11px] font-bold tracking-wider bg-black/60 text-white backdrop-blur-md px-2.5 py-1 rounded-full shadow">
+                  {activeImg + 1} / {allGalleryImages.length}
+                </span>
+              )}
+
               <Image
                 src={allGalleryImages[activeImg] || colorOptions[selectedColor]?.image || product.img}
                 alt={product.name}
                 width={600}
                 height={600}
                 unoptimized
-                className="w-full h-full object-contain p-8 transition-all duration-300"
+                className="w-full h-full object-contain p-8 transition-all duration-300 pointer-events-none"
                 priority
               />
             </div>
 
-            {/* Thumbnail Strip (Sub-Images) */}
+            {/* Thumbnail Strip with Prev/Next Arrows */}
             {allGalleryImages.length > 1 && (
-              <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-none">
-                {allGalleryImages.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImg(i)}
-                    className={`w-16 h-16 rounded-xl bg-white border-2 shrink-0 overflow-hidden transition-all cursor-pointer ${
-                      activeImg === i
-                        ? "border-accent shadow-[0_0_12px_rgba(200,169,110,0.4)] scale-105"
-                        : "border-gray-200 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Image
-                      src={img}
-                      alt={`Sub image ${i + 1}`}
-                      width={64}
-                      height={64}
-                      unoptimized
-                      className="w-full h-full object-contain p-1"
-                    />
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 mt-4">
+                {/* Prev Arrow */}
+                <button
+                  type="button"
+                  onClick={handlePrevImg}
+                  className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-dark2 hover:bg-dark3 border border-border text-cream flex items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95"
+                  title="Previous Image"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                {/* Thumbnails */}
+                <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none flex-1">
+                  {allGalleryImages.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white border-2 shrink-0 overflow-hidden transition-all cursor-pointer ${
+                        activeImg === i
+                          ? "border-accent shadow-[0_0_12px_rgba(200,169,110,0.4)] scale-105"
+                          : "border-gray-200 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Sub image ${i + 1}`}
+                        width={64}
+                        height={64}
+                        unoptimized
+                        className="w-full h-full object-contain p-1"
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next Arrow */}
+                <button
+                  type="button"
+                  onClick={handleNextImg}
+                  className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-dark2 hover:bg-dark3 border border-border text-cream flex items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95"
+                  title="Next Image"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             )}
           </div>
@@ -605,7 +627,7 @@ export default function ProductDetailClient({
                 <span className="text-[11px] font-bold tracking-[0.16em] uppercase text-accent">
                   {product.category || `${product.scale || "1:24"} Scale`}
                 </span>
-                <span className="bg-dark2 border border-border text-[10px] font-extrabold text-cream px-2 py-0.5 rounded-full uppercase">
+                <span className="bg-dark2 border border-border text-[10px] font-extrabold text-cream px-2.5 py-0.5 rounded-full uppercase">
                   Scale: {product.scale || "1:24"}
                 </span>
               </div>
@@ -615,24 +637,94 @@ export default function ProductDetailClient({
                 {formatTitleCase(product.name)}
               </h1>
 
-              {/* 2. Price */}
+              {/* 2. Dynamic Price & Sale Discount Badge */}
               <div className="flex items-center gap-3 mb-5 flex-wrap">
                 <span className="text-[32px] font-bold text-cream font-pally">
-                  {product.priceStr || `₹${Number(product.price).toLocaleString("en-IN")}`}
+                  ₹{Number(activePrice).toLocaleString("en-IN")}
                 </span>
-                {strikePriceStr && (
+                {dynamicStrikePriceStr && (
                   <span className="text-[18px] text-dim line-through font-medium">
-                    {strikePriceStr}
+                    {dynamicStrikePriceStr}
                   </span>
                 )}
-                {discountPercent > 0 && (
+                {dynamicDiscountPercent > 0 && (
                   <span className="bg-promo text-white text-[11px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
-                    SALE {discountPercent}% OFF
+                    SALE {dynamicDiscountPercent}% OFF
                   </span>
                 )}
               </div>
 
-              {/* 3. Product Highlights */}
+              {/* ── 3. COLOR VARIANT PHOTO TILES (Only if admin added colors) ── */}
+              {hasAdminColors && (
+                <div className="mb-6">
+                  <label className="block text-[13px] font-medium text-gray-300 mb-2 font-pally">
+                    Color{selectedColorName ? `: ` : ""}
+                    {selectedColorName && <span className="text-cream font-semibold">{selectedColorName}</span>}
+                  </label>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {colorOptions.map((col, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectColor(idx)}
+                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden p-1 transition-all cursor-pointer flex items-center justify-center ${
+                          selectedColor === idx
+                            ? "bg-[#e5e5e5] border-2 border-black shadow-[0_0_0_2px_#000] scale-105"
+                            : "bg-[#f3f4f6] border border-gray-300/80 hover:border-gray-500 opacity-90 hover:opacity-100"
+                        }`}
+                        title={col.name}
+                      >
+                        {col.image ? (
+                          <Image src={col.image} alt={col.name} fill className="object-contain p-1.5" />
+                        ) : (
+                          <span
+                            className="w-10 h-10 rounded-full border border-black/20 shadow-inner"
+                            style={{ backgroundColor: col.colorHex || "#C5A059" }}
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── 4. MULTI-SIZE OPTION PILLS (Only if admin added sizes) ── */}
+              {hasAdminSizes && (
+                <div className="mb-6">
+                  <label className="block text-[13px] font-medium text-gray-300 mb-2 font-pally">
+                    Size
+                  </label>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {availableSizes.map((sz, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedSizeIdx(idx)}
+                        className={`px-5 py-2.5 rounded-full text-[13px] font-bold font-pally transition-all cursor-pointer flex items-center gap-2 ${
+                          selectedSizeIdx === idx
+                            ? "bg-[#141416] text-white border-2 border-white/90 shadow-md scale-102"
+                            : "bg-transparent border border-gray-400/60 text-cream/90 hover:border-white hover:text-white"
+                        }`}
+                      >
+                        <span>{sz.name}</span>
+                        {sz.price && (
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                              selectedSizeIdx === idx
+                                ? "bg-accent/20 text-accent border border-accent/40"
+                                : "bg-white/10 text-gray-300"
+                            }`}
+                          >
+                            ₹{sz.price.toLocaleString("en-IN")}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Product Highlights */}
               {((product.highlights && product.highlights.length > 0) || (product.features && product.features.length > 0)) && (
                 <div className="mb-6 p-4 bg-dark2/90 border border-border/80 rounded-xl">
                   <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-3 font-mono flex items-center gap-1.5">
@@ -649,17 +741,7 @@ export default function ProductDetailClient({
                 </div>
               )}
 
-              {/* 4. Product Description (Preserves formatting with white-space: pre-wrap) */}
-              {product.description && (
-                <div className="mb-6 p-4 bg-dark2/60 border border-border/60 rounded-xl">
-                  <h3 className="text-[12px] font-extrabold uppercase tracking-widest text-accent mb-2.5 font-mono">
-                    Product Description
-                  </h3>
-                  <div className="text-[14px] text-cream/90 leading-relaxed whitespace-pre-wrap font-sans">
-                    {product.description}
-                  </div>
-                </div>
-              )}
+
 
               {/* Trust badges banner */}
               <div className="grid grid-cols-3 gap-2 p-3 bg-dark2/80 border border-border rounded-xl mb-6">
@@ -685,42 +767,6 @@ export default function ProductDetailClient({
                   </div>
                 </div>
               </div>
-
-              {/* Color Options Section */}
-              {colorOptions.length > 0 && (
-                <div className="mb-6">
-                  <label className="block text-[11px] font-bold tracking-wider uppercase text-muted mb-2">
-                    Color Option: <span className="text-cream font-semibold">{colorOptions[selectedColor]?.name}</span>
-                  </label>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {colorOptions.map((col, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSelectColor(idx)}
-                        className={`group relative rounded-xl p-1 border-2 transition-all flex items-center gap-2 cursor-pointer ${
-                          selectedColor === idx
-                            ? "border-accent bg-dark3 shadow-[0_0_12px_rgba(197,160,89,0.3)]"
-                            : "border-border bg-dark2 hover:border-gray-500"
-                        }`}
-                      >
-                        {col.image ? (
-                          <div className="w-12 h-12 bg-white rounded-lg overflow-hidden relative p-0.5 shrink-0">
-                            <Image src={col.image} alt={col.name} fill className="object-contain p-0.5" />
-                          </div>
-                        ) : (
-                          <span
-                            className="w-8 h-8 rounded-full border border-white/20 inline-block shrink-0 shadow-inner"
-                            style={{ backgroundColor: col.colorHex || "#C5A059" }}
-                          />
-                        )}
-                        <span className="text-[12px] font-bold text-cream px-2 pr-3">
-                          {col.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Quantity Picker */}
               <div className="mb-6">
@@ -789,17 +835,149 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              {/* 5. Specifications & What's Included */}
-              <div className="border-t border-border pt-4">
+              {/* ── ACCORDION 1: PRODUCT DESCRIPTION ── */}
+              {product.description && (
+                <div className="border-t border-border pt-4 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionOpen(!isDescriptionOpen)}
+                    className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer group"
+                  >
+                    <span className="flex items-center gap-2 group-hover:text-accent transition-colors">
+                      <span>📝</span> Product Description
+                    </span>
+                    <span className="text-muted group-hover:text-accent transition-colors text-xl font-bold">
+                      {isDescriptionOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {isDescriptionOpen && (
+                    <div className="mt-3 bg-dark2/90 border border-border p-4 sm:p-5 rounded-2xl text-[13.5px] text-cream/90 leading-relaxed whitespace-pre-wrap font-sans animate-in fade-in duration-200">
+                      {product.description}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── ACCORDION 2: SCALE SIZE GUIDE ── */}
+              <div className="border-t border-border pt-4 mb-4">
                 <button
-                  onClick={() => setIsDescOpen(!isDescOpen)}
-                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer"
+                  type="button"
+                  onClick={() => setIsScaleGuideOpen(!isScaleGuideOpen)}
+                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer group"
                 >
-                  <span>Specifications & What&apos;s Included</span>
-                  <span className="text-muted text-lg">{isDescOpen ? "−" : "+"}</span>
+                  <span className="flex items-center gap-2 group-hover:text-accent transition-colors">
+                    <span>📏</span> Scale Size Guide
+                  </span>
+                  <span className="text-muted group-hover:text-accent transition-colors text-xl font-bold">
+                    {isScaleGuideOpen ? "−" : "+"}
+                  </span>
                 </button>
 
-                {isDescOpen && (
+                {isScaleGuideOpen && (
+                  <div className="mt-3 bg-dark2/90 border border-border p-4 sm:p-5 rounded-2xl space-y-4 text-[13px] text-muted leading-relaxed font-sans animate-in fade-in duration-200">
+                    <div>
+                      <p className="font-bold text-cream text-[14px] mb-1">What is diecast scale?</p>
+                      <p className="text-gray-300 leading-relaxed text-[12.5px]">
+                        Diecast scale is a measure of diecast car size relative to the actual real-world vehicle. It may seem confusing at first, but it&apos;s really simple!
+                      </p>
+                    </div>
+
+                    {/* Model Car Scale/Size Guide Visual Comparison Table */}
+                    <div>
+                      <h4 className="text-[12px] font-extrabold uppercase tracking-wider text-accent mb-3 font-mono">
+                        Model Car Scale / Size Guide
+                      </h4>
+
+                      <div className="border border-border/80 rounded-xl overflow-hidden bg-white text-dark">
+                        {/* 1:18 Scale Row */}
+                        <div className="grid grid-cols-12 border-b border-gray-200 items-center">
+                          <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
+                            <div className="w-full h-16 sm:h-20 relative">
+                              <Image
+                                src="/images/scale-1-18.png"
+                                alt="1:18 Diecast car scale guide"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-7 p-3.5">
+                            <p className="font-extrabold text-[14px] text-black">1:18 scale</p>
+                            <p className="text-[11.5px] text-gray-600 mt-0.5 leading-snug">
+                              Length (approx.) 23 - 28 cm<br />
+                              238 mm, 9.5 - 11 inches
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 1:24 Scale Row */}
+                        <div className="grid grid-cols-12 border-b border-gray-200 items-center">
+                          <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
+                            <div className="w-full h-14 sm:h-16 relative">
+                              <Image
+                                src="/images/scale-1-24.png"
+                                alt="1:24 Diecast car scale guide"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-7 p-3.5">
+                            <p className="font-extrabold text-[14px] text-black">1:24 scale</p>
+                            <p className="text-[11.5px] text-gray-600 mt-0.5 leading-snug">
+                              Length (approx.) 16.5 - 20 cm<br />
+                              179 mm, 6.5 - 8 inches
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 1:32 Scale Row */}
+                        <div className="grid grid-cols-12 items-center">
+                          <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
+                            <div className="w-full h-12 sm:h-14 relative">
+                              <Image
+                                src="/images/scale-1-32.png"
+                                alt="1:32 Diecast car scale guide"
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-7 p-3.5">
+                            <p className="font-extrabold text-[14px] text-black">1:32 scale</p>
+                            <p className="text-[11.5px] text-gray-600 mt-0.5 leading-snug">
+                              Length (approx.) 12 - 15 cm<br />
+                              130 mm, 5 - 6 inches
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[12px] text-gray-300 leading-relaxed">
+                      A 1/18 scale diecast car is usually about 24 - 28cm (depending on the size of the actual car). A 1/24 scale diecast car is generally about 16 - 20cm. Many of the cars made in smaller scales (1/32) are made so that the car is around 5 inches long.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* ── ACCORDION 3: SPECIFICATIONS & BOX CONTENTS ── */}
+              <div className="border-t border-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsSpecsOpen(!isSpecsOpen)}
+                  className="w-full flex items-center justify-between text-left py-2 font-pally font-bold text-[16px] text-cream cursor-pointer group"
+                >
+                  <span className="flex items-center gap-2 group-hover:text-accent transition-colors">
+                    <span>📋</span> Specifications & Box Contents
+                  </span>
+                  <span className="text-muted group-hover:text-accent transition-colors text-xl font-bold">
+                    {isSpecsOpen ? "−" : "+"}
+                  </span>
+                </button>
+
+                {isSpecsOpen && (
                   <div className="mt-3 space-y-4 text-[13.5px] text-muted leading-relaxed animate-in fade-in duration-200">
                     {/* What's Included List */}
                     {product.includedItems && product.includedItems.length > 0 && (
@@ -877,73 +1055,9 @@ export default function ProductDetailClient({
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {related.map((p) => {
-                const itemDiscount =
-                  p.oldPrice > p.price
-                    ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
-                    : 0;
-
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/products/${p.slug || p.id}`}
-                    className="group bg-dark2 border border-border rounded-2xl overflow-hidden
-                               hover:border-accent hover:shadow-[0_8px_30px_rgba(197,160,89,0.18)] hover:-translate-y-1.5 transition-all duration-300
-                               no-underline flex flex-col relative"
-                  >
-                    {/* Scale & Discount badges on thumbnail */}
-                    <div className="bg-white overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
-                      <span className="absolute top-2.5 left-2.5 z-10 text-[9.5px] font-extrabold text-dark bg-cream/90 backdrop-blur-md px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
-                        {p.scale || "1:24"}
-                      </span>
-
-                      {itemDiscount > 0 && (
-                        <span className="absolute top-2.5 right-2.5 z-10 text-[9.5px] font-extrabold text-white bg-promo px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
-                          {itemDiscount}% OFF
-                        </span>
-                      )}
-
-                      <Image
-                        src={p.img}
-                        alt={p.shortName || p.name}
-                        width={280}
-                        height={210}
-                        className="w-full h-full object-contain p-4 group-hover:scale-108 transition-transform duration-300"
-                      />
-                    </div>
-
-                    <div className="p-4 flex flex-col justify-between flex-1 bg-dark2">
-                      <div>
-                        <span className="text-[10px] font-bold text-accent/80 uppercase tracking-widest block mb-1">
-                          {p.category === "RC" ? "RC Toy" : p.category === "Frame" ? "3D Display" : `${p.scale || "1:24"} Scale`}
-                        </span>
-                        <p className="text-[13px] font-bold text-cream leading-snug group-hover:text-accent transition-colors line-clamp-2">
-                          {p.shortName || p.name}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/50">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-[15px] font-extrabold text-cream font-pally">{p.priceStr}</span>
-                          {p.oldPriceStr && (
-                            <span className="text-[11px] text-dim line-through">{p.oldPriceStr}</span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSelectedModalProduct(p);
-                          }}
-                          className="text-[11px] font-pally font-extrabold text-accent hover:text-white bg-accent/10 hover:bg-accent px-3 py-1.5 rounded-lg border border-accent/30 tracking-wider uppercase transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-                        >
-                          BUY NOW
-                        </button>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+              {related.map((p) => (
+                <ProductCard key={p.id} product={p} variant="dark" />
+              ))}
             </div>
           </div>
         )}
@@ -951,13 +1065,19 @@ export default function ProductDetailClient({
 
       {/* Instant Checkout Modal for Main Product */}
       <BuyNowModal
-        product={product}
+        product={{
+          ...product,
+          price: activePrice,
+          priceStr: `₹${activePrice.toLocaleString("en-IN")}`,
+        }}
         quantity={qty}
         isOpen={showBuyModal}
         onClose={() => setShowBuyModal(false)}
+        selectedColorName={selectedColorName || undefined}
+        selectedSizeName={selectedSizeName || undefined}
       />
 
-      {/* Instant Checkout Modal for Recommended Product */}
+      {/* Instant Checkout Modal for Related Product */}
       {selectedModalProduct && (
         <BuyNowModal
           product={selectedModalProduct}
@@ -966,12 +1086,6 @@ export default function ProductDetailClient({
           onClose={() => setSelectedModalProduct(null)}
         />
       )}
-
-      {/* Floating Showcase Video Reel */}
-      <ProductVideoFloating
-        videoUrl={product.videoUrl}
-        productName={product.name}
-      />
     </div>
   );
 }

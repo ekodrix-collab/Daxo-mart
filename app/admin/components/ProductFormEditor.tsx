@@ -214,6 +214,14 @@ export default function ProductFormEditor({
   const [newColorImg, setNewColorImg] = useState("");
   const [isUploadingColorImg, setIsUploadingColorImg] = useState(false);
 
+  // Size Options
+  const [sizes, setSizes] = useState<Array<{ name: string; price?: number; oldPrice?: number }>>(
+    initialData?.sizes || []
+  );
+  const [newSizeName, setNewSizeName] = useState("");
+  const [newSizePrice, setNewSizePrice] = useState("");
+  const [newSizeOldPrice, setNewSizeOldPrice] = useState("");
+
   // SEO
   const [metaTitle, setMetaTitle] = useState(initialData?.metaTitle || "");
   const [metaDescription, setMetaDescription] = useState(
@@ -260,9 +268,44 @@ export default function ProductFormEditor({
 
     setIsUploadingVideo(true);
     setVideoSizeBytes(file.size);
-    setVideoUploadStatus(`Uploading ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
+    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+    setVideoUploadStatus(`Uploading ${file.name} (${sizeInMB} MB)...`);
 
     try {
+      // 1. Direct Browser-to-Cloudinary Upload via Signed API (Bypasses Vercel 4.5 MB limit)
+      const sigRes = await fetch("/api/upload-video/signature");
+      if (sigRes.ok) {
+        const sigData = await sigRes.json();
+        if (sigData.success && sigData.signature) {
+          const directData = new FormData();
+          directData.append("file", file);
+          directData.append("api_key", sigData.apiKey);
+          directData.append("timestamp", sigData.timestamp.toString());
+          directData.append("signature", sigData.signature);
+          directData.append("folder", sigData.folder);
+
+          const cRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${sigData.cloudName}/video/upload`,
+            {
+              method: "POST",
+              body: directData,
+            }
+          );
+
+          if (cRes.ok) {
+            const cResult = await cRes.json();
+            if (cResult.secure_url) {
+              setVideoUrl(cResult.secure_url);
+              setVideoSizeBytes(cResult.bytes || file.size);
+              setVideoUploadStatus("Video uploaded successfully!");
+              setIsUploadingVideo(false);
+              return;
+            }
+          }
+        }
+      }
+
+      // 2. Fallback to API route if signature isn't available
       const data = new FormData();
       data.append("file", file);
 
@@ -270,6 +313,14 @@ export default function ProductFormEditor({
         method: "POST",
         body: data,
       });
+
+      if (!res.ok) {
+        const textErr = await res.text();
+        if (res.status === 413) {
+          throw new Error("Video file exceeds server size limit. Please upload directly.");
+        }
+        throw new Error(`Upload failed (${res.status}): ${textErr.slice(0, 100)}`);
+      }
 
       const result = await res.json();
       if (result.url) {
@@ -282,7 +333,7 @@ export default function ProductFormEditor({
       }
     } catch (err: any) {
       console.error("Video upload error:", err);
-      alert("Video upload failed: " + err.message);
+      alert("Video upload error: " + (err.message || "Upload failed"));
       setVideoUploadStatus("");
     } finally {
       setIsUploadingVideo(false);
@@ -347,6 +398,28 @@ export default function ProductFormEditor({
 
   const removeColorOption = (idx: number) => {
     setColors(colors.filter((_, i) => i !== idx));
+  };
+
+  const addSizeOption = () => {
+    if (!newSizeName.trim()) {
+      alert("Please enter a size name (e.g., Regular (1:24) : (6-7 Inch))");
+      return;
+    }
+    setSizes([
+      ...sizes,
+      {
+        name: newSizeName.trim(),
+        price: newSizePrice ? Number(newSizePrice) : undefined,
+        oldPrice: newSizeOldPrice ? Number(newSizeOldPrice) : undefined,
+      },
+    ]);
+    setNewSizeName("");
+    setNewSizePrice("");
+    setNewSizeOldPrice("");
+  };
+
+  const removeSizeOption = (idx: number) => {
+    setSizes(sizes.filter((_, i) => i !== idx));
   };
 
   // Multiple Image File Upload Handler
@@ -459,6 +532,7 @@ export default function ProductFormEditor({
       brand,
       specs,
       colors,
+      sizes,
       videoUrl: videoUrl || null,
       hoverImage: hoverImage || null,
       slug: finalSlug,
@@ -1309,6 +1383,101 @@ export default function ProductFormEditor({
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* SIZE VARIANTS SECTION */}
+            <div className="space-y-6 max-w-4xl pt-6 border-t border-[#222226]">
+              <h3 className="text-[16px] font-bold text-[#C5A059] tracking-wide uppercase border-b border-[#222226] pb-2 flex items-center gap-2">
+                📐 Size Options & Pricing
+              </h3>
+
+              <div className="bg-[#1C1C20] border border-[#26262B] p-6 rounded-2xl space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
+                      Size Name <span className="text-[#C5A059]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newSizeName}
+                      onChange={(e) => setNewSizeName(e.target.value)}
+                      placeholder="e.g. Regular (1:24) : (6-7 Inch)"
+                      className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-2.5 rounded-xl outline-none focus:border-[#C5A059]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
+                      Selling Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={newSizePrice}
+                      onChange={(e) => setNewSizePrice(e.target.value)}
+                      placeholder="e.g. 1599"
+                      className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-2.5 rounded-xl outline-none focus:border-[#C5A059]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">
+                      Original Price (₹) <span className="text-gray-500 text-[10px]">(Strike Price)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={newSizeOldPrice}
+                      onChange={(e) => setNewSizeOldPrice(e.target.value)}
+                      placeholder="e.g. 2799"
+                      className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[13px] px-4 py-2.5 rounded-xl outline-none focus:border-[#C5A059]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={addSizeOption}
+                    className="bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[12.5px] px-5 py-2.5 rounded-xl transition-all shadow flex items-center gap-2 cursor-pointer"
+                  >
+                    <Plus size={16} /> Add Size Option
+                  </button>
+                </div>
+              </div>
+
+              {/* List of configured sizes */}
+              <div>
+                <h4 className="text-[14px] font-bold text-white mb-3">
+                  Configured Size Options ({sizes.length})
+                </h4>
+                {sizes.length === 0 ? (
+                  <p className="text-[13px] text-gray-500 italic bg-[#141416] p-4 rounded-xl border border-[#222226]">
+                    No size options added. Product will use default price. Add sizes for multi-size pricing.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {sizes.map((sz, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-[#1C1C20] rounded-xl border border-[#26262B]"
+                      >
+                        <div>
+                          <p className="text-[13px] font-bold text-white">{sz.name}</p>
+                          <p className="text-[11px] text-gray-400">
+                            {sz.price ? `₹${sz.price.toLocaleString("en-IN")}` : "Default Price"}
+                            {sz.oldPrice ? ` (MRP: ₹${sz.oldPrice.toLocaleString("en-IN")})` : ""}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeSizeOption(idx)}
+                          className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/10 cursor-pointer"
+                          title="Remove size option"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* SECTION A: PRODUCT HIGHLIGHTS */}

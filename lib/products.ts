@@ -4,6 +4,12 @@ export interface ColorOption {
   image?: string;     // URL of variant image uploaded via Admin
 }
 
+export interface SizeOption {
+  name: string;      // e.g. "Regular (1:24) : (6-7 Inch)" or "Large (1:18) : (8-9 Inch)"
+  price?: number;     // Custom selling price for size
+  oldPrice?: number;  // Custom strike price for size
+}
+
 export interface Product {
   id: number | string;
   slug: string;
@@ -29,6 +35,7 @@ export interface Product {
   isActive?: boolean;
   sku: string;
   colors?: ColorOption[];
+  sizes?: SizeOption[];
   videoUrl?: string | null;
   hoverImage?: string | null;
 }

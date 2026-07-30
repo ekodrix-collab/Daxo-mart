@@ -40,6 +40,10 @@ export async function fetchProducts(): Promise<Product[]> {
         ? item.colors
         : (typeof item.colors === "string" ? (() => { try { return JSON.parse(item.colors); } catch { return []; } })() : []);
 
+      const parsedSizes = Array.isArray(item.sizes)
+        ? item.sizes
+        : (typeof item.sizes === "string" ? (() => { try { return JSON.parse(item.sizes); } catch { return []; } })() : []);
+
       // Gather variant images from color options
       const colorImages = parsedColors
         .map((c: any) => c?.image)
@@ -95,6 +99,7 @@ export async function fetchProducts(): Promise<Product[]> {
         isActive: item.is_active ?? item.isActive ?? true,
         sku: item.sku || `DXM-${String(item.id).slice(0, 5)}`,
         colors: parsedColors,
+        sizes: parsedSizes,
         videoUrl: item.video_url || item.videoUrl || null,
         hoverImage: item.hover_image || item.hoverImage || null,
       };
@@ -108,6 +113,18 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
   try {
     const isEdit = Boolean(productData.id);
 
+    const colorImgs = (productData.colors || [])
+      .map((c: any) => c?.image)
+      .filter((url: any): url is string => typeof url === "string" && url.length > 0);
+
+    const allImagesCombined = Array.from(
+      new Set([
+        ...(productData.images || []),
+        productData.img,
+        ...colorImgs,
+      ])
+    ).filter(Boolean);
+
     const payload: Record<string, any> = {
       title: productData.name,
       slug: productData.slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
@@ -118,7 +135,9 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       price: Number(productData.price) || 0,
       sale_price: Number(productData.oldPrice) || Number(productData.price) || 0,
       category_name: productData.category || "1:24",
-      images: productData.images && productData.images.length > 0 ? productData.images : [productData.img],
+      images: allImagesCombined.length > 0 ? allImagesCombined : [productData.img || "/images/placeholder.png"],
+      colors: productData.colors || [],
+      sizes: productData.sizes || [],
       stock: Number(productData.stock ?? 10),
       is_active: productData.isActive ?? true,
       is_featured: Boolean(productData.badge),
@@ -128,7 +147,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
     };
 
     if (isEdit) {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("products")
         .update(payload)
         .eq("id", productData.id)
@@ -136,21 +155,78 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
         .single();
 
       if (error) {
-        console.error("Error updating product in Supabase:", error);
-        throw error;
+        console.warn("First update attempt failed, retrying without optional schema columns (colors, video_url, etc.):", error.message);
+        // Fallback: If 'colors' column is missing in Supabase DB schema, remove 'colors' and retry
+        delete payload.colors;
+        delete payload.sizes;
+        const retry1 = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", productData.id)
+          .select()
+          .single();
+
+        if (!retry1.error) {
+          data = retry1.data;
+          error = null;
+        } else {
+          delete payload.video_url;
+          delete payload.hover_image;
+          const retry2 = await supabase
+            .from("products")
+            .update(payload)
+            .eq("id", productData.id)
+            .select()
+            .single();
+
+          if (!retry2.error) {
+            data = retry2.data;
+            error = null;
+          } else {
+            console.error("All Supabase update retries failed:", retry2.error);
+            throw retry2.error;
+          }
+        }
       }
       return data;
     } else {
       payload.created_at = new Date().toISOString();
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("products")
         .insert(payload)
         .select()
         .single();
 
       if (error) {
-        console.error("Error inserting product into Supabase:", error);
-        throw error;
+        console.warn("First insert attempt failed, retrying without optional schema columns:", error.message);
+        delete payload.colors;
+        delete payload.sizes;
+        const retry1 = await supabase
+          .from("products")
+          .insert(payload)
+          .select()
+          .single();
+
+        if (!retry1.error) {
+          data = retry1.data;
+          error = null;
+        } else {
+          delete payload.video_url;
+          delete payload.hover_image;
+          const retry2 = await supabase
+            .from("products")
+            .insert(payload)
+            .select()
+            .single();
+
+          if (!retry2.error) {
+            data = retry2.data;
+            error = null;
+          } else {
+            console.error("All Supabase insert retries failed:", retry2.error);
+            throw retry2.error;
+          }
+        }
       }
       return data;
     }
@@ -366,3 +442,18 @@ export async function syncOrderStockOnStatusChange(
     console.warn("Error syncing order stock change to DB:", e);
   }
 }
+
+export async function deleteProductFromSupabase(id: number | string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) {
+      console.error("Error deleting product from Supabase:", error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("Failed to delete product from Supabase:", e);
+    return false;
+  }
+}
+
