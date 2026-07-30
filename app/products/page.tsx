@@ -229,143 +229,34 @@ function ProductsContent() {
   ]);
 
   return (
-    <div className="bg-dark min-h-screen pb-20">
+    <div className="bg-white min-h-screen pb-20">
       {/* Main Container */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pt-6">
         
-        {/* Top Control Bar — Clean Mobile-Responsive Layout */}
-        <div className="bg-dark2 border border-border rounded-xl p-3 sm:p-4 mb-6 shadow-sm flex flex-col gap-3">
-          
-          {/* Row 1: Search Box (Full Width) */}
-          <div className="relative w-full">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Search by model, scale, brand..."
-              value={searchQuery}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSearchQuery(val);
-                const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
-                if (val.trim()) {
-                  params.set("search", val.trim());
-                } else {
-                  params.delete("search");
-                  params.delete("q");
-                }
-                const str = params.toString();
-                router.replace(str ? `/products?${str}` : "/products", { scroll: false });
-              }}
-              className="w-full bg-dark3 border border-border/80 focus:border-accent rounded-lg pl-9 pr-8 py-2.5 text-xs text-cream outline-none font-pally transition-colors"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
-                  params.delete("search");
-                  params.delete("q");
-                  const str = params.toString();
-                  router.replace(str ? `/products?${str}` : "/products", { scroll: false });
-                }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-cream cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
 
-          {/* Row 2: Filter & Sort Controls (Grid on mobile, Flex on Desktop) */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 w-full">
-            
-            {/* Left Controls Group: Mobile Filter Trigger & Desktop Clear Filters */}
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
-              
-              {/* Mobile Filter Button */}
-              <button
-                onClick={() => setMobileFilterOpen(true)}
-                className="md:hidden flex items-center justify-center gap-2 bg-dark3 hover:bg-dark border border-border text-cream text-xs font-bold px-3.5 py-2.5 rounded-lg cursor-pointer transition-colors w-full sm:w-auto"
-              >
-                <Filter size={14} className="text-accent" />
-                <span>Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="bg-accent text-dark w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Sort Selector on Mobile (Right column of grid) */}
-              <div className="md:hidden relative w-full">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full bg-dark3 border border-border/80 text-cream text-xs font-bold rounded-lg px-3 py-2.5 outline-none focus:border-accent cursor-pointer font-pally appearance-none text-ellipsis overflow-hidden pr-7"
-                >
-                  {SORT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <ArrowUpDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-accent pointer-events-none" />
-              </div>
-
-              {/* Clear Filters Button (Desktop & Mobile when active) */}
-              {hasActiveFilters && (
-                <button
-                  onClick={handleClearAllFilters}
-                  className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2 sm:py-2.5 rounded-lg cursor-pointer transition-colors w-full sm:w-auto"
-                >
-                  <RotateCcw size={13} /> Clear Filters
-                </button>
-              )}
-            </div>
-
-            {/* Desktop Sort Selector */}
-            <div className="hidden md:flex items-center gap-2 text-xs text-muted">
-              <ArrowUpDown size={14} className="text-accent" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="bg-dark3 border border-border/80 text-cream text-xs font-bold rounded-lg px-3 py-2 outline-none focus:border-accent cursor-pointer font-pally"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-          </div>
-        </div>
 
         {/* Active Filter Chips */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 bg-dark3/50 border border-border/60 p-3 rounded-lg text-xs">
-            <span className="text-muted font-bold mr-1">Active Filters:</span>
+          <div className="flex flex-wrap items-center gap-2 mb-6 bg-gray-50 border border-gray-200 p-3 rounded-lg text-xs">
+            <span className="text-gray-500 font-bold mr-1">Active Filters:</span>
 
             {categoryFilter !== "ALL" && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Category: {categoryFilter}
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => handleSelectCategory("ALL")}
                 />
               </span>
             )}
 
             {searchQuery.trim() && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Search: "{searchQuery}"
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => {
                     setSearchQuery("");
                     const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
@@ -379,22 +270,22 @@ function ProductsContent() {
             )}
 
             {pricePreset !== "ALL" && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Price: {PRICE_PRESETS.find((p) => p.value === pricePreset)?.label}
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => setPricePreset("ALL")}
                 />
               </span>
             )}
 
             {(customMin || customMax) && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Range: ₹{customMin || 0} - ₹{customMax || "∞"}
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => {
                     setCustomMin("");
                     setCustomMax("");
@@ -404,33 +295,33 @@ function ProductsContent() {
             )}
 
             {badgeFilter !== "ALL" && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Badge: {badgeFilter}
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => setBadgeFilter("ALL")}
                 />
               </span>
             )}
 
             {inStockOnly && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 In Stock Only
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => setInStockOnly(false)}
                 />
               </span>
             )}
 
             {sortBy !== "featured" && (
-              <span className="bg-accent/10 border border-accent/30 text-accent px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
+              <span className="bg-[#0c0c0c] text-white px-2.5 py-1 rounded-md flex items-center gap-1 font-semibold">
                 Sort: {SORT_OPTIONS.find((s) => s.value === sortBy)?.label}
                 <X
                   size={12}
-                  className="cursor-pointer hover:text-white"
+                  className="cursor-pointer hover:text-gray-300"
                   onClick={() => setSortBy("featured")}
                 />
               </span>
@@ -438,7 +329,7 @@ function ProductsContent() {
 
             <button
               onClick={handleClearAllFilters}
-              className="text-rose-400 hover:text-rose-300 underline font-bold ml-auto cursor-pointer"
+              className="text-rose-600 hover:text-rose-700 underline font-bold ml-auto cursor-pointer"
             >
               Clear All
             </button>
@@ -449,15 +340,15 @@ function ProductsContent() {
         <div className="flex gap-8">
           {/* DESKTOP SIDEBAR FILTERS */}
           <aside className="hidden md:block w-64 shrink-0 space-y-6">
-            <div className="bg-dark2 border border-border rounded-xl p-5 space-y-6 sticky top-24">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <h2 className="text-sm font-extrabold uppercase tracking-wider text-cream flex items-center gap-2 font-pally">
-                  <Filter size={16} className="text-accent" /> Filter Products
+            <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-6 sticky top-24 shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 flex items-center gap-2 font-pally">
+                  <Filter size={16} className="text-gray-700" /> Filter Products
                 </h2>
                 {hasActiveFilters && (
                   <button
                     onClick={handleClearAllFilters}
-                    className="text-[11px] text-rose-400 hover:underline font-bold cursor-pointer"
+                    className="text-[11px] text-rose-500 hover:underline font-bold cursor-pointer"
                   >
                     Reset
                   </button>
@@ -466,7 +357,7 @@ function ProductsContent() {
 
               {/* 1. Category Filter */}
               <div>
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3 font-pally">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 font-pally">
                   Categories
                 </h3>
                 <div className="space-y-1">
@@ -478,8 +369,8 @@ function ProductsContent() {
                         onClick={() => handleSelectCategory(cat.value)}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-accent text-dark font-bold shadow-sm"
-                            : "text-muted hover:text-cream hover:bg-dark3"
+                            ? "bg-[#0c0c0c] text-white font-bold shadow-sm"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         }`}
                       >
                         <span>{cat.label}</span>
@@ -491,8 +382,8 @@ function ProductsContent() {
               </div>
 
               {/* 2. Price Range Filter */}
-              <div className="border-t border-border pt-4">
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3 font-pally">
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 font-pally">
                   Price Range
                 </h3>
                 <div className="space-y-1">
@@ -508,8 +399,8 @@ function ProductsContent() {
                         }}
                         className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-accent/20 border border-accent text-accent font-bold"
-                            : "text-muted hover:text-cream hover:bg-dark3"
+                            ? "bg-gray-100 border border-gray-900 text-gray-900 font-bold"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         }`}
                       >
                         <span>{preset.label}</span>
@@ -522,7 +413,7 @@ function ProductsContent() {
                 {/* Custom Min / Max Inputs */}
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-muted block mb-1 font-medium">Min (₹)</label>
+                    <label className="text-[10px] text-gray-500 block mb-1 font-medium">Min (₹)</label>
                     <input
                       type="number"
                       placeholder="0"
@@ -531,11 +422,11 @@ function ProductsContent() {
                         setCustomMin(e.target.value);
                         setPricePreset("ALL");
                       }}
-                      className="w-full bg-dark3 border border-border rounded px-2.5 py-1.5 text-xs text-cream outline-none focus:border-accent"
+                      className="w-full bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 text-xs text-gray-900 outline-none focus:border-gray-800"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-muted block mb-1 font-medium">Max (₹)</label>
+                    <label className="text-[10px] text-gray-500 block mb-1 font-medium">Max (₹)</label>
                     <input
                       type="number"
                       placeholder="10000"
@@ -544,15 +435,15 @@ function ProductsContent() {
                         setCustomMax(e.target.value);
                         setPricePreset("ALL");
                       }}
-                      className="w-full bg-dark3 border border-border rounded px-2.5 py-1.5 text-xs text-cream outline-none focus:border-accent"
+                      className="w-full bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 text-xs text-gray-900 outline-none focus:border-gray-800"
                     />
                   </div>
                 </div>
               </div>
 
               {/* 3. Product Badges */}
-              <div className="border-t border-border pt-4">
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3">
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 font-pally">
                   Special Badges
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
@@ -564,8 +455,8 @@ function ProductsContent() {
                         onClick={() => setBadgeFilter(badge)}
                         className={`px-3 py-1 rounded-md text-xs font-bold uppercase transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-accent text-dark"
-                            : "bg-dark3 text-muted hover:text-cream border border-border"
+                            ? "bg-[#0c0c0c] text-white"
+                            : "bg-gray-100 text-gray-600 hover:text-gray-900 border border-gray-200"
                         }`}
                       >
                         {badge === "ALL" ? "All Tags" : badge}
@@ -576,13 +467,13 @@ function ProductsContent() {
               </div>
 
               {/* 4. Availability */}
-              <div className="border-t border-border pt-4">
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-cream font-medium">
+              <div className="border-t border-gray-100 pt-4">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-800 font-medium">
                   <input
                     type="checkbox"
                     checked={inStockOnly}
                     onChange={(e) => setInStockOnly(e.target.checked)}
-                    className="accent-accent w-4 h-4 rounded cursor-pointer"
+                    className="accent-[#0c0c0c] w-4 h-4 rounded cursor-pointer"
                   />
                   In-Stock Items Only
                 </label>
@@ -592,7 +483,7 @@ function ProductsContent() {
               {hasActiveFilters && (
                 <button
                   onClick={handleClearAllFilters}
-                  className="w-full bg-dark3 hover:bg-rose-500/20 text-rose-400 border border-border hover:border-rose-500/40 text-xs font-extrabold uppercase tracking-wider py-2.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-extrabold uppercase tracking-wider py-2.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <RotateCcw size={14} /> Clear All Filters
                 </button>
@@ -604,15 +495,15 @@ function ProductsContent() {
           <main className="flex-1">
             {/* Header info bar */}
             <div className="flex items-center justify-between mb-5">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted font-pally">
-                Showing <span className="text-cream font-black">{filteredProducts.length}</span>{" "}
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-500 font-pally">
+                Showing <span className="text-gray-900 font-black">{filteredProducts.length}</span>{" "}
                 {filteredProducts.length === 1 ? "Product" : "Products"}
               </span>
 
               {hasActiveFilters && (
                 <button
                   onClick={handleClearAllFilters}
-                  className="text-xs text-accent hover:underline font-bold cursor-pointer"
+                  className="text-xs text-gray-800 hover:underline font-bold cursor-pointer"
                 >
                   Clear Filters & Show All ({productsList.length})
                 </button>
@@ -625,26 +516,26 @@ function ProductsContent() {
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
-                    className="bg-dark2 border border-border rounded-xl aspect-[3/4] animate-pulse"
+                    className="bg-gray-100 border border-gray-200 rounded-xl aspect-[3/4] animate-pulse"
                   />
                 ))}
               </div>
             ) : filteredProducts.length === 0 ? (
               /* No products found state */
-              <div className="bg-dark2 border border-border rounded-2xl p-12 text-center my-6 flex flex-col items-center justify-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-dark3 flex items-center justify-center text-muted">
+              <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center my-6 flex flex-col items-center justify-center gap-4 shadow-sm">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                   <Search size={32} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-cream font-pally">No products found</h3>
-                  <p className="text-xs text-muted mt-1 max-w-sm">
+                  <h3 className="text-lg font-bold text-gray-900 font-pally">No products found</h3>
+                  <p className="text-xs text-gray-500 mt-1 max-w-sm">
                     We couldn't find any products matching your selected filter criteria. Try
                     clearing filters or searching another keyword.
                   </p>
                 </div>
                 <button
                   onClick={handleClearAllFilters}
-                  className="mt-2 bg-accent hover:bg-accent/90 text-dark font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition-all cursor-pointer font-pally shadow-lg flex items-center gap-2"
+                  className="mt-2 bg-[#0c0c0c] hover:bg-black text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3 rounded-xl transition-all cursor-pointer font-pally shadow-lg flex items-center gap-2"
                 >
                   <RotateCcw size={15} /> Clear All Filters
                 </button>
@@ -653,7 +544,7 @@ function ProductsContent() {
               /* Product Grid */
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} variant="dark" />
+                  <ProductCard key={product.id} product={product} variant="light" />
                 ))}
               </div>
             )}
@@ -663,16 +554,16 @@ function ProductsContent() {
 
       {/* MOBILE FILTER MODAL / DRAWER */}
       {mobileFilterOpen && (
-        <div className="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm md:hidden">
-          <div className="w-[88%] max-w-sm bg-dark2 border-r border-border h-full p-6 overflow-y-auto flex flex-col justify-between shadow-2xl">
+        <div className="fixed inset-0 z-50 flex bg-black/50 backdrop-blur-sm md:hidden">
+          <div className="w-[88%] max-w-sm bg-white border-r border-gray-200 h-full p-6 overflow-y-auto flex flex-col justify-between shadow-2xl">
             <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-border pb-4">
-                <h2 className="text-base font-extrabold uppercase tracking-wider text-cream flex items-center gap-2 font-pally">
-                  <SlidersHorizontal size={18} className="text-accent" /> Filter Products
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                <h2 className="text-base font-extrabold uppercase tracking-wider text-gray-900 flex items-center gap-2 font-pally">
+                  <SlidersHorizontal size={18} className="text-gray-700" /> Filter Products
                 </h2>
                 <button
                   onClick={() => setMobileFilterOpen(false)}
-                  className="p-1.5 rounded bg-dark3 text-muted hover:text-cream cursor-pointer"
+                  className="p-1.5 rounded bg-gray-100 text-gray-500 hover:text-gray-900 cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -680,7 +571,7 @@ function ProductsContent() {
 
               {/* Mobile Category */}
               <div>
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 font-pally">
                   Category
                 </h3>
                 <div className="space-y-1.5">
@@ -694,8 +585,8 @@ function ProductsContent() {
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
                           isSelected
-                            ? "bg-accent text-dark font-bold shadow-md"
-                            : "text-muted bg-dark3 hover:text-cream"
+                            ? "bg-[#0c0c0c] text-white font-bold shadow-md"
+                            : "text-gray-600 bg-gray-50 hover:text-gray-900"
                         }`}
                       >
                         <span>{cat.label}</span>
@@ -707,8 +598,8 @@ function ProductsContent() {
               </div>
 
               {/* Mobile Price Presets */}
-              <div className="border-t border-border pt-4">
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3">
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 font-pally">
                   Price Range
                 </h3>
                 <div className="space-y-1.5">
@@ -720,8 +611,8 @@ function ProductsContent() {
                         onClick={() => setPricePreset(preset.value)}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
                           isSelected
-                            ? "bg-accent/20 border border-accent text-accent font-bold"
-                            : "text-muted bg-dark3 hover:text-cream"
+                            ? "bg-gray-100 border border-gray-900 text-gray-900 font-bold"
+                            : "text-gray-600 bg-gray-50 hover:text-gray-900"
                         }`}
                       >
                         <span>{preset.label}</span>
@@ -733,8 +624,8 @@ function ProductsContent() {
               </div>
 
               {/* Mobile Badges */}
-              <div className="border-t border-border pt-4">
-                <h3 className="text-xs font-bold text-cream uppercase tracking-wider mb-3">
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 font-pally">
                   Badges
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -745,7 +636,7 @@ function ProductsContent() {
                         key={badge}
                         onClick={() => setBadgeFilter(badge)}
                         className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase cursor-pointer transition-all ${
-                          isSelected ? "bg-accent text-dark font-bold" : "bg-dark3 text-muted hover:text-cream"
+                          isSelected ? "bg-[#0c0c0c] text-white font-bold" : "bg-gray-100 text-gray-600 hover:text-gray-900"
                         }`}
                       >
                         {badge}
@@ -757,10 +648,10 @@ function ProductsContent() {
             </div>
 
             {/* Mobile Bottom Actions */}
-            <div className="border-t border-border pt-4 mt-6 space-y-2">
+            <div className="border-t border-gray-100 pt-4 mt-6 space-y-2">
               <button
                 onClick={() => setMobileFilterOpen(false)}
-                className="w-full bg-accent text-dark font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer shadow-lg font-pally"
+                className="w-full bg-[#0c0c0c] text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer shadow-lg font-pally"
               >
                 Apply Filters ({filteredProducts.length})
               </button>
@@ -770,7 +661,7 @@ function ProductsContent() {
                     handleClearAllFilters();
                     setMobileFilterOpen(false);
                   }}
-                  className="w-full bg-dark3 text-rose-400 text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl cursor-pointer"
+                  className="w-full bg-gray-100 text-rose-600 text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl cursor-pointer"
                 >
                   Clear All Filters
                 </button>
@@ -787,7 +678,7 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-dark min-h-screen p-10 text-white flex items-center justify-center">
+        <div className="bg-white min-h-screen p-10 text-gray-900 flex items-center justify-center font-pally">
           Loading store products...
         </div>
       }
