@@ -39,7 +39,7 @@ export default function FramesSection() {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mb-6 sm:mb-8">
-          <h2 className="text-[22px] sm:text-[32px] font-extrabold text-[#111111] uppercase tracking-wide font-sans leading-tight">
+          <h2 className="text-[26px] sm:text-[30px] md:text-[34px] font-black text-[#1a1714] uppercase tracking-wide font-pally leading-tight">
             3D CAR FRAME
           </h2>
         </div>

@@ -19,7 +19,7 @@ export default function Categories() {
   return (
     <section className="bg-white pt-14 md:pt-16">
       {/* Title — Clean tight top padding, no huge whitespace */}
-      <h2 className="text-center text-[22px] sm:text-[26px] md:text-[28px] font-black tracking-[0.18em] uppercase text-[#0c0c0c] mb-6 sm:mb-8 font-pally">
+      <h2 className="text-center text-[26px] sm:text-[30px] md:text-[34px] font-black text-[#1a1714] uppercase tracking-wide font-pally leading-tight mb-8 md:mb-10">
         Shop By Category
       </h2>
 
