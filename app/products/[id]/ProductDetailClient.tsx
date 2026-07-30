@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -403,6 +403,13 @@ export default function ProductDetailClient({
 
   const { addToCart } = useCart();
   const router = useRouter();
+
+  // Scroll to top on page load / product change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
+  }, [product.id]);
 
   // Only show colors if admin has actually added them
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
