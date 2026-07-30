@@ -137,6 +137,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       category_name: productData.category || "1:24",
       images: allImagesCombined.length > 0 ? allImagesCombined : [productData.img || "/images/placeholder.png"],
       colors: productData.colors || [],
+      sizes: productData.sizes || [],
       stock: Number(productData.stock ?? 10),
       is_active: productData.isActive ?? true,
       is_featured: Boolean(productData.badge),
@@ -157,6 +158,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
         console.warn("First update attempt failed, retrying without optional schema columns (colors, video_url, etc.):", error.message);
         // Fallback: If 'colors' column is missing in Supabase DB schema, remove 'colors' and retry
         delete payload.colors;
+        delete payload.sizes;
         const retry1 = await supabase
           .from("products")
           .update(payload)
@@ -198,6 +200,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       if (error) {
         console.warn("First insert attempt failed, retrying without optional schema columns:", error.message);
         delete payload.colors;
+        delete payload.sizes;
         const retry1 = await supabase
           .from("products")
           .insert(payload)

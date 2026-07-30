@@ -25,6 +25,7 @@ export async function PUT(
       inStock,
       badge,
       colors,
+      sizes,
       hoverImage,
       videoUrl,
     } = body;
@@ -53,6 +54,7 @@ export async function PUT(
       category_name: category || "1:24",
       images: galleryImages,
       colors: colors || [],
+      sizes: sizes || [],
       hover_image: hoverImage || null,
       video_url: videoUrl || null,
       description: description || "",
@@ -79,6 +81,7 @@ export async function PUT(
       
       delete corePayload.cost_price;
       delete corePayload.colors;
+      delete corePayload.sizes;
       delete corePayload.hover_image;
       delete corePayload.video_url;
       

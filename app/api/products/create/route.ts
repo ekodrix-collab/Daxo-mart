@@ -22,6 +22,7 @@ export async function POST(req: Request) {
       inStock,
       badge,
       colors,
+      sizes,
       hoverImage,
       videoUrl,
     } = body;
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       category_name: category || "1:24",
       images: galleryImages,
       colors: colors || [],
+      sizes: sizes || [],
       hover_image: hoverImage || null,
       video_url: videoUrl || null,
       stock: inStock !== false ? 10 : 0,
@@ -91,6 +93,7 @@ export async function POST(req: Request) {
       console.warn("First insert failed, retrying without optional columns (colors, video_url, etc.):", error.message);
       delete corePayload.cost_price;
       delete corePayload.colors;
+      delete corePayload.sizes;
       delete corePayload.hover_image;
       delete corePayload.video_url;
 
