@@ -86,7 +86,7 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
           </div>
 
           {/* Details */}
-          <div className="p-4 flex flex-col gap-1.5 flex-1 justify-between">
+          <div className="p-3.5 sm:p-4 flex flex-col gap-1.5 flex-1 justify-between">
             <div className="flex items-center justify-between">
               <span
                 className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
@@ -105,8 +105,9 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
               )}
             </div>
 
+            {/* Product Title — Clean 2-line height so no text is hidden or cut off */}
             <h3
-              className={`text-[13px] sm:text-[14px] font-bold leading-snug line-clamp-2 min-h-[2.6rem] mt-0.5 transition-colors font-pally ${
+              className={`text-[13px] sm:text-[14px] font-bold leading-[1.38] line-clamp-2 min-h-[2.75rem] py-0.5 transition-colors font-pally ${
                 isLight ? "text-[#0c0c0c] group-hover:text-amber-700" : "text-cream group-hover:text-accent"
               }`}
               title={formatTitleCase(product.shortName || product.name)}
@@ -139,7 +140,7 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
         </Link>
 
         {/* Buy Now Full Width CTA */}
-        <div className="p-4 pt-0 mt-auto">
+        <div className="p-3.5 sm:p-4 pt-0 mt-auto">
           {!product.inStock || product.stock === 0 ? (
             <button
               disabled
