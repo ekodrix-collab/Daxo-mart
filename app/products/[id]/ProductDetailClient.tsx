@@ -448,7 +448,15 @@ export default function ProductDetailClient({
   };
 
   const handleAddToCart = () => {
-    addToCart(product, qty);
+    addToCart(
+      {
+        ...product,
+        price: activePrice,
+        priceStr: `₹${activePrice.toLocaleString("en-IN")}`,
+        scale: selectedSizeName || product.scale,
+      },
+      qty
+    );
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 2500);
   };
@@ -610,13 +618,24 @@ export default function ProductDetailClient({
                         key={idx}
                         type="button"
                         onClick={() => setSelectedSizeIdx(idx)}
-                        className={`px-5 py-2.5 rounded-full text-[13px] font-bold font-pally transition-all cursor-pointer ${
+                        className={`px-5 py-2.5 rounded-full text-[13px] font-bold font-pally transition-all cursor-pointer flex items-center gap-2 ${
                           selectedSizeIdx === idx
                             ? "bg-[#141416] text-white border-2 border-white/90 shadow-md scale-102"
                             : "bg-transparent border border-gray-400/60 text-cream/90 hover:border-white hover:text-white"
                         }`}
                       >
-                        {sz.name}
+                        <span>{sz.name}</span>
+                        {sz.price && (
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                              selectedSizeIdx === idx
+                                ? "bg-accent/20 text-accent border border-accent/40"
+                                : "bg-white/10 text-gray-300"
+                            }`}
+                          >
+                            ₹{sz.price.toLocaleString("en-IN")}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
