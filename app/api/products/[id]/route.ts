@@ -75,10 +75,12 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.warn("First update failed, removing non-standard columns & stringifying images:", error.message);
+      console.warn("First update failed, removing non-standard columns (colors, cost_price, etc.) & stringifying images:", error.message);
       
-      // Fallback: exclude cost_price if column doesn't exist and stringify images array if needed
       delete corePayload.cost_price;
+      delete corePayload.colors;
+      delete corePayload.hover_image;
+      delete corePayload.video_url;
       
       const retry1 = await supabase
         .from("products")

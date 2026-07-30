@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type Product, formatTitleCase } from "@/lib/products";
+import { type Product, type SizeOption, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
 import ProductCard from "@/components/product/ProductCard";
 
@@ -395,7 +395,16 @@ export default function ProductDetailClient({
   const { addToCart } = useCart();
   const router = useRouter();
 
-  const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
+  const colorOptions =
+    product.colors && product.colors.length > 0
+      ? product.colors
+      : product.images && product.images.length > 1
+      ? product.images.map((img, idx) => ({
+          name: `Variant ${idx + 1}`,
+          image: img,
+          colorHex: ["#141416", "#C5A059", "#DC2626", "#2563EB", "#10B981"][idx % 5],
+        }))
+      : [];
 
   const allGalleryImages = Array.from(
     new Set([
@@ -405,15 +414,40 @@ export default function ProductDetailClient({
     ])
   ).filter(Boolean);
 
-  const discountPercent =
-    product.oldPrice && product.oldPrice > product.price
-      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+  const availableSizes: SizeOption[] =
+    product.sizes && product.sizes.length > 0
+      ? product.sizes
+      : [
+          {
+            name: product.scale && product.scale.includes("1:18")
+              ? "Large (1:18) : (8-9 Inch)"
+              : "Regular (1:24) : (6-7 Inch)",
+            price: product.price,
+            oldPrice: product.oldPrice,
+          },
+          {
+            name: product.scale && product.scale.includes("1:18")
+              ? "Regular (1:24) : (6-7 Inch)"
+              : "Large (1:18) : (8-9 Inch)",
+            price: Math.round(product.price * 1.35),
+            oldPrice: Math.round((product.oldPrice || product.price * 1.5) * 1.35),
+          },
+        ];
+
+  const [selectedSizeIdx, setSelectedSizeIdx] = useState<number>(0);
+  const activeSizeObj = availableSizes[selectedSizeIdx] || availableSizes[0];
+  const activePrice = activeSizeObj.price || product.price;
+  const activeOldPrice = activeSizeObj.oldPrice || product.oldPrice;
+
+  const dynamicDiscountPercent =
+    activeOldPrice && activeOldPrice > activePrice
+      ? Math.round(((activeOldPrice - activePrice) / activeOldPrice) * 100)
       : 0;
 
-  const strikePriceStr =
-    product.oldPrice && product.oldPrice > product.price
-      ? product.oldPriceStr || `₹${Number(product.oldPrice).toLocaleString("en-IN")}`
-      : product.oldPriceStr || null;
+  const dynamicStrikePriceStr =
+    activeOldPrice && activeOldPrice > activePrice
+      ? `₹${Number(activeOldPrice).toLocaleString("en-IN")}`
+      : null;
 
   const related = getRecommendedProducts(product, allProducts, [], 4);
 
@@ -528,34 +562,80 @@ export default function ProductDetailClient({
                 {formatTitleCase(product.name)}
               </h1>
 
-              {/* 2. Price */}
+              {/* 2. Dynamic Price & Sale Discount Badge */}
               <div className="flex items-center gap-3 mb-5 flex-wrap">
                 <span className="text-[32px] font-bold text-cream font-pally">
-                  {product.priceStr || `₹${Number(product.price).toLocaleString("en-IN")}`}
+                  ₹{Number(activePrice).toLocaleString("en-IN")}
                 </span>
-                {strikePriceStr && (
+                {dynamicStrikePriceStr && (
                   <span className="text-[18px] text-dim line-through font-medium">
-                    {strikePriceStr}
+                    {dynamicStrikePriceStr}
                   </span>
                 )}
-                {discountPercent > 0 && (
+                {dynamicDiscountPercent > 0 && (
                   <span className="bg-promo text-white text-[11px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider shadow">
-                    SALE {discountPercent}% OFF
+                    SALE {dynamicDiscountPercent}% OFF
                   </span>
                 )}
               </div>
 
-              {/* ── 3. SIZE PILL BADGE (Exact Format Requested) ── */}
-              <div className="mb-6">
-                <label className="block text-[12px] font-semibold text-gray-400 mb-2 font-pally">
-                  Size
-                </label>
-                <div className="inline-flex items-center bg-[#141416] border border-gray-300/30 text-white px-5 py-2.5 rounded-full shadow-md">
-                  <span className="text-[13.5px] font-bold font-pally tracking-wide">
-                    {scalePill.label} : {scalePill.details}
-                  </span>
+              {/* ── 3. COLOR VARIANT PHOTO TILES (Exact Design matching Screenshot 1) ── */}
+              {colorOptions.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-[13px] font-medium text-gray-300 mb-2 font-pally">
+                    Color
+                  </label>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {colorOptions.map((col, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectColor(idx)}
+                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden p-1 transition-all cursor-pointer flex items-center justify-center ${
+                          selectedColor === idx
+                            ? "bg-[#e5e5e5] border-2 border-black shadow-[0_0_0_2px_#000] scale-105"
+                            : "bg-[#f3f4f6] border border-gray-300/80 hover:border-gray-500 opacity-90 hover:opacity-100"
+                        }`}
+                        title={col.name}
+                      >
+                        {col.image ? (
+                          <Image src={col.image} alt={col.name} fill className="object-contain p-1.5" />
+                        ) : (
+                          <span
+                            className="w-10 h-10 rounded-full border border-black/20 shadow-inner"
+                            style={{ backgroundColor: col.colorHex || "#C5A059" }}
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* ── 4. MULTI-SIZE OPTION PILLS (Exact Design matching Screenshot 2) ── */}
+              {availableSizes.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-[13px] font-medium text-gray-300 mb-2 font-pally">
+                    Size
+                  </label>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {availableSizes.map((sz, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedSizeIdx(idx)}
+                        className={`px-5 py-2.5 rounded-full text-[13px] font-bold font-pally transition-all cursor-pointer ${
+                          selectedSizeIdx === idx
+                            ? "bg-[#141416] text-white border-2 border-white/90 shadow-md scale-102"
+                            : "bg-transparent border border-gray-400/60 text-cream/90 hover:border-white hover:text-white"
+                        }`}
+                      >
+                        {sz.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Product Highlights */}
               {((product.highlights && product.highlights.length > 0) || (product.features && product.features.length > 0)) && (
@@ -610,42 +690,6 @@ export default function ProductDetailClient({
                   </div>
                 </div>
               </div>
-
-              {/* Color Options Section */}
-              {colorOptions.length > 0 && (
-                <div className="mb-6">
-                  <label className="block text-[11px] font-bold tracking-wider uppercase text-muted mb-2">
-                    Color Option: <span className="text-cream font-semibold">{colorOptions[selectedColor]?.name}</span>
-                  </label>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {colorOptions.map((col, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSelectColor(idx)}
-                        className={`group relative rounded-xl p-1 border-2 transition-all flex items-center gap-2 cursor-pointer ${
-                          selectedColor === idx
-                            ? "border-accent bg-dark3 shadow-[0_0_12px_rgba(197,160,89,0.3)]"
-                            : "border-border bg-dark2 hover:border-gray-500"
-                        }`}
-                      >
-                        {col.image ? (
-                          <div className="w-12 h-12 bg-white rounded-lg overflow-hidden relative p-0.5 shrink-0">
-                            <Image src={col.image} alt={col.name} fill className="object-contain p-0.5" />
-                          </div>
-                        ) : (
-                          <span
-                            className="w-8 h-8 rounded-full border border-white/20 inline-block shrink-0 shadow-inner"
-                            style={{ backgroundColor: col.colorHex || "#C5A059" }}
-                          />
-                        )}
-                        <span className="text-[12px] font-bold text-cream px-2 pr-3">
-                          {col.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Quantity Picker */}
               <div className="mb-6">
@@ -912,7 +956,12 @@ export default function ProductDetailClient({
 
       {/* Instant Checkout Modal for Main Product */}
       <BuyNowModal
-        product={product}
+        product={{
+          ...product,
+          price: activePrice,
+          priceStr: `₹${activePrice.toLocaleString("en-IN")}`,
+          scale: activeSizeObj.name,
+        }}
         quantity={qty}
         isOpen={showBuyModal}
         onClose={() => setShowBuyModal(false)}

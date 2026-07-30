@@ -40,6 +40,10 @@ export async function fetchProducts(): Promise<Product[]> {
         ? item.colors
         : (typeof item.colors === "string" ? (() => { try { return JSON.parse(item.colors); } catch { return []; } })() : []);
 
+      const parsedSizes = Array.isArray(item.sizes)
+        ? item.sizes
+        : (typeof item.sizes === "string" ? (() => { try { return JSON.parse(item.sizes); } catch { return []; } })() : []);
+
       // Gather variant images from color options
       const colorImages = parsedColors
         .map((c: any) => c?.image)
@@ -95,6 +99,7 @@ export async function fetchProducts(): Promise<Product[]> {
         isActive: item.is_active ?? item.isActive ?? true,
         sku: item.sku || `DXM-${String(item.id).slice(0, 5)}`,
         colors: parsedColors,
+        sizes: parsedSizes,
         videoUrl: item.video_url || item.videoUrl || null,
         hoverImage: item.hover_image || item.hoverImage || null,
       };
@@ -141,7 +146,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
     };
 
     if (isEdit) {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("products")
         .update(payload)
         .eq("id", productData.id)
@@ -149,21 +154,76 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
         .single();
 
       if (error) {
-        console.error("Error updating product in Supabase:", error);
-        throw error;
+        console.warn("First update attempt failed, retrying without optional schema columns (colors, video_url, etc.):", error.message);
+        // Fallback: If 'colors' column is missing in Supabase DB schema, remove 'colors' and retry
+        delete payload.colors;
+        const retry1 = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", productData.id)
+          .select()
+          .single();
+
+        if (!retry1.error) {
+          data = retry1.data;
+          error = null;
+        } else {
+          delete payload.video_url;
+          delete payload.hover_image;
+          const retry2 = await supabase
+            .from("products")
+            .update(payload)
+            .eq("id", productData.id)
+            .select()
+            .single();
+
+          if (!retry2.error) {
+            data = retry2.data;
+            error = null;
+          } else {
+            console.error("All Supabase update retries failed:", retry2.error);
+            throw retry2.error;
+          }
+        }
       }
       return data;
     } else {
       payload.created_at = new Date().toISOString();
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("products")
         .insert(payload)
         .select()
         .single();
 
       if (error) {
-        console.error("Error inserting product into Supabase:", error);
-        throw error;
+        console.warn("First insert attempt failed, retrying without optional schema columns:", error.message);
+        delete payload.colors;
+        const retry1 = await supabase
+          .from("products")
+          .insert(payload)
+          .select()
+          .single();
+
+        if (!retry1.error) {
+          data = retry1.data;
+          error = null;
+        } else {
+          delete payload.video_url;
+          delete payload.hover_image;
+          const retry2 = await supabase
+            .from("products")
+            .insert(payload)
+            .select()
+            .single();
+
+          if (!retry2.error) {
+            data = retry2.data;
+            error = null;
+          } else {
+            console.error("All Supabase insert retries failed:", retry2.error);
+            throw retry2.error;
+          }
+        }
       }
       return data;
     }

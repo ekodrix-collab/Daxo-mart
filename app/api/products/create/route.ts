@@ -88,8 +88,11 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.warn("First insert failed, retrying without optional columns:", error.message);
+      console.warn("First insert failed, retrying without optional columns (colors, video_url, etc.):", error.message);
       delete corePayload.cost_price;
+      delete corePayload.colors;
+      delete corePayload.hover_image;
+      delete corePayload.video_url;
 
       const retry1 = await supabase
         .from("products")
