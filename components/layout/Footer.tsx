@@ -284,7 +284,17 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between text-center sm:text-left gap-2 sm:gap-3 pt-6 text-[12px] text-dim">
           <p>© {new Date().getFullYear()} DAXOMART. All rights reserved.</p>
-          <p>Crafted with care for collectors across India</p>
+          <p>
+            Crafted by{" "}
+            <a
+              href="https://ekodrix.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted hover:text-accent font-semibold transition-colors no-underline"
+            >
+              Ekodrix
+            </a>
+          </p>
         </div>
       </div>
     </footer>
