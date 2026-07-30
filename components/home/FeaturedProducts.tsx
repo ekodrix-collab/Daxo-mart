@@ -5,6 +5,8 @@ import { type Product } from "@/lib/products";
 import { fetchProducts } from "@/service/storeService";
 import ProductCard from "@/components/product/ProductCard";
 
+import RcProductSection from "@/components/home/RcProductSection";
+
 /* ── Section Component ────────────────────────────────────────── */
 function ProductSection({
   title,
@@ -58,15 +60,24 @@ export default function FeaturedProducts() {
     fetchProducts().then((res) => setProductsList(res));
   }, []);
 
-  const p124 = productsList.filter((p) => p.category === "1:24");
-  const p118 = productsList.filter((p) => p.category === "1:18");
-  const prc = productsList.filter((p) => p.category === "RC");
+  const p124 = productsList.filter(
+    (p) => p.category === "1:24" || p.category?.toLowerCase().includes("1:24")
+  );
+  const p118 = productsList.filter(
+    (p) => p.category === "1:18" || p.category?.toLowerCase().includes("1:18")
+  );
+  const prc = productsList.filter(
+    (p) =>
+      p.category === "RC" ||
+      p.category === "RC Toys" ||
+      p.category?.toLowerCase().includes("rc")
+  );
 
   return (
     <>
       <ProductSection title="1:24 Diecast" subtitle="Discover collection of 1:24 scale model cars" products={p124} />
       <ProductSection title="1:18 Diecast" subtitle="Discover collection of 1:18 scale model cars" products={p118} />
-      <ProductSection title="RC Toys" subtitle="Remote control cars for every age group" products={prc} />
+      <RcProductSection title="RC Toys" subtitle="Remote control cars for every age group" products={prc} />
     </>
   );
 }
