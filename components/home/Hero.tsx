@@ -16,13 +16,11 @@ export default function Hero() {
         playsInline
         preload="auto"
         src="/videos/hero-cinematic.mp4"
-        className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none transition-opacity duration-700"
-        style={{ filter: "brightness(0.62) contrast(1.05)" }}
+        className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
       />
 
-      {/* Gradients */}
-      <div className="hero-overlay" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0c0c0c]/85 via-transparent to-[#0c0c0c]/90 pointer-events-none" />
+      {/* Subtle Side Gradient for Text Legibility (No heavy black layer over video) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent pointer-events-none" />
 
       {/* Main Content */}
       <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-12 md:px-16 max-w-[680px] py-8">
