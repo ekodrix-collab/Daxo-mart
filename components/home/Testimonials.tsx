@@ -190,7 +190,7 @@ export default function Testimonials() {
           <button
             onClick={handlePrev}
             aria-label="Previous testimonial"
-            className="absolute left-0 sm:left-1 top-1/2 -translate-y-1/2 bg-dark/90 hover:bg-dark text-cream border border-border/80 rounded-full p-2.5 shadow-xl active:scale-90 transition-all z-10 backdrop-blur-md cursor-pointer hover:border-accent"
+            className="max-sm:hidden absolute left-0 sm:left-1 top-1/2 -translate-y-1/2 bg-dark/90 hover:bg-dark text-cream border border-border/80 rounded-full p-2.5 shadow-xl active:scale-90 transition-all z-10 backdrop-blur-md cursor-pointer hover:border-accent flex items-center justify-center"
           >
             <ChevronLeft className="w-5 h-5 text-accent" />
           </button>
@@ -214,7 +214,7 @@ export default function Testimonials() {
           <button
             onClick={handleNext}
             aria-label="Next testimonial"
-            className="absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 bg-dark/90 hover:bg-dark text-cream border border-border/80 rounded-full p-2.5 shadow-xl active:scale-90 transition-all z-10 backdrop-blur-md cursor-pointer hover:border-accent"
+            className="max-sm:hidden absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 bg-dark/90 hover:bg-dark text-cream border border-border/80 rounded-full p-2.5 shadow-xl active:scale-90 transition-all z-10 backdrop-blur-md cursor-pointer hover:border-accent flex items-center justify-center"
           >
             <ChevronRight className="w-5 h-5 text-accent" />
           </button>
