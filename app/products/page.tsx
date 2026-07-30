@@ -86,6 +86,9 @@ function ProductsContent() {
     } else {
       setSearchQuery("");
     }
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -129,6 +132,9 @@ function ProductsContent() {
     setInStockOnly(false);
     setSortBy("featured");
     router.replace("/products", { scroll: false });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleSelectCategory = (catVal: string) => {
@@ -141,6 +147,9 @@ function ProductsContent() {
     }
     const str = params.toString();
     router.replace(str ? `/products?${str}` : "/products", { scroll: false });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   // Filter & Sort Logic
@@ -231,7 +240,7 @@ function ProductsContent() {
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Main Container */}
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pt-6">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
         
 
 
@@ -340,7 +349,7 @@ function ProductsContent() {
         <div className="flex gap-8">
           {/* DESKTOP SIDEBAR FILTERS */}
           <aside className="hidden md:block w-64 shrink-0 space-y-6">
-            <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-6 sticky top-24 shadow-sm">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-6 sticky top-[116px] shadow-sm">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-900 flex items-center gap-2 font-pally">
                   <Filter size={16} className="text-gray-700" /> Filter Products
