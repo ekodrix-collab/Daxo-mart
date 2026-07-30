@@ -23,8 +23,8 @@ export default function BrandsBar() {
   const marqueeItems = [...brands, ...brands, ...brands];
 
   return (
-    <section className="bg-black py-20 overflow-hidden w-full relative z-10">
-      <div className="marquee-track flex items-center w-max gap-30 px-5 hover:[animation-play-state:paused]">
+    <section className="bg-white py-6 md:py-16 lg:py-20 overflow-hidden w-full relative z-10">
+      <div className="marquee-track flex items-center w-max gap-10 md:gap-20 lg:gap-30 px-5 hover:[animation-play-state:paused]">
         {marqueeItems.map((item, i) => (
           <div
             key={`${item.id}-${i}`}
@@ -36,7 +36,7 @@ export default function BrandsBar() {
               <img
                 src={item.logoUrl}
                 alt={item.name}
-                className="h-25 w-auto object-contain drop-shadow-sm"
+                className="h-15 sm:h-16 md:h-20 lg:h-25 w-auto object-contain drop-shadow-sm"
               />
             )}
           </div>

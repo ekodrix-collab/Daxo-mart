@@ -366,3 +366,18 @@ export async function syncOrderStockOnStatusChange(
     console.warn("Error syncing order stock change to DB:", e);
   }
 }
+
+export async function deleteProductFromSupabase(id: number | string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) {
+      console.error("Error deleting product from Supabase:", error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("Failed to delete product from Supabase:", e);
+    return false;
+  }
+}
+

@@ -92,7 +92,7 @@ const TestimonialCard = memo(function TestimonialCard({
             </div>
           </div>
         </div>
-        <p className="text-[13px] text-black leading-relaxed italic">
+        <p className="text-[13px] text-black leading-relaxed pa">
           "{review.text}"
         </p>
       </div>
@@ -163,7 +163,7 @@ export default function Testimonials() {
 
   return (
     <section
-      className="bg-white border-t border-gray-300 py-16"
+      className="bg-white py-16"
       aria-label="Customer Testimonials"
     >
       <div className="max-w-[1280px] mx-auto px-2 sm:px-3">
