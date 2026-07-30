@@ -35,7 +35,6 @@ const ANNOUNCE = [
 ];
 
 export default function Header() {
-  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
