@@ -35,6 +35,8 @@ const ANNOUNCE = [
 ];
 
 export default function Header() {
+  const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [initialSearchQuery, setInitialSearchQuery] = useState("");
@@ -51,6 +53,23 @@ export default function Header() {
       router.push("/");
     }
   };
+
+  const isHome = pathname === "/";
+  const isTransparent = isHome && !isScrolled && !mobileOpen;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -69,7 +88,11 @@ export default function Header() {
   return (
     <div className="sticky top-0 z-50">
       {/* ── Single announcement marquee ── */}
-      <div className="bg-dark2 overflow-hidden h-8 flex items-center">
+      <div
+        className={`overflow-hidden h-8 flex items-center transition-colors duration-300 ${
+          isTransparent ? "bg-black/40 backdrop-blur-md" : "bg-dark2"
+        }`}
+      >
         <div className="marquee-track gap-15 px-10">
           {ANNOUNCE.map((item, i) => (
             <span
@@ -84,7 +107,13 @@ export default function Header() {
       </div>
 
       {/* ── Main header ── */}
-      <header className="bg-[#0c0c0c] shadow-[0_2px_20px_rgba(0,0,0,0.45)] relative">
+      <header
+        className={`relative transition-all duration-300 ${
+          isTransparent
+            ? "bg-transparent shadow-none "
+            : "bg-[#0c0c0c] shadow-[0_2px_20px_rgba(0,0,0,0.45)]"
+        }`}
+      >
         <div className="max-w-[1280px] mx-auto px-5 flex items-center justify-between h-[70px] gap-6">
           {/* Logo */}
           <Link href="/" onClick={handleLogoClick} className="shrink-0 flex items-center cursor-pointer">
@@ -117,8 +146,11 @@ export default function Header() {
             {/* Desktop Search Input Trigger */}
             <div
               onClick={() => openSearchModal("")}
-              className="hidden lg:flex items-center gap-2.5 bg-dark3 border border-border rounded-md
-                         px-3.5 py-2 w-64 cursor-pointer hover:border-accent transition-colors duration-200"
+              className={`hidden lg:flex items-center gap-2.5 border rounded-md px-3.5 py-2 w-64 cursor-pointer transition-colors duration-200 ${
+                isTransparent
+                  ? "bg-black/40 border-white/20 hover:border-accent"
+                  : "bg-dark3 border-border hover:border-accent"
+              }`}
             >
               <Search size={14} className="text-dim shrink-0" />
               <span className="text-[13px] text-dim font-pally select-none">Search products…</span>
@@ -127,7 +159,11 @@ export default function Header() {
             {/* Mobile Search Icon Button */}
             <button
               onClick={() => openSearchModal("")}
-              className="lg:hidden p-2 rounded-md text-muted hover:text-cream hover:bg-dark3 transition-all duration-200 flex items-center justify-center cursor-pointer"
+              className={`lg:hidden p-2 rounded-md transition-all duration-200 flex items-center justify-center cursor-pointer ${
+                isTransparent
+                  ? "text-muted hover:text-cream hover:bg-black/50"
+                  : "text-muted hover:text-cream hover:bg-dark3"
+              }`}
               title="Search"
             >
               <Search size={18} />
@@ -136,8 +172,11 @@ export default function Header() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-2 rounded-md text-muted hover:text-cream hover:bg-dark3
-                         transition-all duration-200 flex items-center justify-center"
+              className={`relative p-2 rounded-md transition-all duration-200 flex items-center justify-center ${
+                isTransparent
+                  ? "text-muted hover:text-cream hover:bg-black/50"
+                  : "text-muted hover:text-cream hover:bg-dark3"
+              }`}
             >
               <ShoppingBag size={18} />
               {cartCount > 0 && (
@@ -149,8 +188,11 @@ export default function Header() {
 
             {/* Mobile hamburger */}
             <button
-              className="md:hidden p-2 rounded-md text-muted hover:text-cream hover:bg-dark3
-                         transition-all duration-200 flex items-center justify-center"
+              className={`md:hidden p-2 rounded-md transition-all duration-200 flex items-center justify-center ${
+                isTransparent
+                  ? "text-muted hover:text-cream hover:bg-black/50"
+                  : "text-muted hover:text-cream hover:bg-dark3"
+              }`}
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X size={19} /> : <Menu size={19} />}
@@ -160,7 +202,7 @@ export default function Header() {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden bg-dark3 border-t border-border px-5 py-4 flex flex-col gap-4">
+          <div className="md:hidden bg-[#0c0c0c] border-t border-border px-5 py-4 flex flex-col gap-4">
             {/* Mobile Search Input Trigger */}
             <div
               onClick={() => openSearchModal("")}
