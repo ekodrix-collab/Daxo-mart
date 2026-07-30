@@ -17,7 +17,7 @@ export default function Categories() {
   }, []);
 
   return (
-    <section className="bg-white pt-5 pb-10 sm:pt-7 sm:pb-12 md:pt-8 md:pb-14 border-b border-[#e8e0d8]">
+    <section className="bg-white pt-5 pb-10 sm:pt-7 sm:pb-12 md:pt-8 md:pb-14">
       {/* Title — Clean tight top padding, no huge whitespace */}
       <h2 className="text-center text-[22px] sm:text-[26px] md:text-[28px] font-black tracking-[0.18em] uppercase text-[#0c0c0c] mb-6 sm:mb-8 font-pally">
         Shop By Category
