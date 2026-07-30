@@ -149,3 +149,32 @@ div::-webkit-scrollbar {
 /* ─── Testimonial card ───────────────────────────────────────────── */
 .testimonial-card { transition: transform 0.2s, box-shadow 0.2s; }
 .testimonial-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+
+/* ─── Bottom Sheet Slide-Up Keyframes ────────────────────────────── */
+@keyframes slideUpBottomSheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInBackdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-bottom-sheet {
+  animation: slideUpBottomSheet 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-backdrop-fade {
+  animation: fadeInBackdrop 0.25s ease-out forwards;
+}
