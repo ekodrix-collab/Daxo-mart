@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { type Product, type SizeOption, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
 import ProductCard from "@/components/product/ProductCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const INDIAN_STATES = [
   "Kerala",
@@ -397,6 +398,9 @@ export default function ProductDetailClient({
   const [isScaleGuideOpen, setIsScaleGuideOpen] = useState(false);
   const [isSpecsOpen, setIsSpecsOpen] = useState(false);
 
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
   const { addToCart } = useCart();
   const router = useRouter();
 
@@ -448,6 +452,36 @@ export default function ProductDetailClient({
     }
   };
 
+  const handlePrevImg = () => {
+    if (allGalleryImages.length <= 1) return;
+    setActiveImg((prev) => (prev === 0 ? allGalleryImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImg = () => {
+    if (allGalleryImages.length <= 1) return;
+    setActiveImg((prev) => (prev === allGalleryImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 40;
+    if (distance > minSwipeDistance) {
+      handleNextImg();
+    } else if (distance < -minSwipeDistance) {
+      handlePrevImg();
+    }
+  };
+
   const handleAddToCart = () => {
     addToCart(
       {
@@ -490,26 +524,66 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16">
           {/* Left: Images */}
           <div>
-            <div className="bg-white rounded-2xl overflow-hidden relative border border-gray-100 shadow-md"
-              style={{ aspectRatio: "1" }}>
+            <div
+              className="bg-white rounded-2xl overflow-hidden relative border border-gray-100 shadow-md select-none touch-pan-y"
+              style={{ aspectRatio: "1" }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               {product.badge && (
-                <span className={`absolute top-4 left-4 z-10 text-[10px] font-bold tracking-wider
-                                 uppercase px-3 py-1 rounded-md shadow-sm
-                                 ${product.badge === "New" ? "bg-green text-white" :
-                    product.badge === "Sale" ? "bg-promo text-white" :
-                      "bg-accent text-dark"}`}>
+                <span
+                  className={`absolute top-4 left-4 z-10 text-[10px] font-bold tracking-wider uppercase px-3 py-1 rounded-md shadow-sm ${
+                    product.badge === "New"
+                      ? "bg-green text-white"
+                      : product.badge === "Sale"
+                      ? "bg-promo text-white"
+                      : "bg-accent text-dark"
+                  }`}
+                >
                   {product.badge}
                 </span>
               )}
+
+              {/* Counter Badge */}
+              {allGalleryImages.length > 1 && (
+                <span className="absolute top-4 right-4 z-10 text-[11px] font-bold tracking-wider bg-black/60 text-white backdrop-blur-md px-2.5 py-1 rounded-full shadow">
+                  {activeImg + 1} / {allGalleryImages.length}
+                </span>
+              )}
+
               <Image
                 src={allGalleryImages[activeImg] || colorOptions[selectedColor]?.image || product.img}
                 alt={product.name}
                 width={600}
                 height={600}
                 unoptimized
-                className="w-full h-full object-contain p-8 transition-all duration-300"
+                className="w-full h-full object-contain p-8 transition-all duration-300 pointer-events-none"
                 priority
               />
+
+              {/* Prev & Next Arrow Buttons */}
+              {allGalleryImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevImg}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center border border-white/20 shadow-lg cursor-pointer transition-all hover:scale-110 active:scale-95"
+                    title="Previous Image"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleNextImg}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center border border-white/20 shadow-lg cursor-pointer transition-all hover:scale-110 active:scale-95"
+                    title="Next Image"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Thumbnail Strip */}
