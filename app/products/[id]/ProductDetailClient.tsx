@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { type Product, type SizeOption, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
 import ProductCard from "@/components/product/ProductCard";
+import ProductVideoFloating from "@/components/product/ProductVideoFloating";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const INDIAN_STATES = [
@@ -1084,6 +1085,12 @@ export default function ProductDetailClient({
           onClose={() => setSelectedModalProduct(null)}
         />
       )}
+
+      {/* Floating Reel / Popup Video Preview */}
+      <ProductVideoFloating
+        videoUrl={product.videoUrl}
+        productName={product.name}
+      />
     </div>
   );
 }
