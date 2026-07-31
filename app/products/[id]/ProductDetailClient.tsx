@@ -444,12 +444,17 @@ export default function ProductDetailClient({
   const { addToCart } = useCart();
   const router = useRouter();
 
-  // Scroll to top on page load / product change
+  // Scroll to top and track GA product view on page load / product change
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.scrollTo(0, 0);
+      try {
+        import("@/components/analytics/GoogleAnalytics").then(({ trackProductView }) => {
+          trackProductView({ id: product.id, name: product.name, price: product.price, category: product.category });
+        });
+      } catch {}
     }
-  }, [product.id]);
+  }, [product.id, product.name, product.price, product.category]);
 
   // Only show colors if admin has actually added them
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
