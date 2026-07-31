@@ -54,6 +54,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updatedCart = [...cart, { product, quantity }];
     }
     saveCart(updatedCart);
+
+    // Live GA eCommerce event tracking
+    try {
+      import("@/components/analytics/GoogleAnalytics").then(({ trackAddToCart }) => {
+        trackAddToCart({ id: product.id, name: product.name, price: product.price, category: product.category }, quantity);
+      });
+    } catch {}
   };
 
   const removeFromCart = (productId: number | string) => {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { type CategoryItem } from "@/lib/categories";
+import { type CategoryItem, sortCategoriesByPreferredOrder } from "@/lib/categories";
 import { fetchCategories } from "@/service/storeService";
 
 export default function Categories() {
@@ -11,7 +11,7 @@ export default function Categories() {
   useEffect(() => {
     fetchCategories().then((res) => {
       if (res.length > 0) {
-        setCategories(res);
+        setCategories(sortCategoriesByPreferredOrder(res));
       }
     });
   }, []);

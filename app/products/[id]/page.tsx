@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { fetchProducts } from "@/service/storeService";
 import ProductDetailClient from "./ProductDetailClient";
 import type { Metadata } from "next";
+import { generateProductJsonLd, generateBreadcrumbJsonLd } from "@/lib/jsonLd";
 
 /* ── Dynamic Metadata ────────────────────────────────────────────── */
 export async function generateMetadata({
@@ -26,7 +27,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: `https://daxomart.com/products/${product.id}`,
+      url: `https://daxomart.resellerpro.in/products/${product.slug || product.id}`,
       siteName: "Daxo-mart",
       images: [
         {
@@ -59,5 +60,36 @@ export default async function ProductDetailPage({
 
   if (!product) notFound();
 
-  return <ProductDetailClient product={product} allProducts={products} />;
+  const productJsonLd = generateProductJsonLd({
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    originalPrice: (product as any).originalPrice,
+    images: product.images,
+    slug: product.slug,
+    id: product.id,
+    category: product.category,
+    brand: (product as any).brand,
+  });
+
+  const breadcrumbJsonLd = generateBreadcrumbJsonLd([
+    { name: "Home", url: "https://daxomart.resellerpro.in" },
+    { name: "Products", url: "https://daxomart.resellerpro.in/products" },
+    { name: product.name, url: `https://daxomart.resellerpro.in/products/${product.slug || product.id}` },
+  ]);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <ProductDetailClient product={product} allProducts={products} />
+    </>
+  );
 }
+

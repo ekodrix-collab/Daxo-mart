@@ -31,13 +31,6 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     filterValue: "1:32",
   },
   {
-    id: "cat-4",
-    name: "1:64",
-    slug: "1-64",
-    img: "/images/placeholder.png",
-    filterValue: "1:64",
-  },
-  {
     id: "cat-5",
     name: "RC Toys",
     slug: "rc-toys",
@@ -65,4 +58,24 @@ export function saveStoredCategories(categories: CategoryItem[]) {
   if (typeof window !== "undefined") {
     localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
   }
+}
+
+export function sortCategoriesByPreferredOrder<T extends { name: string; filterValue?: string; slug?: string }>(
+  categories: T[]
+): T[] {
+  return [...categories].sort((a, b) => {
+    const getPriority = (item: T) => {
+      const name = (item.name || "").toLowerCase().trim();
+      const filter = (item.filterValue || "").toLowerCase().trim();
+      const slug = (item.slug || "").toLowerCase().trim();
+
+      if (name.includes("1:18") || filter.includes("1:18") || slug.includes("1-18")) return 1;
+      if (name.includes("1:24") || filter.includes("1:24") || slug.includes("1-24")) return 2;
+      if (name.includes("1:32") || filter.includes("1:32") || slug.includes("1-32")) return 3;
+      if (name.includes("rc") || filter.includes("rc") || slug.includes("rc")) return 4;
+      if (name.includes("frame") || filter.includes("frame") || slug.includes("frame")) return 5;
+      return 99;
+    };
+    return getPriority(a) - getPriority(b);
+  });
 }

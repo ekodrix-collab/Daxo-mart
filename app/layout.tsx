@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import StoreLayoutShell from "@/components/layout/StoreLayoutShell";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import { generateOrganizationJsonLd, generateWebsiteJsonLd } from "@/lib/jsonLd";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -29,11 +31,14 @@ export const metadata: Metadata = {
     "collectible toy cars",
     "diecast toy store",
     "premium toy store",
+    "buy diecast cars online India",
+    "diecast model cars India",
+    "RC drift cars India",
   ],
   authors: [{ name: "Daxo-mart" }],
   creator: "Daxo-mart",
   publisher: "Daxo-mart",
-  metadataBase: new URL("https://daxomart.com"),
+  metadataBase: new URL("https://daxomart.resellerpro.in"),
   alternates: {
     canonical: "/",
   },
@@ -49,7 +54,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://daxomart.com",
+    url: "https://daxomart.resellerpro.in",
     title: "Daxo-mart | Premium Diecast Scale Model Cars & RC Toys",
     description:
       "Explore exclusive 1:32, 1:24 & 1:18 diecast metal cars, RC vehicles, and collectible toy frames. Fast delivery and 100% quality checked.",
@@ -81,6 +86,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "F7wXxuFf0rMI3syRIW43FUoJ5xu8IrrtzguF5fKjF5I",
+  },
 };
 
 export default function RootLayout({
@@ -90,9 +98,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={geist.variable} suppressHydrationWarning>
+      <head>
+        <GoogleAnalytics />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateOrganizationJsonLd()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebsiteJsonLd()),
+          }}
+        />
+      </head>
       <body className={geist.className} suppressHydrationWarning>
         <StoreLayoutShell>{children}</StoreLayoutShell>
       </body>
     </html>
   );
 }
+

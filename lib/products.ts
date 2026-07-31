@@ -21,7 +21,7 @@ export interface Product {
   priceStr: string;
   oldPriceStr: string;
   scale: string;
-  category: "1:18" | "1:24" | "1:32" | "1:64" | "RC Toys" | "3D Frames" | string;
+  category: "1:18" | "1:24" | "1:32" | "RC Toys" | "3D Frames" | string;
   img: string;
   images: string[];
   badge: string | null;

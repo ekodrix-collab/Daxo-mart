@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,6 +43,12 @@ function getScaleSizePillText(scaleStr?: string, categoryStr?: string): { label:
   const sc = (scaleStr || "").toLowerCase();
   const cat = (categoryStr || "").toLowerCase();
 
+  if (sc.includes("1:16") || sc.includes("1/16")) {
+    return { label: "RC Scale (1:16)", details: "(10-12 Inch / 25-30 cm)" };
+  }
+  if (sc.includes("1:14") || sc.includes("1/14") || sc.includes("1:12") || sc.includes("1/12")) {
+    return { label: "Large RC Scale", details: "(12-14 Inch / 30-35 cm)" };
+  }
   if (sc.includes("1:18") || sc.includes("1/18") || cat.includes("1:18")) {
     return { label: "Extra Large (1:18)", details: "(10-11 Inch / 24-28 cm)" };
   }
@@ -57,6 +63,39 @@ function getScaleSizePillText(scaleStr?: string, categoryStr?: string): { label:
   }
   // Default to 1:24 Large
   return { label: "Large (1:24)", details: "(7-8 Inch / 18-21 cm)" };
+}
+
+function detectDisplayScale(product: {
+  scale?: string;
+  category?: string;
+  name?: string;
+  highlights?: any;
+  description?: string;
+}): string {
+  const highlightsStr = Array.isArray(product.highlights)
+    ? product.highlights.join(" ")
+    : typeof product.highlights === "string"
+    ? product.highlights
+    : "";
+  const combinedText = `${product.name || ""} ${highlightsStr} ${product.description || ""}`.toLowerCase();
+
+  const scaleMatch = combinedText.match(/1\s*[:/]\s*(10|12|14|16|18|20|24|28|32|43|64)/i);
+  if (scaleMatch && scaleMatch[1]) {
+    return `1:${scaleMatch[1]}`;
+  }
+
+  if (product.scale && product.scale !== "1:24") {
+    return product.scale;
+  }
+
+  if (product.scale) {
+    return product.scale;
+  }
+
+  const cat = (product.category || "").toLowerCase();
+  if (cat.includes("rc")) return "RC";
+  if (cat.includes("frame")) return "3D Frame";
+  return "1:24";
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -530,12 +569,17 @@ export default function ProductDetailClient({
   const { addToCart } = useCart();
   const router = useRouter();
 
-  // Scroll to top on page load / product change
+  // Scroll to top and track GA product view on page load / product change
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.scrollTo(0, 0);
+      try {
+        import("@/components/analytics/GoogleAnalytics").then(({ trackProductView }) => {
+          trackProductView({ id: product.id, name: product.name, price: product.price, category: product.category });
+        });
+      } catch {}
     }
-  }, [product.id]);
+  }, [product.id, product.name, product.price, product.category]);
 
   // Only show colors if admin has actually added them
   const colorOptions = product.colors && product.colors.length > 0 ? product.colors : [];
@@ -576,12 +620,27 @@ export default function ProductDetailClient({
 
   const scalePill = getScaleSizePillText(product.scale, product.category);
 
+  const imageSectionRef = useRef<HTMLDivElement>(null);
+
   const handleSelectColor = (index: number) => {
     setSelectedColor(index);
     const chosenColor = colorOptions[index];
     if (chosenColor?.image) {
       const imgIdx = allGalleryImages.findIndex((img) => img === chosenColor.image);
-      if (imgIdx !== -1) setActiveImg(imgIdx);
+      if (imgIdx !== -1) {
+        setActiveImg(imgIdx);
+      }
+    }
+    // Auto scroll up to main image on color click (mobile & desktop)
+    if (typeof window !== "undefined") {
+      if (imageSectionRef.current) {
+        const yOffset = -20;
+        const element = imageSectionRef.current;
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   };
 
@@ -688,7 +747,7 @@ export default function ProductDetailClient({
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16">
           {/* Left: Images */}
-          <div>
+          <div ref={imageSectionRef}>
             <div
               className="bg-gray-50 rounded-2xl overflow-hidden relative border border-gray-200/80 shadow-sm select-none touch-pan-y"
               style={{ aspectRatio: "1" }}
@@ -790,7 +849,7 @@ export default function ProductDetailClient({
                   {product.category || `${product.scale || "1:24"} Scale`}
                 </span>
                 <span className="bg-gray-100 border border-gray-200 text-[10px] font-extrabold text-gray-800 px-2.5 py-0.5 rounded-full uppercase">
-                  Scale: {product.scale || "1:24"}
+                  Scale: {detectDisplayScale(product)}
                 </span>
               </div>
 

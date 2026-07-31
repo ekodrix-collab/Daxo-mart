@@ -887,22 +887,47 @@ export default function ProductFormEditor({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="text-[13px] font-semibold text-gray-300 block mb-2">
-                    Category / Scale
+                    Product Category
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
+                    onChange={(e) => {
+                      const newCat = e.target.value;
+                      setCategory(newCat as any);
+                      if (["1:18", "1:24", "1:32"].includes(newCat)) {
+                        setScale(newCat);
+                      }
+                    }}
                     className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059] cursor-pointer"
                   >
                     <option value="1:18">1:18</option>
                     <option value="1:24">1:24</option>
                     <option value="1:32">1:32</option>
-                    <option value="1:64">1:64</option>
                     <option value="RC Toys">RC Toys</option>
                     <option value="3D Frames">3D Frames</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[13px] font-semibold text-gray-300 block mb-2">
+                    Product Scale Ratio
+                  </label>
+                  <select
+                    value={scale}
+                    onChange={(e) => setScale(e.target.value)}
+                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059] cursor-pointer"
+                  >
+                    <option value="1:16">1:16 (RC Scale)</option>
+                    <option value="1:14">1:14 (RC Scale)</option>
+                    <option value="1:12">1:12 (RC Scale)</option>
+                    <option value="1:18">1:18 (Extra Large)</option>
+                    <option value="1:24">1:24 (Large)</option>
+                    <option value="1:32">1:32 (Medium)</option>
+                    <option value="RC">RC (Remote Control)</option>
+                    <option value="3D Frame">3D Frame</option>
                   </select>
                 </div>
 
@@ -952,7 +977,7 @@ export default function ProductFormEditor({
                 <DollarSign size={18} /> Price & Inventory Stock Count
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
                   <label className="text-[13px] font-semibold text-gray-300 block mb-2">
                     Selling Price (INR ₹) <span className="text-[#C5A059]">*</span>
@@ -975,6 +1000,24 @@ export default function ProductFormEditor({
                     value={oldPrice}
                     onChange={(e) => setOldPrice(Number(e.target.value))}
                     className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[13px] font-semibold text-gray-300 block">
+                      Dealer Cost Price (INR ₹)
+                    </label>
+                    <span className="text-[9.5px] font-bold bg-[#C5A059]/20 text-[#C5A059] px-2 py-0.5 rounded uppercase">
+                      Admin Only
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    value={costPrice || ""}
+                    onChange={(e) => setCostPrice(Number(e.target.value))}
+                    placeholder="e.g. 850"
+                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-[#C5A059] text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
                   />
                 </div>
 
