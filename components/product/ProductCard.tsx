@@ -46,30 +46,36 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
         <Link href={`/products/${product.slug || product.id}`} className="no-underline block flex-1 flex flex-col">
           {/* Image Box */}
           <div className="bg-white overflow-hidden relative shrink-0" style={{ aspectRatio: "4/3" }}>
-            {/* Discount Badge */}
-            {discountPercent > 0 && (
-              <span className="absolute top-2.5 left-2.5 z-10 bg-red-600 text-white font-extrabold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded shadow">
-                {discountPercent}% OFF
-              </span>
-            )}
+            {/* Top Badges Bar */}
+            {(discountPercent > 0 || product.badge) && (
+              <div className="absolute top-2 left-2 right-2 z-10 flex items-center justify-between gap-1 pointer-events-none">
+                {discountPercent > 0 ? (
+                  <span className="bg-red-600 text-white font-extrabold text-[8.5px] sm:text-[10px] tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow shrink-0">
+                    {discountPercent}% OFF
+                  </span>
+                ) : (
+                  <div />
+                )}
 
-            {/* Custom Tag / Badge */}
-            {product.badge && (
-              <span
-                className={`absolute top-2.5 right-2.5 z-10 text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded shadow ${
-                  product.badge === "Limited Edition"
-                    ? "bg-amber-600 text-white"
-                    : product.badge === "Best Seller"
-                    ? "bg-purple-600 text-white"
-                    : product.badge === "New Arrival" || product.badge === "New"
-                    ? "bg-emerald-600 text-white"
-                    : product.badge === "Sale"
-                    ? "bg-red-600 text-white"
-                    : "bg-accent text-dark font-black"
-                }`}
-              >
-                {product.badge}
-              </span>
+                {product.badge && (
+                  <span
+                    className={`text-[8px] sm:text-[9px] font-extrabold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded shadow shrink-0 max-w-[55%] sm:max-w-none truncate ${
+                      product.badge === "Limited Edition"
+                        ? "bg-amber-600 text-white"
+                        : product.badge === "Best Seller"
+                        ? "bg-purple-600 text-white"
+                        : product.badge === "New Arrival" || product.badge === "New"
+                        ? "bg-emerald-600 text-white"
+                        : product.badge === "Sale"
+                        ? "bg-red-600 text-white"
+                        : "bg-accent text-dark font-black"
+                    }`}
+                    title={product.badge}
+                  >
+                    {product.badge}
+                  </span>
+                )}
+              </div>
             )}
 
             {/* Primary Main Cover Image */}
