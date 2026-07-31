@@ -977,7 +977,7 @@ export default function ProductFormEditor({
                 <DollarSign size={18} /> Price & Inventory Stock Count
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
                   <label className="text-[13px] font-semibold text-gray-300 block mb-2">
                     Selling Price (INR ₹) <span className="text-[#C5A059]">*</span>
@@ -1000,6 +1000,24 @@ export default function ProductFormEditor({
                     value={oldPrice}
                     onChange={(e) => setOldPrice(Number(e.target.value))}
                     className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[13px] font-semibold text-gray-300 block">
+                      Dealer Cost Price (INR ₹)
+                    </label>
+                    <span className="text-[9.5px] font-bold bg-[#C5A059]/20 text-[#C5A059] px-2 py-0.5 rounded uppercase">
+                      Admin Only
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    value={costPrice || ""}
+                    onChange={(e) => setCostPrice(Number(e.target.value))}
+                    placeholder="e.g. 850"
+                    className="w-full bg-[#18181A] border border-[#2A2A2E] text-[#C5A059] text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
                   />
                 </div>
 
