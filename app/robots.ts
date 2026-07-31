@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/checkout/"],
       },
     ],
-    sitemap: "https://daxomart.resellerpro/sitemap.xml",
+    sitemap: "https://daxomart.resellerpro.in/sitemap.xml",
   };
 }

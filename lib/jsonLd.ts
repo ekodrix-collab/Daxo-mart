@@ -3,8 +3,8 @@ export function generateOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Daxo-mart",
-    url: "https://daxomart.resellerpro",
-    logo: "https://daxomart.resellerpro/icon.png",
+    url: "https://daxomart.resellerpro.in",
+    logo: "https://daxomart.resellerpro.in/icon.png",
     sameAs: [
       "https://www.instagram.com/daxomart",
     ],
@@ -21,12 +21,12 @@ export function generateWebsiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Daxo-mart",
-    url: "https://daxomart.resellerpro",
+    url: "https://daxomart.resellerpro.in",
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://daxomart.resellerpro/products?search={search_term_string}",
+        urlTemplate: "https://daxomart.resellerpro.in/products?search={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
@@ -44,8 +44,8 @@ export function generateProductJsonLd(product: {
   category?: string;
   brand?: string;
 }) {
-  const url = `https://daxomart.resellerpro/products/${product.slug || product.id}`;
-  const image = product.images?.[0] || "https://daxomart.resellerpro/og-image.png";
+  const url = `https://daxomart.resellerpro.in/products/${product.slug || product.id}`;
+  const image = product.images?.[0] || "https://daxomart.resellerpro.in/og-image.png";
 
   return {
     "@context": "https://schema.org",

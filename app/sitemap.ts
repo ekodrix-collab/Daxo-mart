@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchProducts } from "@/service/storeService";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://daxomart.resellerpro";
+  const baseUrl = "https://daxomart.resellerpro.in";
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

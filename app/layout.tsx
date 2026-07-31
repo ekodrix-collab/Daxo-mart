@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Daxo-mart" }],
   creator: "Daxo-mart",
   publisher: "Daxo-mart",
-  metadataBase: new URL("https://daxomart.resellerpro"),
+  metadataBase: new URL("https://daxomart.resellerpro.in"),
   alternates: {
     canonical: "/",
   },
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://daxomart.resellerpro",
+    url: "https://daxomart.resellerpro.in",
     title: "Daxo-mart | Premium Diecast Scale Model Cars & RC Toys",
     description:
       "Explore exclusive 1:32, 1:24 & 1:18 diecast metal cars, RC vehicles, and collectible toy frames. Fast delivery and 100% quality checked.",

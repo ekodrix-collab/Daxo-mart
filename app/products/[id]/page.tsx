@@ -27,7 +27,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: `https://daxomart.resellerpro/products/${product.slug || product.id}`,
+      url: `https://daxomart.resellerpro.in/products/${product.slug || product.id}`,
       siteName: "Daxo-mart",
       images: [
         {
@@ -73,9 +73,9 @@ export default async function ProductDetailPage({
   });
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
-    { name: "Home", url: "https://daxomart.resellerpro" },
-    { name: "Products", url: "https://daxomart.resellerpro/products" },
-    { name: product.name, url: `https://daxomart.resellerpro/products/${product.slug || product.id}` },
+    { name: "Home", url: "https://daxomart.resellerpro.in" },
+    { name: "Products", url: "https://daxomart.resellerpro.in/products" },
+    { name: product.name, url: `https://daxomart.resellerpro.in/products/${product.slug || product.id}` },
   ]);
 
   return (
