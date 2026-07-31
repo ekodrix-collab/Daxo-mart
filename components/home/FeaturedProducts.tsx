@@ -24,7 +24,13 @@ function ProductSection({
 
   const targetCategory =
     category ||
-    (title.includes("1:24") ? "1:24" : title.includes("1:18") ? "1:18" : "");
+    (title.includes("1:24")
+      ? "1:24"
+      : title.includes("1:18")
+        ? "1:18"
+        : title.includes("1:32")
+          ? "1:32"
+          : "");
   const shopHref = targetCategory
     ? `/products?category=${encodeURIComponent(targetCategory)}`
     : "/products";
@@ -74,10 +80,27 @@ export default function FeaturedProducts() {
   }, []);
 
   const p124 = productsList.filter(
-    (p) => p.category === "1:24" || p.category?.toLowerCase().includes("1:24")
+    (p) =>
+      p.category === "1:24" ||
+      p.category?.toLowerCase().includes("1:24") ||
+      p.scale === "1:24" ||
+      p.scale?.toLowerCase().includes("1:24")
   );
   const p118 = productsList.filter(
-    (p) => p.category === "1:18" || p.category?.toLowerCase().includes("1:18")
+    (p) =>
+      p.category === "1:18" ||
+      p.category?.toLowerCase().includes("1:18") ||
+      p.scale === "1:18" ||
+      p.scale?.toLowerCase().includes("1:18")
+  );
+  const p132 = productsList.filter(
+    (p) =>
+      p.category === "1:32" ||
+      p.category?.toLowerCase().includes("1:32") ||
+      p.scale === "1:32" ||
+      p.scale?.toLowerCase().includes("1:32") ||
+      p.category?.includes("1/32") ||
+      p.scale?.includes("1/32")
   );
   const prc = productsList.filter(
     (p) =>
@@ -88,6 +111,7 @@ export default function FeaturedProducts() {
 
   return (
     <>
+      <ProductSection title="1:32 Diecast" subtitle="Discover collection of 1:32 scale model cars" products={p132} category="1:32" />
       <ProductSection title="1:24 Diecast" subtitle="Discover collection of 1:24 scale model cars" products={p124} category="1:24" />
       <ProductSection title="1:18 Diecast" subtitle="Discover collection of 1:18 scale model cars" products={p118} category="1:18" />
       <RcProductSection title="RC Toys" subtitle="Remote control cars for every age group" products={prc} />
