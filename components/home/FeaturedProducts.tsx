@@ -56,7 +56,7 @@ function ProductSection({
         <div className="flex justify-center mt-6 sm:mt-8">
           <Link
             href={shopHref}
-            className="bg-[#483c39] hover:bg-[#382e2b] text-white text-[13px] sm:text-[14px] font-medium px-8 sm:px-10 py-2.5 sm:py-3 rounded transition-colors duration-200 cursor-pointer text-center font-pally no-underline inline-block"
+            className="bg-black hover:bg-[#382e2b] text-white text-[13px] sm:text-[14px] font-medium px-8 sm:px-10 py-2.5 sm:py-3 rounded transition-colors duration-200 cursor-pointer text-center font-pally no-underline inline-block"
           >
             View all
           </Link>

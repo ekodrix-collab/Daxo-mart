@@ -59,25 +59,31 @@ export default function CartPage() {
     const firstItem = cart[0]?.product;
     const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
     const orderNumber = `DXM-${Math.floor(100000 + Math.random() * 900000)}`;
-    const itemsSummary = cart.map((i) => `• ${i.product.shortName} (Qty: ${i.quantity})`).join("\n");
+    const itemsSummary = cart
+      .map((i) => {
+        const colorStr = (i as any).colorName || i.product.colors?.[0]?.name || "Standard";
+        return `Product: ${i.product.name}\nColor: ${colorStr}\nQuantity: ${i.quantity}\nUnit Price: ${i.product.priceStr}\n`;
+      })
+      .join("\n");
 
-    const waMessage = [
-      `Hi DAXO-MART, I would like to place an order for my Cart!`,
-      ``,
-      `📦 *Order:* ${orderNumber}`,
-      `🛒 *Items:*`,
-      itemsSummary,
-      `💰 *Total Amount:* ₹${totalAmount.toLocaleString("en-IN")}`,
-      `Name: ${form.name.trim()}`,
-      `Full Address: ${form.address.trim()}`,
-      `City: ${form.city.trim()}`,
-      `State: ${form.state.trim()}`,
-      `Landmark: ${form.landmark.trim()}`,
-      `Pincode: ${form.pincode.trim()}`,
-      `Mobile Number: ${form.phone.trim()}`,
-      ``,
-      `Please confirm my order. Thank you! 🙏`,
-    ].join("\n");
+    const waMessage = `🛍️ *NEW ORDER* 🛍️
+
+*Address Details*
+
+Name: ${form.name.trim()}
+Full Address: ${form.address.trim()}
+City: ${form.city.trim()}
+State: ${form.state.trim()}
+Landmark: ${form.landmark.trim()}
+Pincode: ${form.pincode.trim()}
+Mobile Number: ${form.phone.trim()}
+${form.email.trim() ? `Email: ${form.email.trim()}\n` : ""}
+*Product Details*
+
+${itemsSummary}
+Total Amount: ₹${totalAmount.toLocaleString("en-IN")} (Free Delivery)
+
+Please confirm my order. Thank you!`;
 
     // 1. Immediately open WhatsApp without waiting for network API call
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMessage)}`, "_blank");
