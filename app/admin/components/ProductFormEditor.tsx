@@ -30,6 +30,7 @@ import {
   ChevronUp,
   ChevronDown,
   Check,
+  Copy,
 } from "lucide-react";
 
 export type ProductFormTab = "essentials" | "variants" | "seo_specs";
@@ -728,6 +729,18 @@ export default function ProductFormEditor({
         </div>
 
         <div className="flex items-center gap-3">
+          {isEditing && initialData?.id && (
+            <button
+              type="button"
+              onClick={() => {
+                router.push(`/admin/products/new?duplicateId=${initialData.id}`);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-[#C5A059]/15 hover:bg-[#C5A059]/30 text-[#C5A059] font-bold text-[13px] border border-[#C5A059]/30 transition-all cursor-pointer flex items-center gap-1.5"
+              title="Duplicate this product to reuse for another scale or category"
+            >
+              <Copy size={15} /> Duplicate
+            </button>
+          )}
           <button
             type="button"
             onClick={() => router.push("/admin/products")}
