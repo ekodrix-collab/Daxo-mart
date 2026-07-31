@@ -263,13 +263,21 @@ Please confirm my order. Thank you!`;
 
   return (
     <div className="bg-white text-zinc-900 min-h-screen font-pally">
-      {/* Top Header */}
+      {/* Top Header Bar */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div />
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-base sm:text-xl font-black text-gray-900 tracking-tight leading-tight">
+              Shipping & Address Details
+            </h1>
+            <p className="text-[11px] text-gray-500 font-medium mt-0.5 hidden sm:block">
+              Please enter your contact details and delivery address below.
+            </p>
+          </div>
+
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors cursor-pointer bg-gray-100 hover:bg-gray-200 px-3.5 py-2 rounded-xl"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-black transition-colors cursor-pointer bg-gray-100 hover:bg-gray-200 px-3.5 py-2 rounded-xl shrink-0"
           >
             <ArrowLeft size={15} /> Back
           </button>
@@ -281,11 +289,11 @@ Please confirm my order. Thank you!`;
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
           {/* Left Form Section */}
           <div className="lg:col-span-7 space-y-8">
-            {/* Contact Section */}
+            {/* Contact Information Section */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg sm:text-xl font-extrabold text-gray-900">
-                  Contact
+                <h2 className="text-base sm:text-lg font-extrabold text-gray-900">
+                  Contact Information
                 </h2>
               </div>
 
@@ -326,10 +334,10 @@ Please confirm my order. Thank you!`;
               </div>
             </div>
 
-            {/* Delivery Section */}
+            {/* Delivery Address Section */}
             <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-4">
-                Delivery
+              <h2 className="text-base sm:text-lg font-extrabold text-gray-900 mb-4">
+                Delivery Address
               </h2>
 
               <div className="space-y-4">
@@ -609,9 +617,12 @@ function CheckoutSkeleton() {
     <div className="bg-white text-zinc-900 min-h-screen font-pally animate-pulse">
       {/* Top Header Skeleton */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="w-28 h-6 bg-gray-200 rounded-md" />
-          <div className="w-20 h-8 bg-gray-200 rounded-xl" />
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="w-48 h-5 bg-gray-200 rounded" />
+            <div className="w-64 h-3 bg-gray-200 rounded hidden sm:block" />
+          </div>
+          <div className="w-20 h-8 bg-gray-200 rounded-xl shrink-0" />
         </div>
       </header>
 
