@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type Product, formatTitleCase } from "@/lib/products";
-import { BuyNowModal } from "@/app/products/[id]/ProductDetailClient";
 
 interface ProductCardProps {
   product: Product;
@@ -11,7 +10,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, variant = "dark" }: ProductCardProps) {
-  const [showBuyModal, setShowBuyModal] = useState(false);
+  const router = useRouter();
 
   const discountPercent =
     product.oldPrice && product.oldPrice > product.price
@@ -21,7 +20,7 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
   const handleBuy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setShowBuyModal(true);
+    router.push(`/checkout?productId=${product.id}&qty=1`);
   };
 
   const isLight = variant === "light";
@@ -35,9 +34,8 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
   const formattedTitle = formatTitleCase(product.shortName || product.name);
 
   return (
-    <>
-      <div
-        className={`group flex flex-col rounded-2xl overflow-hidden transition-all duration-200 h-full justify-between ${
+    <div
+      className={`group flex flex-col rounded-2xl overflow-hidden transition-all duration-200 h-full justify-between ${
           isLight
             ? "bg-[#fdfdfd] border border-[#e8e0d8] hover:shadow-xl hover:border-black/20"
             : "bg-dark2 border border-border hover:border-accent/40 shadow-lg hover:shadow-accent/5"
@@ -176,14 +174,5 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
           )}
         </div>
       </div>
-
-      {/* Buy Now Modal */}
-      <BuyNowModal
-        product={product}
-        quantity={1}
-        isOpen={showBuyModal}
-        onClose={() => setShowBuyModal(false)}
-      />
-    </>
-  );
-}
+    );
+  }
