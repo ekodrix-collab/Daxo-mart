@@ -10,10 +10,9 @@ import SearchModal from "@/components/layout/SearchModal";
 
 const NAV_ITEMS = [
   { title: "Home", path: "/" },
-  { title: "1:32", path: "/products?category=1%3A32" },
-  { title: "1:24", path: "/products?category=1%3A24" },
   { title: "1:18", path: "/products?category=1%3A18" },
-  { title: "1:64", path: "/products?category=1%3A64" },
+  { title: "1:24", path: "/products?category=1%3A24" },
+  { title: "1:32", path: "/products?category=1%3A32" },
   { title: "RC Toys", path: "/products?category=RC+Toys" },
   { title: "3D Frames", path: "/products?category=3D+Frames" },
 ];
