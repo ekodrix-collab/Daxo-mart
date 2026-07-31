@@ -7,7 +7,7 @@ import Image from "next/image";
 import { fetchProducts, fetchCategories, deleteProductFromSupabase } from "@/service/storeService";
 import { type Product } from "@/lib/products";
 import { type CategoryItem } from "@/lib/categories";
-import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, LayoutGrid, List, AlertTriangle, Loader2 } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Copy, CheckCircle, XCircle, LayoutGrid, List, AlertTriangle, Loader2 } from "lucide-react";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -253,6 +253,13 @@ export default function ProductsPage() {
                     <Edit2 size={14} />
                   </button>
                   <button
+                    onClick={() => router.push(`/admin/products/new?duplicateId=${p.id}`)}
+                    className="p-2 rounded-xl bg-[#C5A059]/15 hover:bg-[#C5A059]/30 text-[#C5A059] border border-[#C5A059]/30 transition-colors cursor-pointer"
+                    title="Duplicate Product (Reuse & edit category/price)"
+                  >
+                    <Copy size={14} />
+                  </button>
+                  <button
                     onClick={() => setProductToDelete(p)}
                     className="p-2 rounded-xl bg-[#202024] hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-800 transition-colors cursor-pointer"
                     title="Delete Product"
@@ -319,6 +326,13 @@ export default function ProductsPage() {
                           title="Edit Product"
                         >
                           <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => router.push(`/admin/products/new?duplicateId=${p.id}`)}
+                          className="p-2 rounded-xl bg-[#C5A059]/15 hover:bg-[#C5A059]/30 text-[#C5A059] border border-[#C5A059]/30 transition-colors cursor-pointer"
+                          title="Duplicate Product (Reuse & edit category/price)"
+                        >
+                          <Copy size={14} />
                         </button>
                         <button
                           onClick={() => setProductToDelete(p)}

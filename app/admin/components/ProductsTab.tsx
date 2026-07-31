@@ -6,7 +6,7 @@ import { type Product } from "@/lib/products";
 import { fetchProducts, fetchCategories, saveProductToSupabase } from "@/service/storeService";
 import { type CategoryItem } from "@/lib/categories";
 import { compressImage } from "@/lib/imageCompressor";
-import { Search, Plus, Edit2, Trash2, CheckCircle, XCircle, Tag, Package, Upload, LayoutGrid, List } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Copy, CheckCircle, XCircle, Tag, Package, Upload, LayoutGrid, List } from "lucide-react";
 
 export default function ProductsTab() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -99,22 +99,23 @@ export default function ProductsTab() {
       );
 
       try {
-        await saveProductToSupabase({
-          ...formData,
-          id: editingProduct.id,
-        });
+        fetch(`/api/products/${editingProduct.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData),
+        }).catch((err) => console.error("Async product update API error:", err));
       } catch (err) {
-        console.error("Error updating product in Supabase from modal:", err);
+        console.error("API call error:", err);
       }
     } else {
-      const newId = Math.max(...products.map((p) => (typeof p.id === "number" ? p.id : 0)), 0) + 1;
+      const newId = Date.now();
       const gallery = (formData.images && formData.images.length > 0)
         ? formData.images
         : [formData.img || "/images/placeholder.png"];
 
       const newProd: Product = {
         id: newId,
-        slug: (formData.shortName || "product").toLowerCase().replace(/\s+/g, "-"),
+        slug: formData.slug || `prod-${newId}`,
         name: formData.name || "",
         shortName: formData.shortName || "",
         price: Number(formData.price) || 0,
@@ -153,6 +154,20 @@ export default function ProductsTab() {
   const openEdit = (p: Product) => {
     setEditingProduct(p);
     setFormData(p);
+    setIsAdding(true);
+  };
+
+  const openDuplicate = (p: Product) => {
+    setEditingProduct(null);
+    const newSku = `DXM-${Math.floor(1000 + Math.random() * 9000)}`;
+    setFormData({
+      ...p,
+      id: undefined,
+      name: `${p.name} (Copy)`,
+      shortName: p.shortName ? `${p.shortName} (Copy)` : `${p.name} (Copy)`,
+      sku: newSku,
+      slug: `${p.slug || "product"}-copy-${Math.floor(100 + Math.random() * 900)}`,
+    });
     setIsAdding(true);
   };
 
@@ -378,6 +393,13 @@ export default function ProductsTab() {
                           <Edit2 size={14} />
                         </button>
                         <button
+                          onClick={() => openDuplicate(p)}
+                          className="p-2 bg-[#C5A059]/15 hover:bg-[#C5A059]/30 text-[#C5A059] rounded-lg border border-[#C5A059]/30 transition-colors"
+                          title="Duplicate Product (Copy to another scale/category)"
+                        >
+                          <Copy size={14} />
+                        </button>
+                        <button
                           onClick={() => handleDelete(p.id)}
                           className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg border border-red-500/20 transition-colors"
                           title="Delete Product"
@@ -455,6 +477,13 @@ export default function ProductsTab() {
                 className="flex-1 bg-[#202024] hover:bg-[#2A2A30] text-white text-[12px] font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 border border-gray-800 cursor-pointer"
               >
                 <Edit2 size={13} /> Edit
+              </button>
+              <button
+                onClick={() => openDuplicate(p)}
+                className="flex-1 bg-[#C5A059]/15 hover:bg-[#C5A059]/25 text-[#C5A059] text-[12px] font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 border border-[#C5A059]/30 cursor-pointer"
+                title="Duplicate Product (Copy to another scale/category)"
+              >
+                <Copy size={13} /> Duplicate
               </button>
               <button
                 onClick={() => handleDelete(p.id)}
