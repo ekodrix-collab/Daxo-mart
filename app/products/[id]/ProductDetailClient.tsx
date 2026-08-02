@@ -873,6 +873,27 @@ export default function ProductDetailClient({
                     SALE {dynamicDiscountPercent}% OFF
                   </span>
                 )}
+              {/* ── HIGH-CONVERTING FREE DELIVERY & PREMIUM QUALITY SALES BANNER ── */}
+              <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#0C0C0C] via-[#1A1814] to-[#0C0C0C] border border-[#C5A059]/40 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-28 h-28 bg-[#C5A059]/15 rounded-full blur-2xl pointer-events-none" />
+                <div className="flex items-start sm:items-center gap-3.5 relative z-10">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#C5A059] to-[#9E7C3B] text-black flex items-center justify-center font-black text-xl shrink-0 shadow-md">
+                    🚚
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-[#C5A059] tracking-wide uppercase font-pally">
+                        FREE Pan-India Express Delivery
+                      </span>
+                      <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        ₹0 Shipping Fee
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-gray-300 font-medium leading-snug">
+                      ⚡ Dispatched within 24 hours • 100% Inspected Premium Quality • Damage-Free Protective Box
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* ── 3. COLOR VARIANT PHOTO TILES (Only if admin added colors) ── */}
@@ -962,27 +983,27 @@ export default function ProductDetailClient({
                 </div>
               )}
 
-              {/* Trust badges banner */}
-              <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 border border-gray-200/80 rounded-xl mb-6">
+              {/* High-Converting Trust Badges Bar */}
+              <div className="grid grid-cols-3 gap-2 p-3.5 bg-[#0C0C0C] border border-[#C5A059]/30 rounded-2xl mb-6 text-white shadow-lg">
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2 p-1">
-                  <span className="text-xl">🛡️</span>
+                  <span className="text-xl">🚚</span>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-900 leading-tight">100% Original</p>
-                    <p className="text-[9.5px] text-gray-500 hidden sm:block">Authentic Collectible</p>
+                    <p className="text-[11px] font-extrabold text-[#C5A059] leading-tight font-pally">Free Delivery</p>
+                    <p className="text-[9.5px] text-gray-400 hidden sm:block font-medium">Pan-India Express</p>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2 p-1 border-x border-gray-200">
-                  <span className="text-xl">⭐</span>
+                <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2 p-1 border-x border-gray-800">
+                  <span className="text-xl">🛡️</span>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-900 leading-tight">4.9/5 Rating</p>
-                    <p className="text-[9.5px] text-gray-500 hidden sm:block">Customer Approved</p>
+                    <p className="text-[11px] font-extrabold text-white leading-tight font-pally">100% Quality</p>
+                    <p className="text-[9.5px] text-gray-400 hidden sm:block font-medium">Inspected Alloy Body</p>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2 p-1">
                   <span className="text-xl">💬</span>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-900 leading-tight">WhatsApp Order</p>
-                    <p className="text-[9.5px] text-gray-500 hidden sm:block">Direct & Instant Support</p>
+                    <p className="text-[11px] font-extrabold text-emerald-400 leading-tight font-pally">WhatsApp / COD</p>
+                    <p className="text-[9.5px] text-gray-400 hidden sm:block font-medium">Instant Support</p>
                   </div>
                 </div>
               </div>

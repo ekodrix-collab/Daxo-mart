@@ -1,8 +1,10 @@
 "use client";
 
-import PRODUCTS from "@/lib/products";
+import { useState, useEffect } from "react";
 import StatusBadge from "./StatusBadge";
 import { DollarSign, ShoppingBag, Clock, CheckCircle2, ArrowRight, PackageCheck, TrendingUp } from "lucide-react";
+import { fetchProducts } from "@/service/storeService";
+import { type Product } from "@/lib/products";
 
 interface Order {
   id: string;
@@ -23,8 +25,13 @@ interface Order {
 }
 
 const fmtINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+const fmtDate = (d: string) => {
+  try {
+    return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  } catch {
+    return d;
+  }
+};
 
 interface DashboardTabProps {
   orders: Order[];
@@ -37,12 +44,24 @@ export default function DashboardTab({
   onNavigateToOrders,
   onNavigateToProducts,
 }: DashboardTabProps) {
-  const totalRevenue = orders
-    .filter((o) => o.status !== "Cancelled")
-    .reduce((s, o) => s + o.total, 0);
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
 
-  const pendingCount = orders.filter((o) => o.status === "Pending" || o.status === "New").length;
-  const deliveredCount = orders.filter((o) => o.status === "Delivered").length;
+  useEffect(() => {
+    fetchProducts().then((res) => {
+      if (res && res.length > 0) {
+        setLiveProducts(res);
+      }
+    });
+  }, []);
+
+  const validOrders = Array.isArray(orders) ? orders : [];
+
+  const totalRevenue = validOrders
+    .filter((o) => o.status !== "Cancelled")
+    .reduce((s, o) => s + (Number(o.total) || 0), 0);
+
+  const pendingCount = validOrders.filter((o) => o.status === "Pending" || o.status === "New").length;
+  const deliveredCount = validOrders.filter((o) => o.status === "Delivered").length;
 
   return (
     <div className="space-y-8">
@@ -94,7 +113,7 @@ export default function DashboardTab({
           </p>
           <div className="flex items-center gap-1.5 mt-2 text-[12px] text-emerald-400 font-medium">
             <TrendingUp size={14} />
-            <span>{orders.filter((o) => o.status !== "Cancelled").length} completed sales</span>
+            <span>{validOrders.filter((o) => o.status !== "Cancelled").length} completed sales</span>
           </div>
         </div>
 
@@ -109,7 +128,7 @@ export default function DashboardTab({
             </div>
           </div>
           <p className="text-[28px] font-bold text-white font-pally leading-tight">
-            {orders.length}
+            {validOrders.length}
           </p>
           <p className="text-[12px] text-gray-400 mt-2 font-medium">
             All time recorded orders
@@ -188,35 +207,51 @@ export default function DashboardTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#222226]">
-              {orders.slice(0, 5).map((o) => (
-                <tr key={o.id} className="hover:bg-[#1C1C20] transition-colors">
-                  <td className="px-4 py-4 text-[13px] font-semibold text-[#C5A059] font-mono">
-                    {o.order_number || o.id}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-[#202024] border border-gray-700 text-gray-300 font-bold text-[11px] flex items-center justify-center shrink-0">
-                        {o.customer?.[0]?.toUpperCase() || "C"}
+              {validOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-gray-400 text-[13px]">
+                    <div className="flex flex-col items-center justify-center gap-2 py-4">
+                      <div className="w-12 h-12 rounded-full bg-[#1F1F24] border border-gray-700 flex items-center justify-center text-[#C5A059] mb-1">
+                        <ShoppingBag size={22} />
                       </div>
-                      <span className="text-[13px] font-medium text-white">
-                        {o.customer}
-                      </span>
+                      <p className="font-bold text-white text-[15px] font-pally">No Live Orders Recorded Yet</p>
+                      <p className="text-[12px] text-gray-400 max-w-md text-center leading-relaxed">
+                        Orders placed by customers on your storefront via WhatsApp or Checkout will automatically record in your Supabase database and appear here in real time.
+                      </p>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-[13px] text-gray-300 max-w-[220px] truncate font-medium">
-                    {o.productName}
-                  </td>
-                  <td className="px-4 py-4 text-[13px] font-bold text-white">
-                    {fmtINR(o.total)}
-                  </td>
-                  <td className="px-4 py-4">
-                    <StatusBadge status={o.status} size="sm" />
-                  </td>
-                  <td className="px-4 py-4 text-[12px] text-gray-400">
-                    {fmtDate(o.createdAt)}
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                validOrders.slice(0, 5).map((o) => (
+                  <tr key={o.id} className="hover:bg-[#1C1C20] transition-colors">
+                    <td className="px-4 py-4 text-[13px] font-semibold text-[#C5A059] font-mono">
+                      {o.order_number || o.id}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-[#202024] border border-gray-700 text-gray-300 font-bold text-[11px] flex items-center justify-center shrink-0">
+                          {o.customer?.[0]?.toUpperCase() || "C"}
+                        </div>
+                        <span className="text-[13px] font-medium text-white">
+                          {o.customer}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-[13px] text-gray-300 max-w-[220px] truncate font-medium">
+                      {o.productName}
+                    </td>
+                    <td className="px-4 py-4 text-[13px] font-bold text-white">
+                      {fmtINR(o.total)}
+                    </td>
+                    <td className="px-4 py-4">
+                      <StatusBadge status={o.status} size="sm" />
+                    </td>
+                    <td className="px-4 py-4 text-[12px] text-gray-400">
+                      {fmtDate(o.createdAt)}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -233,8 +268,14 @@ export default function DashboardTab({
           </p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {(["1:24", "1:18", "RC", "Frame"] as const).map((cat) => {
-            const count = PRODUCTS.filter((p) => p.category === cat).length;
+          {(["1:18", "1:24", "1:32", "RC Toys", "3D Frames"] as const).map((cat) => {
+            const count = liveProducts.filter((p) => {
+              const pCat = (p.category || "").toLowerCase();
+              const target = cat.toLowerCase();
+              if (target === "rc toys") return pCat.includes("rc");
+              if (target === "3d frames") return pCat.includes("frame");
+              return pCat.includes(target);
+            }).length;
             return (
               <div
                 key={cat}
@@ -245,7 +286,7 @@ export default function DashboardTab({
                 </div>
                 <p className="text-[20px] font-bold text-white font-pally">{count}</p>
                 <p className="text-[11px] font-bold tracking-wider uppercase text-gray-400 mt-0.5">
-                  {cat === "Frame" ? "3D Frames" : cat}
+                  {cat}
                 </p>
               </div>
             );
