@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://daxomart.resellerpro.in";
   return {
     rules: [
       {
@@ -9,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/checkout/"],
       },
     ],
-    sitemap: "https://daxomart.resellerpro.in/sitemap.xml",
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

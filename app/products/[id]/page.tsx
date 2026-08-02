@@ -4,6 +4,8 @@ import ProductDetailClient from "./ProductDetailClient";
 import type { Metadata } from "next";
 import { generateProductJsonLd, generateBreadcrumbJsonLd } from "@/lib/jsonLd";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://daxomart.resellerpro.in";
+
 /* ── Dynamic Metadata ────────────────────────────────────────────── */
 export async function generateMetadata({
   params,
@@ -13,12 +15,12 @@ export async function generateMetadata({
   const { id } = await params;
   const products = await fetchProducts();
   const product = products.find((p) => p.slug === id || String(p.id) === String(id));
-  if (!product) return { title: "Product Not Found – Daxo-mart" };
+  if (!product) return { title: "Product Not Found – DaxoMart" };
 
-  const title = (product as any).metaTitle || `${product.name} | Daxo-mart`;
+  const title = (product as any).metaTitle || `${product.name} | DaxoMart Scale Cars`;
   const description =
     (product as any).metaDescription ||
-    (product.description ? product.description.slice(0, 160) : `Buy ${product.name} at Daxo-mart for ₹${product.price}. High quality, fast delivery guaranteed.`);
+    (product.description ? product.description.slice(0, 160) : `Buy ${product.name} at DaxoMart India for ₹${product.price}. 100% Quality Checked with Free Express Delivery & COD.`);
   const imageUrl = product.images?.[0] || "/og-image.png";
 
   return {
@@ -27,8 +29,8 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: `https://daxomart.resellerpro.in/products/${product.slug || product.id}`,
-      siteName: "Daxo-mart",
+      url: `${SITE_URL}/products/${product.slug || product.id}`,
+      siteName: "DaxoMart",
       images: [
         {
           url: imageUrl,
@@ -73,9 +75,9 @@ export default async function ProductDetailPage({
   });
 
   const breadcrumbJsonLd = generateBreadcrumbJsonLd([
-    { name: "Home", url: "https://daxomart.resellerpro.in" },
-    { name: "Products", url: "https://daxomart.resellerpro.in/products" },
-    { name: product.name, url: `https://daxomart.resellerpro.in/products/${product.slug || product.id}` },
+    { name: "Home", url: SITE_URL },
+    { name: "Products", url: `${SITE_URL}/products` },
+    { name: product.name, url: `${SITE_URL}/products/${product.slug || product.id}` },
   ]);
 
   return (

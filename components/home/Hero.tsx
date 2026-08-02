@@ -47,6 +47,7 @@ export default function Hero() {
 
           {/* Headline — Inline Pally Font Only Here */}
           <h1
+            aria-label="DAXOMART - Premium 1:18, 1:24 & 1:32 Scale Diecast Model Cars, RC Toys & 3D Frames Store India"
             style={{ fontFamily: "'PallyHero', sans-serif" }}
             className="text-[38px] xs:text-[42px] sm:text-[58px] md:text-[70px] font-black leading-[1.04] sm:leading-none uppercase text-white mb-3 sm:mb-6 drop-shadow"
           >

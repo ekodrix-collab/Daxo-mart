@@ -3,7 +3,12 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import StoreLayoutShell from "@/components/layout/StoreLayoutShell";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
-import { generateOrganizationJsonLd, generateWebsiteJsonLd } from "@/lib/jsonLd";
+import {
+  generateOrganizationJsonLd,
+  generateWebsiteJsonLd,
+  generateStoreJsonLd,
+  generateFaqJsonLd,
+} from "@/lib/jsonLd";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -11,34 +16,38 @@ const geist = Geist({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://daxomart.resellerpro.in";
+
 export const metadata: Metadata = {
   title: {
-    default: "Daxo-mart | Premium Diecast Scale Model Cars, RC Toys & Collectibles",
-    template: "%s | Daxo-mart",
+    default: "DaxoMart™ | India's #1 Premium Diecast Scale Model Cars, RC Toys & Collectibles",
+    template: "%s | DaxoMart",
   },
   description:
-    "Shop premium 1:32, 1:24, and 1:18 diecast metal alloy scale model cars, RC racing vehicles, and collectible toys at Daxo-mart. 100% quality checked with fast delivery.",
+    "Shop original 1:18, 1:24 & 1:32 scale diecast metal alloy model cars, RC racing vehicles, and 3D collectible car frames at DaxoMart India. 100% quality checked with Free Express Delivery & COD.",
   keywords: [
-    "Daxo-mart",
-    "Daxo mart",
-    "diecast cars",
-    "scale model cars",
-    "1:32 diecast cars",
-    "1:24 metal model cars",
-    "1:18 scale alloy cars",
-    "RC cars",
-    "remote control toys",
-    "collectible toy cars",
-    "diecast toy store",
-    "premium toy store",
+    "DaxoMart",
+    "daxomart",
+    "daxomart.com",
+    "Daxo Mart",
+    "daxo mart diecast",
+    "diecast cars India",
     "buy diecast cars online India",
-    "diecast model cars India",
+    "scale model cars India",
+    "1:18 diecast cars India",
+    "1:24 metal model cars India",
+    "1:32 diecast scale cars",
     "RC drift cars India",
+    "remote control toys India",
+    "3D car frame collectibles",
+    "diecast car shop Kochi Kerala",
+    "collectible toy cars India",
+    "best diecast store India",
   ],
-  authors: [{ name: "Daxo-mart" }],
-  creator: "Daxo-mart",
-  publisher: "Daxo-mart",
-  metadataBase: new URL("https://daxomart.resellerpro.in"),
+  authors: [{ name: "DaxoMart" }],
+  creator: "DaxoMart",
+  publisher: "DaxoMart",
+  metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
   },
@@ -53,26 +62,26 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: "https://daxomart.resellerpro.in",
-    title: "Daxo-mart | Premium Diecast Scale Model Cars & RC Toys",
+    locale: "en_IN",
+    url: SITE_URL,
+    title: "DaxoMart™ | India's #1 Premium Diecast Scale Model Cars & RC Toys Store",
     description:
-      "Explore exclusive 1:32, 1:24 & 1:18 diecast metal cars, RC vehicles, and collectible toy frames. Fast delivery and 100% quality checked.",
-    siteName: "Daxo-mart",
+      "Explore exclusive 1:18, 1:24 & 1:32 scale diecast metal alloy cars, RC vehicles, and collectible 3D frames. 100% Quality Checked with Free Express Shipping.",
+    siteName: "DaxoMart",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Daxo-mart - Diecast Scale Model Cars & RC Toys Store",
+        alt: "DaxoMart - Premium Diecast Scale Model Cars & RC Toys Store India",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Daxo-mart | Premium Diecast Scale Model Cars & RC Toys",
+    title: "DaxoMart™ | India's #1 Premium Diecast Scale Model Cars & RC Toys Store",
     description:
-      "Explore exclusive 1:32, 1:24 & 1:18 diecast metal cars, RC vehicles, and collectible toy frames. Fast delivery and 100% quality checked.",
+      "Explore exclusive 1:18, 1:24 & 1:32 scale diecast metal alloy cars, RC vehicles, and collectible 3D frames. 100% Quality Checked with Free Express Shipping.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -110,6 +119,18 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebsiteJsonLd()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateStoreJsonLd()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateFaqJsonLd()),
           }}
         />
       </head>
