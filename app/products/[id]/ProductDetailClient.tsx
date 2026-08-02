@@ -873,6 +873,7 @@ export default function ProductDetailClient({
                     SALE {dynamicDiscountPercent}% OFF
                   </span>
                 )}
+              </div>
               {/* ── HIGH-CONVERTING FREE DELIVERY & PREMIUM QUALITY SALES BANNER ── */}
               <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#0C0C0C] via-[#1A1814] to-[#0C0C0C] border border-[#C5A059]/40 text-white shadow-xl relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-[#C5A059]/15 rounded-full blur-2xl pointer-events-none" />

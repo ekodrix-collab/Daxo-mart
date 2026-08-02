@@ -33,7 +33,7 @@ export default function ProductsTab() {
     oldPriceStr: "₹1,799",
     inStock: true,
     sku: "",
-    img: "/images/placeholder.png",
+    img: "",
     badge: null,
     description: "",
   });
@@ -181,7 +181,7 @@ export default function ProductsTab() {
       oldPrice: 1799,
       inStock: true,
       sku: `DXM-${Math.floor(100 + Math.random() * 900)}`,
-      img: "/images/placeholder.png",
+      img: "",
       badge: null,
       description: "",
     });
