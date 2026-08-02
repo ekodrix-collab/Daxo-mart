@@ -204,15 +204,61 @@ export default function SettingsTab({ onSignOut }: SettingsTabProps) {
 
           {/* SEO TAB */}
           {activeTab === "seo" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h3 className="text-[16px] font-bold text-white font-pally">Global Store SEO & Indexing</h3>
               <div>
                 <label className="text-[12px] font-semibold text-gray-300 block mb-1.5">Store Meta Title</label>
                 <input
                   type="text"
-                  defaultValue="DAXO-MART | Premium Scale Model Cars & Diecast Replicas"
+                  defaultValue="DaxoMart™ | India's #1 Premium Scale Model Cars & Diecast Replicas"
                   className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[14px] px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
                 />
+              </div>
+
+              {/* Google Merchant Center XML Feed Card */}
+              <div className="p-5 bg-[#1C1C20] rounded-2xl border border-[#C5A059]/40 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🛍️</span>
+                    <div>
+                      <h4 className="text-[15px] font-bold text-white font-pally">Google Merchant Center XML Product Feed</h4>
+                      <p className="text-[12px] text-gray-400">Automated RSS 2.0 XML Feed for Google Shopping & Free Product Listings</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px] uppercase border border-emerald-500/30">
+                    Live Feed Active
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 bg-[#141416] p-3 rounded-xl border border-[#2A2A2E]">
+                  <input
+                    type="text"
+                    readOnly
+                    value={typeof window !== "undefined" ? `${window.location.origin}/google-shopping.xml` : "https://daxomart.resellerpro.in/google-shopping.xml"}
+                    className="w-full bg-transparent text-[#C5A059] text-[13px] font-mono outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = typeof window !== "undefined" ? `${window.location.origin}/google-shopping.xml` : "https://daxomart.resellerpro.in/google-shopping.xml";
+                      navigator.clipboard.writeText(url);
+                      alert("Google Merchant XML Feed URL copied to clipboard!");
+                    }}
+                    className="bg-[#C5A059] hover:bg-[#b08b46] text-black font-extrabold text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-lg cursor-pointer transition-all shrink-0"
+                  >
+                    Copy Feed Link
+                  </button>
+                </div>
+
+                <div className="text-[12px] text-gray-300 space-y-1.5 pt-1">
+                  <p className="font-bold text-white">How to list items on Google Shopping Top Results:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-gray-400 pl-1">
+                    <li>Go to <a href="https://merchants.google.com" target="_blank" rel="noreferrer" className="text-[#C5A059] underline font-bold">merchants.google.com</a> and sign in with your Google account.</li>
+                    <li>Click <strong>Products → Feeds → Add primary feed</strong>.</li>
+                    <li>Select <strong>Scheduled Fetch</strong> and paste the copied feed URL above.</li>
+                    <li>Google will automatically fetch your products every day and feature them at the top of Google Search & Shopping!</li>
+                  </ol>
+                </div>
               </div>
             </div>
           )}
