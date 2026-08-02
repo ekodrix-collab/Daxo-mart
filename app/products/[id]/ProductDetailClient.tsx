@@ -1117,15 +1117,15 @@ export default function ProductDetailClient({
                       </h4>
 
                       <div className="border border-gray-200 rounded-xl overflow-hidden bg-white text-dark">
-                        {/* 1:18 Scale Row */}
+                        {/* 1:18 Scale Row - Big / Prominent */}
                         <div className="grid grid-cols-12 border-b border-gray-200 items-center">
                           <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
-                            <div className="w-full h-16 sm:h-20 relative">
+                            <div className="w-full h-20 sm:h-24 relative flex items-center justify-center">
                               <Image
                                 src="/images/scale-1-18.png"
                                 alt="1:18 Diecast car scale guide"
                                 fill
-                                className="object-contain"
+                                className="object-contain p-1 scale-105"
                               />
                             </div>
                           </div>
@@ -1138,15 +1138,15 @@ export default function ProductDetailClient({
                           </div>
                         </div>
 
-                        {/* 1:24 Scale Row */}
+                        {/* 1:24 Scale Row - Medium Baseline */}
                         <div className="grid grid-cols-12 border-b border-gray-200 items-center">
                           <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
-                            <div className="w-full h-14 sm:h-16 relative">
+                            <div className="w-full h-16 sm:h-18 relative flex items-center justify-center">
                               <Image
                                 src="/images/scale-1-24.png"
                                 alt="1:24 Diecast car scale guide"
                                 fill
-                                className="object-contain"
+                                className="object-contain p-1"
                               />
                             </div>
                           </div>
@@ -1159,15 +1159,15 @@ export default function ProductDetailClient({
                           </div>
                         </div>
 
-                        {/* 1:32 Scale Row */}
+                        {/* 1:32 Scale Row - Smaller (Not over small) */}
                         <div className="grid grid-cols-12 items-center">
                           <div className="col-span-5 p-3 flex items-center justify-center bg-white border-r border-gray-200">
-                            <div className="w-full h-12 sm:h-14 relative">
+                            <div className="w-full h-14 sm:h-16 relative flex items-center justify-center">
                               <Image
                                 src="/images/scale-1-32.png"
                                 alt="1:32 Diecast car scale guide"
                                 fill
-                                className="object-contain"
+                                className="object-contain p-1"
                               />
                             </div>
                           </div>
