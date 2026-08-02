@@ -135,7 +135,7 @@ export async function saveProductToSupabase(productData: any): Promise<any> {
       price: Number(productData.price) || 0,
       sale_price: Number(productData.oldPrice) || Number(productData.price) || 0,
       category_name: productData.category || "1:24",
-      images: allImagesCombined.length > 0 ? allImagesCombined : [productData.img || "/images/placeholder.png"],
+      images: allImagesCombined.filter(i => i && i !== "/images/placeholder.png"),
       colors: productData.colors || [],
       sizes: productData.sizes || [],
       scale: productData.scale || "1:24",

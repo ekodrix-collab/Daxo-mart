@@ -93,13 +93,20 @@ export default function ProductFormEditor({
   const [badge, setBadge] = useState<string | null>(initialData?.badge || null);
 
   // Images & Video
-  const [img, setImg] = useState(initialData?.img || "/images/placeholder.png");
-  const [hoverImage, setHoverImage] = useState<string | null>(initialData?.hoverImage || null);
-  const [galleryImages, setGalleryImages] = useState<string[]>(
-    initialData?.images && initialData.images.length > 0
-      ? initialData.images
-      : [initialData?.img || "/images/placeholder.png"]
+  const [img, setImg] = useState(
+    initialData?.img && initialData.img !== "/images/placeholder.png" ? initialData.img : ""
   );
+  const [hoverImage, setHoverImage] = useState<string | null>(initialData?.hoverImage || null);
+  const [galleryImages, setGalleryImages] = useState<string[]>(() => {
+    if (initialData?.images && initialData.images.length > 0) {
+      const filtered = initialData.images.filter((i) => i && i !== "/images/placeholder.png");
+      if (filtered.length > 0) return filtered;
+    }
+    if (initialData?.img && initialData.img !== "/images/placeholder.png") {
+      return [initialData.img];
+    }
+    return [];
+  });
   const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || "");
   const [videoSizeBytes, setVideoSizeBytes] = useState<number | null>(null);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -455,7 +462,10 @@ export default function ProductFormEditor({
       }
 
       if (newUrls.length > 0) {
-        setGalleryImages((prev) => [...prev, ...newUrls]);
+        setGalleryImages((prev) => {
+          const cleanPrev = prev.filter((u) => u && u !== "/images/placeholder.png");
+          return [...cleanPrev, ...newUrls];
+        });
         if (!img || img === "/images/placeholder.png") {
           setImg(newUrls[0]);
         }
@@ -1156,79 +1166,105 @@ export default function ProductFormEditor({
                   </span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {galleryImages.map((gUrl, idx) => {
-                    const isMain = gUrl === img;
-                    const isHover = gUrl === hoverImage || (!hoverImage && idx === 1 && galleryImages.length > 1);
-                    const isExplicitHover = gUrl === hoverImage;
-
-                    return (
-                      <div
-                        key={idx}
-                        className={`group relative h-32 rounded-xl bg-[#1C1C20] border overflow-hidden transition-all ${
-                          isMain
-                            ? "border-[#C5A059] ring-2 ring-[#C5A059]/30"
-                            : isExplicitHover
-                            ? "border-cyan-500 ring-2 ring-cyan-500/30"
-                            : "border-[#26262B]"
-                        }`}
-                      >
-                        <Image src={gUrl} alt={`Thumbnail ${idx}`} fill unoptimized className="object-cover" />
-
-                        {/* Badges */}
-                        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
-                          {isMain && (
-                            <span className="bg-[#C5A059] text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
-                              <Star size={9} fill="currentColor" /> Main
-                            </span>
-                          )}
-                          {isHover && (
-                            <span className="bg-cyan-500 text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
-                              ⚡ Hover
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Thumbnail Action Overlay */}
-                        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1.5 z-20">
-                          {!isMain && (
-                            <button
-                              type="button"
-                              onClick={() => handleSetMainImage(gUrl)}
-                              className="w-full py-1 bg-[#C5A059] hover:bg-[#b08b46] text-black font-extrabold text-[8.5px] uppercase rounded shadow cursor-pointer"
-                            >
-                              Set Main
-                            </button>
-                          )}
-                          {!isExplicitHover && (
-                            <button
-                              type="button"
-                              onClick={() => handleSetHoverImage(gUrl)}
-                              className="w-full py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-[8.5px] uppercase rounded shadow cursor-pointer"
-                            >
-                              Set Hover
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newGallery = galleryImages.filter((_, i) => i !== idx);
-                              setGalleryImages(newGallery);
-                              if (isMain && newGallery.length > 0) {
-                                setImg(newGallery[0]);
-                              }
-                              if (isExplicitHover) {
-                                setHoverImage(null);
-                              }
-                            }}
-                            className="p-1 bg-red-500/80 hover:bg-red-500 text-white rounded cursor-pointer mt-0.5"
-                            title="Delete image"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
+                  {galleryImages.length === 0 ? (
+                    <div className="col-span-full bg-[#1C1C20] border-2 border-dashed border-[#2A2A2E] rounded-2xl p-8 text-center flex flex-col items-center justify-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[#141416] border border-[#2D2D32] text-[#C5A059] flex items-center justify-center">
+                        <ImageIcon size={24} />
                       </div>
-                    );
-                  })}
+                      <div>
+                        <p className="text-[14px] font-bold text-white font-pally">No Product Photos Added Yet</p>
+                        <p className="text-[12px] text-gray-400 mt-1 max-w-sm">
+                          Click <span className="text-[#C5A059] font-bold">"Upload Images"</span> above or select image files to add product photos. First photo will be set as main cover.
+                        </p>
+                      </div>
+                      <label className="mt-1 bg-[#C5A059] hover:bg-[#b08b46] text-black font-bold text-[12px] tracking-wider uppercase px-5 py-2.5 rounded-xl cursor-pointer transition-all shadow-md flex items-center gap-2">
+                        <Upload size={15} /> Upload Photos
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleMultipleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    galleryImages.map((gUrl, idx) => {
+                      const isMain = gUrl === img;
+                      const isHover = gUrl === hoverImage || (!hoverImage && idx === 1 && galleryImages.length > 1);
+                      const isExplicitHover = gUrl === hoverImage;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`group relative h-32 rounded-xl bg-[#1C1C20] border overflow-hidden transition-all ${
+                            isMain
+                              ? "border-[#C5A059] ring-2 ring-[#C5A059]/30"
+                              : isExplicitHover
+                              ? "border-cyan-500 ring-2 ring-cyan-500/30"
+                              : "border-[#26262B]"
+                          }`}
+                        >
+                          <Image src={gUrl} alt={`Thumbnail ${idx}`} fill unoptimized className="object-cover" />
+
+                          {/* Badges */}
+                          <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10">
+                            {isMain && (
+                              <span className="bg-[#C5A059] text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
+                                <Star size={9} fill="currentColor" /> Main
+                              </span>
+                            )}
+                            {isHover && (
+                              <span className="bg-cyan-500 text-black font-extrabold text-[8px] uppercase px-1 py-0.5 rounded flex items-center gap-0.5 shadow">
+                                ⚡ Hover
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Thumbnail Action Overlay */}
+                          <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 p-1.5 z-20">
+                            {!isMain && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetMainImage(gUrl)}
+                                className="w-full py-1 bg-[#C5A059] hover:bg-[#b08b46] text-black font-extrabold text-[8.5px] uppercase rounded shadow cursor-pointer"
+                              >
+                                Set Main
+                              </button>
+                            )}
+                            {!isExplicitHover && (
+                              <button
+                                type="button"
+                                onClick={() => handleSetHoverImage(gUrl)}
+                                className="w-full py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-[8.5px] uppercase rounded shadow cursor-pointer"
+                              >
+                                Set Hover
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newGallery = galleryImages.filter((_, i) => i !== idx);
+                                setGalleryImages(newGallery);
+                                if (isMain && newGallery.length > 0) {
+                                  setImg(newGallery[0]);
+                                } else if (isMain) {
+                                  setImg("");
+                                }
+                                if (isExplicitHover) {
+                                  setHoverImage(null);
+                                }
+                              }}
+                              className="p-1 bg-red-500/80 hover:bg-red-500 text-white rounded cursor-pointer mt-0.5"
+                              title="Delete image"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
