@@ -73,18 +73,27 @@ function ProductsContent() {
 
   // Sync category & search params from URL on initial load or URL change
   useEffect(() => {
-    const urlCat = searchParams.get("category");
-    const urlSearch = searchParams.get("search") || searchParams.get("q");
-    if (urlCat) {
+    let urlCat: string | null = searchParams.get("category");
+    let urlSearch: string | null = searchParams.get("search") || searchParams.get("q");
+
+    if (typeof window !== "undefined") {
+      const currentSearchParams = new URLSearchParams(window.location.search);
+      urlCat = currentSearchParams.get("category");
+      urlSearch = currentSearchParams.get("search") || currentSearchParams.get("q");
+    }
+
+    if (urlCat && urlCat.trim() !== "") {
       setCategoryFilter(urlCat);
     } else {
       setCategoryFilter("ALL");
     }
-    if (urlSearch) {
+
+    if (urlSearch && urlSearch.trim() !== "") {
       setSearchQuery(urlSearch);
     } else {
       setSearchQuery("");
     }
+
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -130,6 +139,9 @@ function ProductsContent() {
     setBadgeFilter("ALL");
     setInStockOnly(false);
     setSortBy("featured");
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", "/products");
+    }
     router.replace("/products", { scroll: false });
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -138,14 +150,18 @@ function ProductsContent() {
 
   const handleSelectCategory = (catVal: string) => {
     setCategoryFilter(catVal);
-    const params = new URLSearchParams(Object.fromEntries(searchParams.entries()));
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : searchParams.toString());
     if (catVal && catVal !== "ALL") {
       params.set("category", catVal);
     } else {
       params.delete("category");
     }
     const str = params.toString();
-    router.replace(str ? `/products?${str}` : "/products", { scroll: false });
+    const newPath = str ? `/products?${str}` : "/products";
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", newPath);
+    }
+    router.replace(newPath, { scroll: false });
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
