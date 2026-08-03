@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Search,
   Filter,
@@ -53,6 +53,7 @@ const SORT_OPTIONS = [
 function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const [productsList, setProductsList] = useState<Product[]>([]);
   const [dbCategories, setDbCategories] = useState<CategoryItem[]>([]);
@@ -73,23 +74,26 @@ function ProductsContent() {
 
   // Sync category & search params from URL on initial load or URL change
   useEffect(() => {
-    let urlCat: string | null = searchParams.get("category");
-    let urlSearch: string | null = searchParams.get("search") || searchParams.get("q");
+    let urlCat: string | null = null;
+    let urlSearch: string | null = null;
 
     if (typeof window !== "undefined") {
       const currentSearchParams = new URLSearchParams(window.location.search);
       urlCat = currentSearchParams.get("category");
       urlSearch = currentSearchParams.get("search") || currentSearchParams.get("q");
+    } else {
+      urlCat = searchParams.get("category");
+      urlSearch = searchParams.get("search") || searchParams.get("q");
     }
 
-    if (urlCat && urlCat.trim() !== "") {
-      setCategoryFilter(urlCat);
+    if (urlCat && urlCat.trim() !== "" && urlCat.trim() !== "ALL") {
+      setCategoryFilter(urlCat.trim());
     } else {
       setCategoryFilter("ALL");
     }
 
     if (urlSearch && urlSearch.trim() !== "") {
-      setSearchQuery(urlSearch);
+      setSearchQuery(urlSearch.trim());
     } else {
       setSearchQuery("");
     }
@@ -97,7 +101,7 @@ function ProductsContent() {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [searchParams]);
+  }, [searchParams, pathname]);
 
   useEffect(() => {
     Promise.all([fetchProducts(), fetchCategories()]).then(([prods, cats]) => {
@@ -184,10 +188,22 @@ function ProductsContent() {
     }
 
     // 2. Category Filter
-    if (categoryFilter !== "ALL") {
+    if (categoryFilter && categoryFilter !== "ALL") {
       result = result.filter((p) => {
-        const cat = p.category.toLowerCase();
-        const filt = categoryFilter.toLowerCase();
+        const cat = (p.category || "").toLowerCase().trim();
+        const sc = (p.scale || "").toLowerCase().trim();
+        const filt = categoryFilter.toLowerCase().trim();
+        if (filt === "1:18" || filt === "1/18") {
+          return cat.includes("1:18") || cat.includes("1/18") || sc.includes("1:18") || sc.includes("1/18");
+        }
+        if (filt === "1:24" || filt === "1/24") {
+          return cat.includes("1:24") || cat.includes("1/24") || sc.includes("1:24") || sc.includes("1/24");
+        }
+        if (filt === "1:32" || filt === "1/32") {
+          return cat.includes("1:32") || cat.includes("1/32") || sc.includes("1:32") || sc.includes("1/32");
+        }
+        if (filt.includes("rc")) return cat.includes("rc") || sc.includes("rc");
+        if (filt.includes("frame")) return cat.includes("frame") || sc.includes("frame");
         return cat.includes(filt) || filt.includes(cat);
       });
     }
