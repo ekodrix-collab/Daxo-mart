@@ -267,8 +267,8 @@ export default function DashboardTab({
             Active product models count by category
           </p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {(["1:18", "1:24", "1:32", "RC Toys", "3D Frames"] as const).map((cat) => {
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          {(["1:18", "1:24", "1:32", "1:36", "RC Toys", "3D Frames"] as const).map((cat) => {
             const count = liveProducts.filter((p) => {
               const pCat = (p.category || "").toLowerCase();
               const target = cat.toLowerCase();

@@ -11,7 +11,13 @@ export default function Categories() {
   useEffect(() => {
     fetchCategories().then((res) => {
       if (res.length > 0) {
-        setCategories(sortCategoriesByPreferredOrder(res));
+        // Exclude 1:36 from Homepage category circles per user requirement
+        const filtered = res.filter((c) => {
+          const name = (c.name || "").toLowerCase();
+          const filt = (c.filterValue || "").toLowerCase();
+          return !name.includes("1:36") && !filt.includes("1:36");
+        });
+        setCategories(sortCategoriesByPreferredOrder(filtered));
       }
     });
   }, []);
