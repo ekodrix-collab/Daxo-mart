@@ -462,11 +462,17 @@ export default function ProductsTab() {
                     </p>
                   ) : null}
                 </div>
-                {p.badge && (
-                  <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#C5A059]/15 text-[#C5A059] border border-[#C5A059]/30">
-                    {p.badge}
-                  </span>
-                )}
+                <button
+                  type="button"
+                  onClick={() => toggleStock(p.id)}
+                  className={`text-[10.5px] font-bold px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                    p.inStock && (p.stock === undefined || p.stock > 0)
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                      : "bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20"
+                  }`}
+                >
+                  {p.inStock && (p.stock === undefined || p.stock > 0) ? "✓ In Stock" : "✕ Out of Stock"}
+                </button>
               </div>
             </div>
 

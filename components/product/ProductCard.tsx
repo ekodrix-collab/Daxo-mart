@@ -44,6 +44,14 @@ export default function ProductCard({ product, variant = "dark" }: ProductCardPr
         <Link href={`/products/${product.slug || product.id}`} className="no-underline block flex-1 flex flex-col">
           {/* Image Box */}
           <div className="bg-white overflow-hidden relative shrink-0" style={{ aspectRatio: "4/3" }}>
+            {/* Out of Stock Dark Overlay */}
+            {(!product.inStock || product.stock === 0) && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] z-20 flex items-center justify-center pointer-events-none">
+                <span className="bg-rose-600 text-white font-extrabold text-[9.5px] sm:text-[11px] uppercase tracking-widest px-3 py-1 rounded-full shadow-lg border border-rose-400/30">
+                  Out of Stock
+                </span>
+              </div>
+            )}
             {/* Top Badges Bar */}
             {(discountPercent > 0 || product.badge) && (
               <div className="absolute top-2 left-2 right-2 z-10 flex items-center justify-between gap-1 pointer-events-none">

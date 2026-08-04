@@ -1048,7 +1048,7 @@ export default function ProductFormEditor({
 
                 <div>
                   <label className="text-[13px] font-semibold text-gray-300 block mb-2">
-                    Inventory Stock (Count Only) <span className="text-[#C5A059]">*</span>
+                    Inventory Stock (Count) <span className="text-[#C5A059]">*</span>
                   </label>
                   <input
                     type="number"
@@ -1062,6 +1062,44 @@ export default function ProductFormEditor({
                     className="w-full bg-[#18181A] border border-[#2A2A2E] text-white text-[16px] font-bold px-4 py-3 rounded-xl outline-none focus:border-[#C5A059]"
                   />
                 </div>
+              </div>
+
+              {/* In Stock / Out of Stock Direct Toggle Card */}
+              <div className={`p-4 rounded-2xl border transition-all ${inStock && stock > 0 ? "bg-emerald-500/10 border-emerald-500/30" : "bg-rose-500/10 border-rose-500/30"}`}>
+                <label className="flex items-center justify-between cursor-pointer select-none">
+                  <div>
+                    <p className={`text-[14px] font-extrabold flex items-center gap-2 ${inStock && stock > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      <span className={`w-2.5 h-2.5 rounded-full inline-block ${inStock && stock > 0 ? "bg-emerald-400 animate-pulse" : "bg-rose-500"}`} />
+                      {inStock && stock > 0 ? "PRODUCT IN STOCK (Available for Purchase)" : "PRODUCT OUT OF STOCK (Sold Out / Disabled Buy)"}
+                    </p>
+                    <p className="text-[12px] text-gray-400 mt-1">
+                      {inStock && stock > 0
+                        ? "Customers can add this product to cart & place orders."
+                        : "Customers will see 'Out of Stock' badge and cannot checkout this item."}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (inStock && stock > 0) {
+                          setInStock(false);
+                          setStock(0);
+                        } else {
+                          setInStock(true);
+                          setStock(10);
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-xl text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                        inStock && stock > 0
+                          ? "bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30"
+                          : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30"
+                      }`}
+                    >
+                      {inStock && stock > 0 ? "Mark Out of Stock" : "Mark In Stock"}
+                    </button>
+                  </div>
+                </label>
               </div>
             </div>
 
