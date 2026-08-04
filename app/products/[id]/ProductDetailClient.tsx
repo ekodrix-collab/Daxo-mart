@@ -55,6 +55,9 @@ function getScaleSizePillText(scaleStr?: string, categoryStr?: string): { label:
   if (sc.includes("1:32") || sc.includes("1/32") || cat.includes("1:32")) {
     return { label: "Medium (1:32)", details: "(5-6 Inch / 13-15 cm)" };
   }
+  if (sc.includes("1:36") || sc.includes("1/36") || cat.includes("1:36")) {
+    return { label: "Compact (1:36)", details: "(4.5-5.5 Inch / 11-13 cm)" };
+  }
   if (cat.includes("rc") || sc.includes("rc")) {
     return { label: "Remote Control (RC)", details: "(8-12 Inch / 20-30 cm)" };
   }

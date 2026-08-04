@@ -920,7 +920,7 @@ export default function ProductFormEditor({
                     onChange={(e) => {
                       const newCat = e.target.value;
                       setCategory(newCat as any);
-                      if (["1:18", "1:24", "1:32"].includes(newCat)) {
+                      if (["1:18", "1:24", "1:32", "1:36"].includes(newCat)) {
                         setScale(newCat);
                       }
                     }}
@@ -929,6 +929,7 @@ export default function ProductFormEditor({
                     <option value="1:18">1:18</option>
                     <option value="1:24">1:24</option>
                     <option value="1:32">1:32</option>
+                    <option value="1:36">1:36</option>
                     <option value="RC Toys">RC Toys</option>
                     <option value="3D Frames">3D Frames</option>
                   </select>
@@ -949,6 +950,7 @@ export default function ProductFormEditor({
                     <option value="1:18">1:18 (Extra Large)</option>
                     <option value="1:24">1:24 (Large)</option>
                     <option value="1:32">1:32 (Medium)</option>
+                    <option value="1:36">1:36 (Compact)</option>
                     <option value="RC">RC (Remote Control)</option>
                     <option value="3D Frame">3D Frame</option>
                   </select>

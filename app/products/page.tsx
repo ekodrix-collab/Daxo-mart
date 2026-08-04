@@ -30,6 +30,7 @@ const CATEGORY_OPTIONS = [
   { label: "1:18", value: "1:18" },
   { label: "1:24", value: "1:24" },
   { label: "1:32", value: "1:32" },
+  { label: "1:36", value: "1:36" },
   { label: "RC Toys", value: "RC Toys" },
   { label: "3D Frames", value: "3D Frames" },
 ];
@@ -201,6 +202,9 @@ function ProductsContent() {
         }
         if (filt === "1:32" || filt === "1/32") {
           return cat.includes("1:32") || cat.includes("1/32") || sc.includes("1:32") || sc.includes("1/32");
+        }
+        if (filt === "1:36" || filt === "1/36") {
+          return cat.includes("1:36") || cat.includes("1/36") || sc.includes("1:36") || sc.includes("1/36");
         }
         if (filt.includes("rc")) return cat.includes("rc") || sc.includes("rc");
         if (filt.includes("frame")) return cat.includes("frame") || sc.includes("frame");
