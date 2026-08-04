@@ -1015,39 +1015,54 @@ export default function ProductDetailClient({
               </div>
 
               {/* ACTION BUTTONS: BUY NOW & ADD TO CART */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      productId: product.id.toString(),
-                      qty: qty.toString(),
-                    });
-                    if (selectedColorName) params.set("color", selectedColorName);
-                    if (selectedSizeName) params.set("size", selectedSizeName);
-                    router.push(`/checkout?${params.toString()}`);
-                  }}
-                  className="w-full bg-gradient-to-r from-[#25D366] to-[#1EBE5B] hover:from-[#20c05c] hover:to-[#1aa850] text-white font-pally font-extrabold text-[15px] tracking-wider py-4 rounded-2xl transition-all shadow-[0_4px_24px_rgba(37,211,102,0.35)] hover:shadow-[0_6px_28px_rgba(37,211,102,0.5)] hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
-                  </svg>
-                  <span>BUY IT NOW</span>
-                </button>
+              {!product.inStock || product.stock === 0 ? (
+                <div className="mb-6 space-y-2">
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full bg-gray-200 text-gray-500 font-pally font-extrabold text-[15px] tracking-wider py-4 rounded-2xl cursor-not-allowed border border-gray-300 flex items-center justify-center gap-2"
+                  >
+                    <span>CURRENTLY OUT OF STOCK</span>
+                  </button>
+                  <p className="text-[12px] text-center font-medium text-rose-500">
+                    This item is temporarily sold out. Check back soon or contact support for restock updates.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        productId: product.id.toString(),
+                        qty: qty.toString(),
+                      });
+                      if (selectedColorName) params.set("color", selectedColorName);
+                      if (selectedSizeName) params.set("size", selectedSizeName);
+                      router.push(`/checkout?${params.toString()}`);
+                    }}
+                    className="w-full bg-gradient-to-r from-[#25D366] to-[#1EBE5B] hover:from-[#20c05c] hover:to-[#1aa850] text-white font-pally font-extrabold text-[15px] tracking-wider py-4 rounded-2xl transition-all shadow-[0_4px_24px_rgba(37,211,102,0.35)] hover:shadow-[0_6px_28px_rgba(37,211,102,0.5)] hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
+                    </svg>
+                    <span>BUY IT NOW</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="w-full bg-black hover:bg-zinc-800 text-white font-pally font-extrabold text-[15px] tracking-wider py-4 rounded-2xl transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5"
-                >
-                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
-                  </svg>
-                  <span>ADD TO CART</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    className="w-full bg-black hover:bg-zinc-800 text-white font-pally font-extrabold text-[15px] tracking-wider py-4 rounded-2xl transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5"
+                  >
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    <span>ADD TO CART</span>
+                  </button>
+                </div>
+              )}
 
               {/* Free Shipping & COD perks strip */}
               <div className="grid grid-cols-3 gap-2 py-3 px-4 bg-gray-50 border border-gray-200/80 rounded-xl mb-6">
