@@ -31,6 +31,13 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     filterValue: "1:32",
   },
   {
+    id: "cat-4",
+    name: "1:36",
+    slug: "1-36",
+    img: "/images/placeholder.png",
+    filterValue: "1:36",
+  },
+  {
     id: "cat-5",
     name: "RC Toys",
     slug: "rc-toys",
@@ -72,8 +79,9 @@ export function sortCategoriesByPreferredOrder<T extends { name: string; filterV
       if (name.includes("1:18") || filter.includes("1:18") || slug.includes("1-18")) return 1;
       if (name.includes("1:24") || filter.includes("1:24") || slug.includes("1-24")) return 2;
       if (name.includes("1:32") || filter.includes("1:32") || slug.includes("1-32")) return 3;
-      if (name.includes("rc") || filter.includes("rc") || slug.includes("rc")) return 4;
-      if (name.includes("frame") || filter.includes("frame") || slug.includes("frame")) return 5;
+      if (name.includes("1:36") || filter.includes("1:36") || slug.includes("1-36")) return 4;
+      if (name.includes("rc") || filter.includes("rc") || slug.includes("rc")) return 5;
+      if (name.includes("frame") || filter.includes("frame") || slug.includes("frame")) return 6;
       return 99;
     };
     return getPriority(a) - getPriority(b);

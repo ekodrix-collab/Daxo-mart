@@ -113,11 +113,34 @@ function ProductsContent() {
   }, []);
 
   const categoryOptions = useMemo(() => {
-    const options = [{ label: "All Categories", value: "ALL" }];
+    const defaultList = [
+      { label: "All Categories", value: "ALL" },
+      { label: "1:32 Diecast", value: "1:32" },
+      { label: "1:24 Diecast", value: "1:24" },
+      { label: "1:18 Diecast", value: "1:18" },
+      { label: "1:36 Diecast", value: "1:36" },
+      { label: "RC Toys", value: "RC Toys" },
+      { label: "3D Frames", value: "3D Frames" },
+    ];
+
+    if (!dbCategories || dbCategories.length === 0) {
+      return defaultList;
+    }
+
+    const optionsMap = new Map<string, { label: string; value: string }>();
+    defaultList.forEach((item) => optionsMap.set(item.value, item));
+
     dbCategories.forEach((c) => {
-      options.push({ label: c.name, value: c.filterValue || c.name });
+      const val = c.filterValue || c.name;
+      if (!optionsMap.has(val)) {
+        optionsMap.set(val, {
+          label: c.name.includes("Diecast") || c.name.includes(":") ? c.name : `${c.name} Diecast`,
+          value: val,
+        });
+      }
     });
-    return options;
+
+    return Array.from(optionsMap.values());
   }, [dbCategories]);
 
   // Count active filter count for badge indicator
