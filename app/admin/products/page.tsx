@@ -69,8 +69,37 @@ export default function ProductsPage() {
     },
   });
 
+  const checkCategoryMatch = (p: Product, targetCat: string) => {
+    if (!targetCat || targetCat === "All" || targetCat === "ALL") return true;
+    const pCat = (p.category || "").toLowerCase().trim();
+    const pSc = (p.scale || "").toLowerCase().trim();
+    const target = targetCat.toLowerCase().trim();
+
+    if (target === "rc toys" || target === "rc" || target === "rc+toys") {
+      return pCat.includes("rc") || pSc.includes("rc");
+    }
+    if (target === "3d frames" || target === "frame" || target === "3d frame" || target === "3d+frames") {
+      return pCat.includes("frame") || pSc.includes("frame");
+    }
+    if (target === "1:18" || target === "1-18") return pCat.includes("1:18") || pSc.includes("1:18");
+    if (target === "1:24" || target === "1-24") return pCat.includes("1:24") || pSc.includes("1:24");
+    if (target === "1:32" || target === "1-32") return pCat.includes("1:32") || pSc.includes("1:32");
+    if (target === "1:36" || target === "1-36") return pCat.includes("1:36") || pSc.includes("1:36");
+
+    return pCat === target || pCat.includes(target) || target.includes(pCat);
+  };
+
+  const adminCategoryTabs = [
+    { id: "1:32", name: "1:32 Diecast", filterValue: "1:32" },
+    { id: "1:24", name: "1:24 Diecast", filterValue: "1:24" },
+    { id: "1:18", name: "1:18 Diecast", filterValue: "1:18" },
+    { id: "1:36", name: "1:36 Diecast", filterValue: "1:36" },
+    { id: "rc", name: "RC Toys", filterValue: "RC Toys" },
+    { id: "frame", name: "3D Frames", filterValue: "3D Frames" },
+  ];
+
   const filteredProducts = products.filter((p) => {
-    const matchesCat = selectedCategory === "All" || p.category === selectedCategory;
+    const matchesCat = checkCategoryMatch(p, selectedCategory);
     const matchesSearch =
       !searchTerm ||
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -120,11 +149,9 @@ export default function ProductsPage() {
             </span>
           </button>
 
-          {categoriesList.map((cat) => {
-            const count = products.filter(
-              (p) => p.category === cat.filterValue || p.category === cat.name
-            ).length;
-            const active = selectedCategory === cat.filterValue || selectedCategory === cat.name;
+          {adminCategoryTabs.map((cat) => {
+            const count = products.filter((p) => checkCategoryMatch(p, cat.filterValue)).length;
+            const active = checkCategoryMatch({ category: selectedCategory } as Product, cat.filterValue);
             return (
               <button
                 key={cat.id}
