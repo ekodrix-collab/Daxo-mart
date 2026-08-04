@@ -143,6 +143,25 @@ function ProductsContent() {
     return Array.from(optionsMap.values());
   }, [dbCategories]);
 
+  const availableBadges = useMemo(() => {
+    const badgeSet = new Set<string>();
+    
+    // Add real badges present on products
+    productsList.forEach((p) => {
+      if (p.badge && p.badge.trim() !== "") {
+        badgeSet.add(p.badge.trim());
+      }
+    });
+
+    // Default standard badges
+    const defaults = ["Featured", "Best Seller", "New Arrival", "Limited Edition", "Sale"];
+    defaults.forEach((b) => {
+      badgeSet.add(b);
+    });
+
+    return ["ALL", ...Array.from(badgeSet)];
+  }, [productsList]);
+
   // Count active filter count for badge indicator
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -258,8 +277,13 @@ function ProductsContent() {
     }
 
     // 5. Badge Filter
-    if (badgeFilter !== "ALL") {
-      result = result.filter((p) => p.badge === badgeFilter);
+    if (badgeFilter && badgeFilter !== "ALL") {
+      result = result.filter((p) => {
+        if (!p.badge) return false;
+        const b1 = p.badge.toLowerCase().trim();
+        const b2 = badgeFilter.toLowerCase().trim();
+        return b1 === b2 || b1.includes(b2) || b2.includes(b1);
+      });
     }
 
     // 6. Stock Filter
@@ -530,7 +554,7 @@ function ProductsContent() {
                   Special Badges
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
-                  {["ALL", "Sale", "New", "Hot"].map((badge) => {
+                  {availableBadges.map((badge) => {
                     const isSelected = badgeFilter === badge;
                     return (
                       <button
@@ -812,7 +836,7 @@ function ProductsContent() {
                   Special Badges
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {["ALL", "Sale", "New", "Hot"].map((badge) => {
+                  {availableBadges.map((badge) => {
                     const isSelected = badgeFilter === badge;
                     return (
                       <button

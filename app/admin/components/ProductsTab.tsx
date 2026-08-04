@@ -40,8 +40,28 @@ export default function ProductsTab() {
 
   const [isUploading, setIsUploading] = useState(false);
 
+  const checkCategoryMatch = (p: Product, targetCat: string) => {
+    if (!targetCat || targetCat === "All" || targetCat === "ALL") return true;
+    const pCat = (p.category || "").toLowerCase().trim();
+    const pSc = (p.scale || "").toLowerCase().trim();
+    const target = targetCat.toLowerCase().trim();
+
+    if (target === "rc toys" || target === "rc" || target === "rc+toys") {
+      return pCat.includes("rc") || pSc.includes("rc");
+    }
+    if (target === "3d frames" || target === "frame" || target === "3d frame" || target === "3d+frames") {
+      return pCat.includes("frame") || pSc.includes("frame");
+    }
+    if (target === "1:18" || target === "1-18") return pCat.includes("1:18") || pSc.includes("1:18");
+    if (target === "1:24" || target === "1-24") return pCat.includes("1:24") || pSc.includes("1:24");
+    if (target === "1:32" || target === "1-32") return pCat.includes("1:32") || pSc.includes("1:32");
+    if (target === "1:36" || target === "1-36") return pCat.includes("1:36") || pSc.includes("1:36");
+
+    return pCat === target || pCat.includes(target) || target.includes(pCat);
+  };
+
   const filteredProducts = products.filter((p) => {
-    const matchesCat = selectedCategory === "All" || p.category === selectedCategory;
+    const matchesCat = checkCategoryMatch(p, selectedCategory);
     const matchesSearch =
       !searchTerm ||
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -243,14 +263,13 @@ export default function ProductsTab() {
           </button>
 
           {categoriesList.map((cat) => {
-            const count = products.filter(
-              (p) => p.category === cat.filterValue || p.category === cat.name
-            ).length;
-            const active = selectedCategory === cat.filterValue || selectedCategory === cat.name;
+            const catVal = cat.filterValue || cat.name;
+            const count = products.filter((p) => checkCategoryMatch(p, catVal)).length;
+            const active = checkCategoryMatch({ category: selectedCategory } as Product, catVal);
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.filterValue)}
+                onClick={() => setSelectedCategory(catVal)}
                 className={`px-4 py-2 rounded-xl text-[12px] font-semibold tracking-wide transition-all flex items-center gap-2 shrink-0 border cursor-pointer ${
                   active
                     ? "bg-[#C5A059] text-black border-[#C5A059] shadow-sm font-bold"
