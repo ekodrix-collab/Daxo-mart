@@ -1,0 +1,24 @@
+{
+  "name": "DaxoMart™ | Premium Diecast Scale Model Cars & RC Toys Store",
+  "short_name": "DaxoMart",
+  "description": "India's #1 Premium Diecast Scale Model Cars, RC Toys & 3D Collectibles Store.",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#0c0c0c",
+  "background_color": "#0c0c0c",
+  "display": "standalone",
+  "start_url": "/",
+  "orientation": "portrait"
+}

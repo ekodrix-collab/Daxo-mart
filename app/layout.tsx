@@ -19,6 +19,7 @@ const geist = Geist({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://daxomart.resellerpro.in";
 
 export const metadata: Metadata = {
+  applicationName: "DaxoMart",
   title: {
     default: "DaxoMart™ | India's #1 Premium Diecast Scale Model Cars, RC Toys & Collectibles",
     template: "%s | DaxoMart",
@@ -51,14 +52,16 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico?v=2", sizes: "any" },
-      { url: "/icon.png?v=2", type: "image/png", sizes: "512x512" },
-      { url: "/icon-192.png?v=2", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico?v=4", sizes: "any" },
+      { url: "/icon.png?v=4", type: "image/png", sizes: "512x512" },
+      { url: "/icon-192.png?v=4", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png?v=4", type: "image/png", sizes: "512x512" },
     ],
-    apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
-    shortcut: ["/favicon.ico?v=2"],
+    apple: [{ url: "/apple-touch-icon.png?v=4", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico?v=4"],
   },
   openGraph: {
     type: "website",
@@ -98,6 +101,10 @@ export const metadata: Metadata = {
   verification: {
     google: ["ZUKT2xCn4jt0UYdZ70hL1SxDsZgr3zkVkpaa6gQj0nI", "F7wXxuFf0rMI3syRIW43FUoJ5xu8IrrtzguF5fKjF5I"],
   },
+  other: {
+    "application-name": "DaxoMart",
+    "og:site_name": "DaxoMart",
+  },
 };
 
 export default function RootLayout({
@@ -108,6 +115,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={geist.variable} suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico?v=4" sizes="any" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=4" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=4" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="application-name" content="DaxoMart" />
+        <meta name="apple-mobile-web-app-title" content="DaxoMart" />
         <GoogleAnalytics />
         <script
           type="application/ld+json"
