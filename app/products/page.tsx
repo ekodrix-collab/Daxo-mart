@@ -242,23 +242,51 @@ function ProductsContent() {
         const nm = (p.name || "").toLowerCase().trim();
         const filt = categoryFilter.toLowerCase().trim();
 
+        // 1. RC Toys: Must match word boundary \brc\b or 'remote' or 'rc toys'
+        if (filt === "rc toys" || filt === "rc" || filt === "rc+toys" || filt.includes("rc")) {
+          const isRcText = (str: string) =>
+            /\brc\b/i.test(str) ||
+            /\bremote\b/i.test(str) ||
+            str.toLowerCase().includes("rc toys") ||
+            str.toLowerCase().includes("rc car");
+          return isRcText(cat) || isRcText(sc) || isRcText(nm);
+        }
+
+        // 2. 3D Frames: Must match word boundary \bframe\b or \bframes\b or '3d frame'
+        if (filt === "3d frames" || filt === "frame" || filt === "3d frame" || filt === "3d+frames" || filt.includes("frame")) {
+          const isFrameText = (str: string) =>
+            /\bframe\b/i.test(str) ||
+            /\bframes\b/i.test(str) ||
+            str.toLowerCase().includes("3d frame");
+          return isFrameText(cat) || isFrameText(sc) || isFrameText(nm);
+        }
+
+        // 3. Scale 1:18
         if (filt.includes("1:18") || filt.includes("1/18")) {
-          return cat.includes("1:18") || cat.includes("1/18") || sc.includes("1:18") || sc.includes("1/18") || nm.includes("1:18") || nm.includes("1/18");
+          const has118 = (str: string) => str.includes("1:18") || str.includes("1/18");
+          const isRcOrFrame = (cat.includes("rc") && !cat.includes("1:18")) || cat.includes("frame") || /\brc\b/i.test(cat);
+          return (has118(cat) || has118(sc) || has118(nm)) && !isRcOrFrame;
         }
+
+        // 4. Scale 1:24
         if (filt.includes("1:24") || filt.includes("1/24")) {
-          return cat.includes("1:24") || cat.includes("1/24") || sc.includes("1:24") || sc.includes("1/24") || nm.includes("1:24") || nm.includes("1/24");
+          const has124 = (str: string) => str.includes("1:24") || str.includes("1/24");
+          const isRcOrFrame = (cat.includes("rc") && !cat.includes("1:24")) || cat.includes("frame") || /\brc\b/i.test(cat);
+          return (has124(cat) || has124(sc) || has124(nm)) && !isRcOrFrame;
         }
+
+        // 5. Scale 1:32
         if (filt.includes("1:32") || filt.includes("1/32")) {
-          return cat.includes("1:32") || cat.includes("1/32") || sc.includes("1:32") || sc.includes("1/32") || nm.includes("1:32") || nm.includes("1/32");
+          const has132 = (str: string) => str.includes("1:32") || str.includes("1/32");
+          const isRcOrFrame = (cat.includes("rc") && !cat.includes("1:32")) || cat.includes("frame") || /\brc\b/i.test(cat);
+          return (has132(cat) || has132(sc) || has132(nm)) && !isRcOrFrame;
         }
+
+        // 6. Scale 1:36
         if (filt.includes("1:36") || filt.includes("1/36")) {
-          return cat.includes("1:36") || cat.includes("1/36") || sc.includes("1:36") || sc.includes("1/36") || nm.includes("1:36") || nm.includes("1/36");
-        }
-        if (filt.includes("rc")) {
-          return cat.includes("rc") || sc.includes("rc") || nm.includes("rc") || nm.includes("remote");
-        }
-        if (filt.includes("frame")) {
-          return cat.includes("frame") || sc.includes("frame") || nm.includes("frame");
+          const has136 = (str: string) => str.includes("1:36") || str.includes("1/36");
+          const isRcOrFrame = (cat.includes("rc") && !cat.includes("1:36")) || cat.includes("frame") || /\brc\b/i.test(cat);
+          return (has136(cat) || has136(sc) || has136(nm)) && !isRcOrFrame;
         }
 
         const cleanFilt = filt.replace(/diecast/g, "").trim();
