@@ -200,9 +200,6 @@ function ProductsContent() {
       window.history.replaceState({}, "", "/products");
     }
     router.replace("/products", { scroll: false });
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
   };
 
   const handleSelectCategory = (catVal: string) => {
@@ -219,9 +216,6 @@ function ProductsContent() {
       window.history.replaceState({}, "", newPath);
     }
     router.replace(newPath, { scroll: false });
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
   };
 
   // Filter & Sort Logic
@@ -621,7 +615,7 @@ function ProductsContent() {
           </aside>
 
           {/* MAIN PRODUCT GRID */}
-          <main className="flex-1">
+          <main className="flex-1 min-h-[650px]">
             {/* Header info bar */}
             <div className="flex items-center justify-between mb-5">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500 font-pally">
