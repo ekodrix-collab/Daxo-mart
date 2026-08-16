@@ -71,22 +71,32 @@ export default function ProductsPage() {
 
   const checkCategoryMatch = (p: Product, targetCat: string) => {
     if (!targetCat || targetCat === "All" || targetCat === "ALL") return true;
-    const pCat = (p.category || "").toLowerCase().trim();
-    const pSc = (p.scale || "").toLowerCase().trim();
+    const cat = (p.category || "").toLowerCase().trim();
+    const sc = (p.scale || "").toLowerCase().trim();
+    const nm = (p.name || "").toLowerCase().trim();
     const target = targetCat.toLowerCase().trim();
 
-    if (target === "rc toys" || target === "rc" || target === "rc+toys") {
-      return pCat.includes("rc") || pSc.includes("rc");
+    if (target === "rc toys" || target === "rc" || target === "rc+toys" || target.includes("rc")) {
+      const isRcText = (str: string) =>
+        /\brc\b/i.test(str) ||
+        /\bremote\b/i.test(str) ||
+        str.toLowerCase().includes("rc toys") ||
+        str.toLowerCase().includes("rc car");
+      return isRcText(cat) || isRcText(sc) || isRcText(nm);
     }
-    if (target === "3d frames" || target === "frame" || target === "3d frame" || target === "3d+frames") {
-      return pCat.includes("frame") || pSc.includes("frame");
+    if (target === "3d frames" || target === "frame" || target === "3d frame" || target === "3d+frames" || target.includes("frame")) {
+      const isFrameText = (str: string) =>
+        /\bframe\b/i.test(str) ||
+        /\bframes\b/i.test(str) ||
+        str.toLowerCase().includes("3d frame");
+      return isFrameText(cat) || isFrameText(sc) || isFrameText(nm);
     }
-    if (target === "1:18" || target === "1-18") return pCat.includes("1:18") || pSc.includes("1:18");
-    if (target === "1:24" || target === "1-24") return pCat.includes("1:24") || pSc.includes("1:24");
-    if (target === "1:32" || target === "1-32") return pCat.includes("1:32") || pSc.includes("1:32");
-    if (target === "1:36" || target === "1-36") return pCat.includes("1:36") || pSc.includes("1:36");
+    if (target.includes("1:18") || target === "1-18") return cat.includes("1:18") || sc.includes("1:18") || nm.includes("1:18");
+    if (target.includes("1:24") || target === "1-24") return cat.includes("1:24") || sc.includes("1:24") || nm.includes("1:24");
+    if (target.includes("1:32") || target === "1-32") return cat.includes("1:32") || sc.includes("1:32") || nm.includes("1:32");
+    if (target.includes("1:36") || target === "1-36") return cat.includes("1:36") || sc.includes("1:36") || nm.includes("1:36");
 
-    return pCat === target || pCat.includes(target) || target.includes(pCat);
+    return cat === target || cat.includes(target) || target.includes(cat);
   };
 
   const adminCategoryTabs = [
