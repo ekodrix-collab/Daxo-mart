@@ -131,10 +131,20 @@ function ProductsContent() {
     defaultList.forEach((item) => optionsMap.set(item.value, item));
 
     dbCategories.forEach((c) => {
+      const valLower = (c.filterValue || c.name || "").toLowerCase().trim();
+
+      // Normalize standard categories to prevent duplicate dropdown pills
+      if (valLower.includes("1:18") || valLower.includes("1/18")) return;
+      if (valLower.includes("1:24") || valLower.includes("1/24")) return;
+      if (valLower.includes("1:32") || valLower.includes("1/32")) return;
+      if (valLower.includes("1:36") || valLower.includes("1/36")) return;
+      if (valLower.includes("rc")) return;
+      if (valLower.includes("frame")) return;
+
       const val = c.filterValue || c.name;
       if (!optionsMap.has(val)) {
         optionsMap.set(val, {
-          label: c.name.includes("Diecast") || c.name.includes(":") ? c.name : `${c.name} Diecast`,
+          label: c.name,
           value: val,
         });
       }
@@ -235,22 +245,34 @@ function ProductsContent() {
       result = result.filter((p) => {
         const cat = (p.category || "").toLowerCase().trim();
         const sc = (p.scale || "").toLowerCase().trim();
+        const nm = (p.name || "").toLowerCase().trim();
         const filt = categoryFilter.toLowerCase().trim();
-        if (filt === "1:18" || filt === "1/18") {
-          return cat.includes("1:18") || cat.includes("1/18") || sc.includes("1:18") || sc.includes("1/18");
+
+        if (filt.includes("1:18") || filt.includes("1/18")) {
+          return cat.includes("1:18") || cat.includes("1/18") || sc.includes("1:18") || sc.includes("1/18") || nm.includes("1:18") || nm.includes("1/18");
         }
-        if (filt === "1:24" || filt === "1/24") {
-          return cat.includes("1:24") || cat.includes("1/24") || sc.includes("1:24") || sc.includes("1/24");
+        if (filt.includes("1:24") || filt.includes("1/24")) {
+          return cat.includes("1:24") || cat.includes("1/24") || sc.includes("1:24") || sc.includes("1/24") || nm.includes("1:24") || nm.includes("1/24");
         }
-        if (filt === "1:32" || filt === "1/32") {
-          return cat.includes("1:32") || cat.includes("1/32") || sc.includes("1:32") || sc.includes("1/32");
+        if (filt.includes("1:32") || filt.includes("1/32")) {
+          return cat.includes("1:32") || cat.includes("1/32") || sc.includes("1:32") || sc.includes("1/32") || nm.includes("1:32") || nm.includes("1/32");
         }
-        if (filt === "1:36" || filt === "1/36") {
-          return cat.includes("1:36") || cat.includes("1/36") || sc.includes("1:36") || sc.includes("1/36");
+        if (filt.includes("1:36") || filt.includes("1/36")) {
+          return cat.includes("1:36") || cat.includes("1/36") || sc.includes("1:36") || sc.includes("1/36") || nm.includes("1:36") || nm.includes("1/36");
         }
-        if (filt.includes("rc")) return cat.includes("rc") || sc.includes("rc");
-        if (filt.includes("frame")) return cat.includes("frame") || sc.includes("frame");
-        return cat.includes(filt) || filt.includes(cat);
+        if (filt.includes("rc")) {
+          return cat.includes("rc") || sc.includes("rc") || nm.includes("rc") || nm.includes("remote");
+        }
+        if (filt.includes("frame")) {
+          return cat.includes("frame") || sc.includes("frame") || nm.includes("frame");
+        }
+
+        const cleanFilt = filt.replace(/diecast/g, "").trim();
+        if (cleanFilt) {
+          return cat.includes(cleanFilt) || sc.includes(cleanFilt) || nm.includes(cleanFilt);
+        }
+
+        return cat === filt;
       });
     }
 
