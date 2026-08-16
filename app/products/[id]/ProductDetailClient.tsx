@@ -8,7 +8,7 @@ import { type Product, type SizeOption, formatTitleCase } from "@/lib/products";
 import { useCart } from "@/components/cart/CartContext";
 import ProductCard from "@/components/product/ProductCard";
 import ProductVideoFloating from "@/components/product/ProductVideoFloating";
-import { ChevronLeft, ChevronRight, Search, HelpCircle, X, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, HelpCircle, X, ChevronDown, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 
 const INDIAN_STATES = [
   "Kerala",
@@ -565,9 +565,26 @@ export default function ProductDetailClient({
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const [isScaleGuideOpen, setIsScaleGuideOpen] = useState(false);
   const [isSpecsOpen, setIsSpecsOpen] = useState(false);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [isZoomedIn, setIsZoomedIn] = useState(false);
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isZoomOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      setIsZoomedIn(false);
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isZoomOpen]);
 
   const { addToCart } = useCart();
   const router = useRouter();
@@ -752,7 +769,8 @@ export default function ProductDetailClient({
           {/* Left: Images */}
           <div ref={imageSectionRef}>
             <div
-              className="bg-gray-50 rounded-2xl overflow-hidden relative border border-gray-200/80 shadow-sm select-none touch-pan-y"
+              onClick={() => setIsZoomOpen(true)}
+              className="bg-gray-50 rounded-2xl overflow-hidden relative border border-gray-200/80 shadow-sm select-none touch-pan-y cursor-zoom-in group"
               style={{ aspectRatio: "1" }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
@@ -783,13 +801,26 @@ export default function ProductDetailClient({
                 </span>
               )}
 
+              {/* Zoom Prompt Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsZoomOpen(true);
+                }}
+                className="absolute bottom-3 right-3 z-10 bg-black/70 hover:bg-black text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/20 shadow-md transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <Maximize2 size={13} />
+                <span>Tap to Zoom</span>
+              </button>
+
               <Image
                 src={allGalleryImages[activeImg] || colorOptions[selectedColor]?.image || product.img}
                 alt={product.name}
                 width={600}
                 height={600}
                 unoptimized
-                className="w-full h-full object-contain p-8 transition-all duration-300 pointer-events-none"
+                className="w-full h-full object-contain p-8 transition-all duration-300 pointer-events-none group-hover:scale-105"
                 priority
               />
             </div>
@@ -1313,6 +1344,122 @@ export default function ProductDetailClient({
         videoUrl={product.videoUrl}
         productName={product.name}
       />
+
+      {/* FULL SCREEN LIGHTBOX & ZOOM MODAL */}
+      {isZoomOpen && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col justify-between p-3 sm:p-6 select-none animate-in fade-in duration-200">
+          {/* Top Bar: Title, Count, Zoom Toggle, Close */}
+          <div className="flex items-center justify-between gap-4 z-10 text-white border-b border-white/10 pb-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-extrabold px-3 py-1 rounded-full font-mono shrink-0">
+                {activeImg + 1} / {allGalleryImages.length}
+              </span>
+              <h3 className="text-xs sm:text-sm font-bold text-white truncate max-w-xs sm:max-w-md font-pally">
+                {formatTitleCase(product.name)}
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsZoomedIn((z) => !z)}
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+                title={isZoomedIn ? "Zoom Out" : "Zoom In"}
+              >
+                {isZoomedIn ? <ZoomOut size={15} /> : <ZoomIn size={15} />}
+                <span className="hidden sm:inline">{isZoomedIn ? "Reset" : "2x Zoom"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsZoomOpen(false)}
+                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                title="Close Lightbox"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Image Viewport Area with Touch Swipe & Zoom */}
+          <div
+            className="relative flex-1 flex items-center justify-center overflow-auto p-2 my-2 cursor-grab active:cursor-grabbing touch-pan-y"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={() => setIsZoomedIn((z) => !z)}
+          >
+            {/* Prev Navigation Button */}
+            {allGalleryImages.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrevImg();
+                }}
+                className="absolute left-2 sm:left-4 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-2xl"
+                title="Previous Image"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+
+            {/* Main Enlarged Image */}
+            <div className={`transition-transform duration-300 flex items-center justify-center w-full h-full max-h-[75vh] ${isZoomedIn ? "scale-150 sm:scale-175" : "scale-100"}`}>
+              <Image
+                src={allGalleryImages[activeImg] || product.img}
+                alt={product.name}
+                width={1200}
+                height={1200}
+                unoptimized
+                className="max-w-full max-h-[75vh] object-contain drop-shadow-2xl pointer-events-none"
+                priority
+              />
+            </div>
+
+            {/* Next Navigation Button */}
+            {allGalleryImages.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNextImg();
+                }}
+                className="absolute right-2 sm:right-4 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-2xl"
+                title="Next Image"
+              >
+                <ChevronRight size={24} />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnails Strip */}
+          {allGalleryImages.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1 pt-2 justify-center scrollbar-none border-t border-white/10 shrink-0">
+              {allGalleryImages.map((img, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActiveImg(i)}
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white/5 border-2 shrink-0 overflow-hidden transition-all cursor-pointer ${
+                    activeImg === i
+                      ? "border-amber-400 scale-105 shadow-md"
+                      : "border-white/20 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <Image
+                    src={img}
+                    alt={`Thumbnail ${i + 1}`}
+                    width={64}
+                    height={64}
+                    unoptimized
+                    className="w-full h-full object-contain p-1"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
