@@ -202,29 +202,54 @@ Please confirm my order. Thank you!`;
     const waUrl = `https://wa.me/${adminWhatsAppNumber}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, "_blank");
 
-    if (isDirectProduct && product) {
-      fetch("/api/orders/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    const orderPayload = isDirectProduct && product
+      ? {
           customer_name: customerFullName,
-          phone: form.phone.trim(),
-          email: form.email.trim(),
-          address: fullAddress,
+          customer_phone: form.phone.trim(),
+          customer_email: form.email.trim(),
+          full_address: fullAddress,
           city: form.city.trim(),
           state: form.state.trim(),
           pincode: form.pincode.trim(),
           product_id: product.id.toString(),
           product_name: product.name,
           product_image: product.img,
+          selectedColor: selectedColorName,
+          selectedSize: selectedSizeName || product.scale,
           quantity: quantity,
           unit_price: product.price,
           subtotal: totalAmount,
-        }),
-      }).catch((err) => {
-        console.error("Async order save error:", err);
-      });
-    } else {
+        }
+      : {
+          customer_name: customerFullName,
+          customer_phone: form.phone.trim(),
+          customer_email: form.email.trim(),
+          full_address: fullAddress,
+          city: form.city.trim(),
+          state: form.state.trim(),
+          pincode: form.pincode.trim(),
+          subtotal: totalAmount,
+          items: cart.map((it) => ({
+            product_id: String(it.product.id),
+            product_name: it.product.name,
+            product_image: it.product.img,
+            selectedColor: (it.product as any).color || (it.product as any).selectedColor || "",
+            selectedSize: it.product.scale || "",
+            quantity: it.quantity,
+            unit_price: it.product.price,
+            subtotal: it.product.price * it.quantity,
+          })),
+        };
+
+    fetch("/api/orders/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    }).catch((err) => {
+      console.error("Async order save error:", err);
+    });
+
+    if (!isDirectProduct) {
       clearCart();
     }
   };
