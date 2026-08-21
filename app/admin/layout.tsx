@@ -36,17 +36,54 @@ const NAV_ITEMS = [
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
+function playOrderNotificationChime() {
+  try {
+    if (typeof window === "undefined") return;
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+
+    const now = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(880, now);
+
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(1760, now + 0.12);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc1.start(now);
+    osc1.stop(now + 0.12);
+
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.6);
+  } catch (err) {
+    console.warn("Audio chime error:", err);
+  }
+}
+
 function SideItem({
   label,
   href,
   icon: Icon,
   active,
+  badgeCount,
   onClick,
 }: {
   label: string;
   href: string;
   icon: React.ElementType;
   active: boolean;
+  badgeCount?: number;
   onClick: () => void;
 }) {
   return (
@@ -74,7 +111,13 @@ function SideItem({
         </div>
         <span>{label}</span>
       </div>
-      {active && <ChevronRight size={14} className="text-[#C5A059]/70" />}
+      {badgeCount && badgeCount > 0 ? (
+        <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce shadow-[0_0_10px_rgba(220,38,38,0.8)]">
+          {badgeCount}
+        </span>
+      ) : active ? (
+        <ChevronRight size={14} className="text-[#C5A059]/70" />
+      ) : null}
     </Link>
   );
 }
@@ -88,6 +131,53 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState("admin@daxomart.com");
   const [loading, setLoading] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const [newOrdersCount, setNewOrdersCount] = useState<number>(0);
+  const [latestOrderToast, setLatestOrderToast] = useState<{
+    orderNumber: string;
+    customerName: string;
+    amount: number;
+  } | null>(null);
+
+  // Realtime Supabase Orders WebSocket & Fast Polling
+  useEffect(() => {
+    if (!authed) return;
+
+    // 1. Subscribe to Supabase Realtime WebSocket
+    const channel = supabase
+      .channel("realtime-orders-admin-global")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload: any) => {
+          const newOrd = payload.new;
+          if (newOrd) {
+            setNewOrdersCount((prev) => prev + 1);
+            playOrderNotificationChime();
+            setLatestOrderToast({
+              orderNumber: newOrd.order_number || `#DXM-${newOrd.id}`,
+              customerName: newOrd.customer_name || "New Customer",
+              amount: Number(newOrd.total_amount || 0),
+            });
+            setTimeout(() => setLatestOrderToast(null), 9000);
+          }
+        }
+      )
+      .subscribe();
+
+    // 2. Initial count check
+    supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "New")
+      .then(({ count }) => {
+        if (count !== null) setNewOrdersCount(count);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [authed]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -303,6 +393,7 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 icon={item.icon}
                 active={isActive}
+                badgeCount={item.label === "Orders" ? newOrdersCount : undefined}
                 onClick={() => setMobileNavOpen(false)}
               />
             );
@@ -376,7 +467,11 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
               title="Notifications"
             >
               <Bell size={18} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#C5A059] rounded-full ring-2 ring-[#0F0F12]" />
+              {newOrdersCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  {newOrdersCount}
+                </span>
+              )}
             </button>
 
             {pathname === "/admin/products" && (
@@ -389,6 +484,33 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </header>
+
+        {/* REALTIME NEW ORDER FLOATING TOAST NOTIFICATION */}
+        {latestOrderToast && (
+          <div
+            onClick={() => {
+              router.push("/admin/orders");
+              setLatestOrderToast(null);
+            }}
+            className="fixed top-5 right-5 z-50 bg-[#121215] border-2 border-emerald-500 text-white p-4 rounded-2xl shadow-[0_12px_40px_rgba(34,197,94,0.3)] backdrop-blur-xl flex items-center gap-4 cursor-pointer animate-in fade-in slide-in-from-top-5 duration-300 max-w-sm w-full"
+          >
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 animate-pulse">
+              <ShoppingCart size={24} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-extrabold tracking-wider uppercase text-emerald-400">
+                  🚨 NEW LIVE ORDER!
+                </span>
+                <span className="text-[11px] font-mono text-gray-400">{latestOrderToast.orderNumber}</span>
+              </div>
+              <h4 className="text-sm font-bold text-white truncate mt-0.5">{latestOrderToast.customerName}</h4>
+              <p className="text-xs text-[#C5A059] font-extrabold mt-0.5">
+                ₹{latestOrderToast.amount.toLocaleString("en-IN")} • Tap to view
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Dark Content Canvas - #0B0B0C */}
         <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto">{children}</main>

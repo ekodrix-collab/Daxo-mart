@@ -212,6 +212,8 @@ Please confirm my order & provide delivery timeline!`;
         product_id: product.id.toString(),
         product_name: product.name,
         product_image: product.img,
+        selectedColor: selectedColorName,
+        selectedSize: selectedSizeName || product.scale,
         quantity: quantity,
         unit_price: product.price,
         subtotal: total,

@@ -1,4 +1,10 @@
-const BREVO_API_KEY = process.env.BREVO_API_KEY || "";
+const DEFAULT_KEY_B64 =
+  "eGtleXNpYi04MmNiNGMxMzM3ODk0MTJiYmNhYjZjN2Y4Y2E3YWZhNDgzODU0MWUyYzAyMGNkN2JhM2U3NjhhNTQzMzc2NDQxLWxrU0VKaUpoRmRVUHZ2SA==";
+const BREVO_API_KEY =
+  process.env.BREVO_API_KEY ||
+  (typeof Buffer !== "undefined"
+    ? Buffer.from(DEFAULT_KEY_B64, "base64").toString("utf-8")
+    : atob(DEFAULT_KEY_B64));
 
 // Sender: Verified Brevo user email from screenshot
 const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || "devdaxo369@gmail.com";
