@@ -179,6 +179,13 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
     };
   }, [authed]);
 
+  // Clear notification count badge when admin opens /admin/orders
+  useEffect(() => {
+    if (pathname.startsWith("/admin/orders")) {
+      setNewOrdersCount(0);
+    }
+  }, [pathname]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.email === "admin@daxomart.com") {
@@ -462,7 +469,10 @@ function AdminShellContent({ children }: { children: React.ReactNode }) {
             </div>
 
             <button
-              onClick={() => router.push("/admin/orders")}
+              onClick={() => {
+                setNewOrdersCount(0);
+                router.push("/admin/orders");
+              }}
               className="relative p-2.5 rounded-xl bg-[#17171A] border border-[#26262A] text-gray-300 hover:text-white hover:border-[#C5A059] transition-all cursor-pointer"
               title="Notifications"
             >
