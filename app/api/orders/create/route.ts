@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { sendOrderNotificationEmail } from "@/lib/brevo";
 
 export async function POST(req: Request) {
   try {
@@ -81,6 +82,48 @@ export async function POST(req: Request) {
       if (itemErr) {
         console.warn("Supabase Order Item Insert Error:", itemErr);
       }
+    }
+
+    // Trigger Brevo Order Notification Email to Admin & Customer
+    try {
+      const emailItems =
+        body.items && Array.isArray(body.items) && body.items.length > 0
+          ? body.items.map((it: any) => ({
+              productName: it.product_name || it.name || "Diecast Model Car",
+              productImage: it.product_image || it.img,
+              selectedColor: it.selectedColor || it.color || body.selectedColor || body.color,
+              selectedSize: it.selectedSize || it.size || body.selectedSize || body.size,
+              quantity: Number(it.quantity) || 1,
+              unitPrice: Number(it.unit_price || it.price) || 0,
+              subtotal: Number(it.subtotal || (Number(it.price || 0) * Number(it.quantity || 1))) || 0,
+            }))
+          : [
+              {
+                productName: product_name || "Diecast Model Car",
+                productImage: product_image,
+                selectedColor: body.selectedColor || body.color || body.selected_color,
+                selectedSize: body.selectedSize || body.size || body.selected_size,
+                quantity: Number(quantity) || 1,
+                unitPrice: Number(unit_price) || Number(subtotal) || 0,
+                subtotal: Number(subtotal) || 0,
+              },
+            ];
+
+      await sendOrderNotificationEmail({
+        orderNumber: finalOrderNumber,
+        customerName: customer_name,
+        customerPhone: cleanPhone,
+        customerEmail: customer_email,
+        shippingAddress: `${full_address}, ${city}, ${state} - ${pincode}`,
+        city: city,
+        state: state,
+        pincode: pincode,
+        totalAmount: Number(subtotal) || 0,
+        paymentMethod: "COD / WhatsApp Order",
+        items: emailItems,
+      });
+    } catch (emailErr) {
+      console.error("Brevo email send exception:", emailErr);
     }
 
     return NextResponse.json({
